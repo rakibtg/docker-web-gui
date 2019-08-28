@@ -1,12 +1,12 @@
 import React from 'react'
-import { Pane, Button, Text, Heading, Icon, Badge, Switch } from 'evergreen-ui'
+import { Pane, Button, Heading, Badge, Switch } from 'evergreen-ui'
 
 const ContainerListItem = () => {
     return (
         <Pane border="default" padding={10} marginBottom={10}>
            <Pane display="flex">
                <Heading size={500}>Container name</Heading>
-               <Badge color="green" marginLeft={10} marginTop={3}>Success</Badge>
+               <Badge color="green" marginLeft={10} marginTop={3}>Running</Badge>
            </Pane>
            <Pane display="flex" marginTop={10}>
                <Switch marginRight={12} marginTop={2}/>
@@ -18,4 +18,4 @@ const ContainerListItem = () => {
     );
 };
 
-export default ContainerListItem;
+export default ContainerListItem
