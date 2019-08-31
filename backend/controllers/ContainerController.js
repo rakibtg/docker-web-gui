@@ -32,8 +32,15 @@ exports.fetchById = async (req, res) => {
   res.json(container)
 }
 
-exports.command = (req, res) => {
-  
+exports.command = async (req, res) => {
+  const containerID = req.query.container
+  const command = req.query.command
+  const cmd = `docker container ${command} ${containerID}`
+  const cmdData = await Terminal(cmd)
+  res.json(
+    cmdData
+      .replace("\n", "")
+  )
 }
 
 exports.logs = (req, res) => {
