@@ -44,7 +44,10 @@ exports.command = async (req, res) => {
 }
 
 exports.logs = async (req, res) => {
-  
+  const containerID = req.query.container
+  const cmd = `docker container logs ${containerID} --tail 1500`
+  const data = await Terminal(cmd)
+  res.json(data)
 }
 
 exports.stats = async (req, res) => {
