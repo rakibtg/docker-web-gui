@@ -7,9 +7,9 @@
   - Method: GET
   - Query Params: 
     - `status` ['all', 'active', 'stopped'] - default: 'active'
-  - Response:
+  - Response: 
     An object of containers
-    ```JSON
+```JSON
 {
   "19ea7e796993": {
     "Id": "19ea7e796993c1b3486ffa4207994ef7e9cf7844072c6760970375b89e96d45c",
@@ -33,4 +33,4 @@
   ...,
   ...
 }
-    ```
+```
