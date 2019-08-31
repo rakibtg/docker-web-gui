@@ -103,7 +103,10 @@
       - Value: `container-id` ex: 3da3ad7b90e3
   - Response: String with special characters like new lines, tabs etc
     ```
-    "172.18.0.1 - - [27/Aug/2019:16:13:01 +0000] \"POST /api/v1/actions/upload/ HTTP/1.1\" 200 1357 \"-\" \"insomnia/6.6.2\"\n172.18.0.1 - - [27/Aug/2019:16:28:36 +0000] \"POST /api/v1/actions/upload/ HTTP/1.1\" 200 1522 \"-\" \"insomnia/6.6.2\"\n172.18.0.1 - - [27/Aug/2019:16:31:38 +0000] \"POST /api/v1/actions/upload/ HTTP/1.1\" 200 1357 \"-\" \"insomnia/
+    "172.18.0.1 - - 
+    [27/Aug/2019:16:13:01 +0000] \"POST /api/v1/actions/upload/ HTTP/1.1\" 200 1357 \"-\" \"insomnia/6.6.2\"\n172.18.0.1 - - 
+    [27/Aug/2019:16:28:36 +0000] \"POST /api/v1/actions/upload/ HTTP/1.1\" 200 1522 \"-\" \"insomnia/6.6.2\"\n172.18.0.1 - - 
+    [27/Aug/2019:16:31:38 +0000] \"POST /api/v1/actions/upload/ HTTP/1.1\" 200 1357 \"-\" \"insomnia/
     ...
     ...
     ```
