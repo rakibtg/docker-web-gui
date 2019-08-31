@@ -25,8 +25,11 @@ exports.fetch = async (req, res) => {
   res.json(results)
 }
 
-exports.fetchById = (req, res) => {
-  
+exports.fetchById = async (req, res) => {
+  const containerID = req.query.container
+  const containerInspect = await Terminal('docker container inspect ' + containerID)
+  const container = lightContainerDetail(containerID, JSON.parse(containerInspect)[0])
+  res.json(container)
 }
 
 exports.command = (req, res) => {
