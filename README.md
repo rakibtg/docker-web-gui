@@ -3,10 +3,12 @@
 ## Backend API
 
 - Get a list of containers
-  - Endpoint: http://localhost:3230/api/controller/fetch?status=active
-  - Method: GET
+  - Endpoint: `/api/controller/fetch?status=active`
+  - Method: `GET`
   - Query Params: 
-    - `status` ['all', 'active', 'stopped'] - default: 'active'
+    - `status` 
+      - Value: `all`, `active`, `stopped` 
+      - default: `active`
   - Response: 
     An object of containers
 ```JSON
@@ -30,7 +32,36 @@
     },
     "Name": "/goofy_antonelli"
   },
-  ...,
-  ...
+  {...},
+  {...},
+}
+```
+
+- Get a container by ID
+  - Endpoint: `/api/controller/fetchById?container=container-id-here`
+  - Method: `GET`
+  - Query Params:
+    - `container`
+      - Value: `container-id` ex: 3da3ad7b90e3
+  - Response: An object contained information's about the container
+```JSON
+{
+  "Id": "3da3ad7b90e321fbf0fd2466d2555a7092c0642e7ad07fbe5d623fa0c6f65ada",
+  "shortId": "3da3ad7b90e3",
+  "Created": "2019-08-27T16:11:57.4812983Z",
+  "State": {
+    "Status": "running",
+    "Running": true,
+    "Paused": false,
+    "Restarting": false,
+    "OOMKilled": false,
+    "Dead": false,
+    "Pid": 2660,
+    "ExitCode": 0,
+    "Error": "",
+    "StartedAt": "2019-08-31T04:25:12.807509894Z",
+    "FinishedAt": "2019-08-31T04:25:07.825047009Z"
+  },
+  "Name": "/dinky-dank-docker_web_1"
 }
 ```
