@@ -2,6 +2,9 @@ const { Terminal } = require('../utilities/terminal')
 const { lightContainerDetail } = require('../utilities/lightContainerDetail')
 
 exports.fetch = async (req, res) => {
+  const status = req.query.status
+    ? req.query.status
+    : 'active'
   const rawContainersFromCmd = await Terminal('docker ps -q -a')
   const containers = rawContainersFromCmd
     .split("\n")
@@ -19,6 +22,7 @@ exports.fetch = async (req, res) => {
       if(tintContainer.State.Running !== true) results[container] = lightContainerDetail(container, tintContainer)
     }
   }))
+  res.json(results)
 }
 
 exports.fetchById = (req, res) => {
