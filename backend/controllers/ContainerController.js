@@ -43,10 +43,16 @@ exports.command = async (req, res) => {
   )
 }
 
-exports.logs = (req, res) => {
+exports.logs = async (req, res) => {
   
 }
 
-exports.stats = (req, res) => {
-  
+exports.stats = async (req, res) => {
+  const cmd = `docker container stats --no-stream --format '{"id": "{{.ID}}", "cpu_percentage": "{{.CPUPerc}}", "memory_usage": "{{.MemUsage}}", "network_io": "{{.NetIO}}"}'`
+  const cmdStats = await Terminal(cmd)
+  const statsArray = cmdStats
+    .split("\n")
+    .filter(container => container !== '')
+    .map(stat => JSON.parse(stat))
+  res.json(statsArray)
 }
