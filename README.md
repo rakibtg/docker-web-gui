@@ -32,7 +32,7 @@
         "Name": "/goofy_antonelli"
       },
       {...},
-      {...},
+      {...}
     }
     ```
 
@@ -74,6 +74,23 @@
     - `command`
       - Value: `start`, `stop`, `restart` etc
   - Response: It might return the container id most of the time. It could be different based on the command.
-  ```
-  "3da3ad7b90e3"
-  ```
+    ```
+    "3da3ad7b90e3"
+    ```
+
+- Get system consumption stats of all active containers
+  - Endpoint: `/api/controller/stats`
+  - Method: `GET`
+  - Response: List of status for active containers
+    ```JSON
+    [
+      {
+        "id": "3da3ad7b90e3",
+        "cpu_percentage": "0.01%",
+        "memory_usage": "9.77MiB / 1.952GiB",
+        "network_io": "998B / 0B"
+      },
+      {...},
+      {...}
+    ]
+    ```
