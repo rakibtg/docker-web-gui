@@ -2,6 +2,8 @@ const express = require('express')
 const app = express()
 const port = 3230
 
+app.use(express.json())
+
 const { DefaultController } = require('./controllers/DefaultController')
 const { GenericCommandController } = require('./controllers/GenericCommandController')
 const ContainerController = require('./controllers/ContainerController')
