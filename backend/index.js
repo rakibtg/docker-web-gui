@@ -1,8 +1,10 @@
 const express = require('express')
+const cors = require('cors')
 const app = express()
 const port = 3230
 
 app.use(express.json())
+app.use(cors())
 
 const { DefaultController } = require('./controllers/DefaultController')
 const { GenericCommandController } = require('./controllers/GenericCommandController')
