@@ -7,11 +7,7 @@ class SecondaryNavBar extends React.PureComponent {
     return <Pane 
       backgroundColor="#f1f1f1" 
       display="flex" 
-      justifyContent="center" 
-      marginLeft={-20} 
-      marginRight={-20} 
-      marginTop={-20}
-      marginBottom={10}
+      justifyContent="center"
       padding={10}>
       <SegmentedControl
         width={400}
