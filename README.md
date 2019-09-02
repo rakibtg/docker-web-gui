@@ -9,9 +9,9 @@
     - `status` 
       - Value: `all`, `active`, `stopped` 
       - default: `active`
-  - Response: An object of containers
+  - Response: A list of containers
     ```JSON
-    {
+    [
       "19ea7e796993": {
         "Id": "19ea7e796993c1b3486ffa4207994ef7e9cf7844072c6760970375b89e96d45c",
         "shortId": "19ea7e796993",
@@ -33,7 +33,7 @@
       },
       {...},
       {...}
-    }
+    ]
     ```
 
 - Get a container by ID

@@ -10,16 +10,16 @@ exports.fetch = async (req, res) => {
     .split("\n")
     .map(container => container.trim())
     .filter(container => container !== '')
-  let results = {}
+  let results = []
   await Promise.all(containers.map(async container => {
     const weAreTheFortunateOne = await Terminal('docker container inspect '+container)
     const tintContainer = JSON.parse(weAreTheFortunateOne)[0]
     if(status === 'active') {
-      if(tintContainer.State.Running === true) results[container] = lightContainerDetail(container, tintContainer)
+      if(tintContainer.State.Running === true) results.push(lightContainerDetail(container, tintContainer))
     } else if(status === 'all') {
-      results[container] = lightContainerDetail(container, tintContainer)
+      results.push(lightContainerDetail(container, tintContainer))
     } else if(status === 'stopped') {
-      if(tintContainer.State.Running !== true) results[container] = lightContainerDetail(container, tintContainer)
+      if(tintContainer.State.Running !== true) results.push(lightContainerDetail(container, tintContainer))
     }
   }))
   res.json(results)
