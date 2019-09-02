@@ -1,6 +1,14 @@
 import React from 'react'
+import { bindActionCreators } from 'redux'
+import { connect } from 'react-redux'
 
-class ContainerLists extends React.PureComponent {
+import { getContainers } from '../../store/actions/container.action'
+
+class ContainersList extends React.PureComponent {
+
+  componentDidMount () {
+    console.log('containers:', this.props.containers)
+  }
 
   render () {
     return <>
@@ -10,4 +18,16 @@ class ContainerLists extends React.PureComponent {
 
 }
 
-export default ContainerLists
+const mapStateToProps = state => {
+  console.log('State:', state)
+  return {containers: state.container}
+}
+
+const mapDispatchToProps = dispatch => bindActionCreators(
+  {
+    getContainers
+  },
+  dispatch
+)
+
+export default connect(mapStateToProps, mapDispatchToProps)( ContainersList )
