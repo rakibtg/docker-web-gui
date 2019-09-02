@@ -1,3 +1,5 @@
 export default {
-  containers: {},
+  containers: [],
+  pageLoading: true,
+  pageError: false,
 }
