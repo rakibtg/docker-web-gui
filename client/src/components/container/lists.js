@@ -1,25 +1,36 @@
 import React from 'react'
+import { Pane } from 'evergreen-ui'
+
 import { bindActionCreators } from 'redux'
 import { connect } from 'react-redux'
-
 import { getContainers } from '../../store/actions/container.action'
+
+import ContainerCard from './card'
 
 class ContainersList extends React.PureComponent {
 
   componentDidMount () {
-    console.log('containers:', this.props.containers)
+    this.props.getContainers('active')
   }
 
   render () {
-    return <>
-      hello...
-    </>
+    const { containers } = this.props
+    return <Pane 
+      display="flex" 
+      flexDirection="column" 
+      justifyContent="center" 
+      alignItems="center"
+      marginTop={20}>
+        {
+          containers.map((container, index) => <ContainerCard key={index} container={container} />)
+        }
+    </Pane>
   }
 
 }
 
 const mapStateToProps = state => {
-  return {containers: state.container}
+  return {containers: state.container.containers}
 }
 
 const mapDispatchToProps = dispatch => bindActionCreators(
