@@ -22,7 +22,13 @@ class ContainersList extends React.PureComponent {
       alignItems="center"
       marginTop={20}>
         {
-          containers.map((container, index) => <ContainerCard key={index} container={container} />)
+          containers.map((container, index) => 
+            <ContainerCard 
+              key={index} 
+              index={index} 
+              container={container} 
+            />
+          )
         }
     </Pane>
   }
