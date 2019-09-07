@@ -3,7 +3,7 @@
 ## Backend API
 
 - Get a list of containers
-  - Endpoint: `/api/controller/fetch?status=active`
+  - Endpoint: `/api/container/fetch?status=active`
   - Method: `GET`
   - Query Params: 
     - `status` 
@@ -37,7 +37,7 @@
     ```
 
 - Get a container by ID
-  - Endpoint: `/api/controller/fetchById?container=container-id`
+  - Endpoint: `/api/container/fetchById?container=container-id`
   - Method: `GET`
   - Query Params:
     - `container`
@@ -66,7 +66,7 @@
     ```
 
 - Run generic command to a specific container
-  - Endpoint: `/api/controller/command?container=container-id&command=start`
+  - Endpoint: `/api/container/command?container=container-id&command=start`
   - Method: `GET`
   - Query Params:
     - `container`
@@ -79,7 +79,7 @@
     ```
 
 - Get system consumption stats of all active containers
-  - Endpoint: `/api/controller/stats`
+  - Endpoint: `/api/container/stats`
   - Method: `GET`
   - Response: List of status for active containers
     ```JSON
@@ -96,7 +96,7 @@
     ```
 
 - Get text log of a container
-  - Endpoint: `/api/controller/logs?container=container-id`
+  - Endpoint: `/api/container/logs?container=container-id`
   - Method: `GET`
   - Query Params:
     - `container`
