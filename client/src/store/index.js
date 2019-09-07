@@ -3,7 +3,6 @@ import thunk from 'redux-thunk'
 
 import schema from './schema'
 import rootReducer from './reducers'
-console.log('schema:', schema)
 const middlewares = [thunk]
 
 if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development') {

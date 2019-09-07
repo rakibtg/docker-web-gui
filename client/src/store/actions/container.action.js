@@ -5,18 +5,25 @@ export const genericContainer = payload => ({
   payload
 })
 
-export const getContainers = token => {
+export const getContainers = (status = 'active') => {
   return dispatch => {
-    request('post', 'container', {})
+    dispatch(genericContainer({
+      loading: status,
+      pageError: false,
+      segment: status
+    }))
+    request('get', `container/fetch?status=${status}`, {})
       .then(response => {
-        console.log(response)
-        // dispatch(genericContainer({
-        //   homeScreenLoading: false
-        // }))
+        dispatch(genericContainer({
+          loading: false,
+          containers: response.data,
+          pageError: false,
+        }))
       }).catch(error => {
-        // dispatch(genericContainer({
-        //   homeScreenLoading: false
-        // }))
+        dispatch(genericContainer({
+          loading: false,
+          pageError: true,
+        }))
       })
   }
 }
