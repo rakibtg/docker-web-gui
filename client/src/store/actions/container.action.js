@@ -5,6 +5,11 @@ export const genericContainer = payload => ({
   payload
 })
 
+export const updateContainer = payload => ({
+  type: 'UPDATE_CONTAINER',
+  payload
+})
+
 export const getContainers = (status = 'active') => {
   return dispatch => {
     dispatch(genericContainer({
@@ -24,6 +29,33 @@ export const getContainers = (status = 'active') => {
         dispatch(genericContainer({
           loading: false,
           pageError: true,
+        }))
+      })
+  }
+}
+
+export const toggleContainer = (container, status) => {
+  return dispatch => {
+    dispatch(updateContainer({
+      containerId: container.shortId,
+      data: { stateToggling: true },
+    }))
+    request('get', `container/command?container=${container.shortId}&command=${status}`)
+      .then(res => {
+        const State = {
+          ...container.State,
+          ...{
+            Running: status === 'start'
+              ? true
+              : false
+          }
+        }
+        dispatch(updateContainer({
+          containerId: container.shortId,
+          data: { 
+            State,
+            stateToggling: false,
+          },
         }))
       })
   }
