@@ -1,5 +1,4 @@
 import React from 'react'
-import DockerContainer from './components/DockerContainer';
 import DockerImage from './components/DockerImage';
 import Stats from './components/Stats';
 import {BrowserRouter, Route, Switch} from 'react-router-dom';
