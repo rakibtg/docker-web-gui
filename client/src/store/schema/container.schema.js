@@ -1,5 +1,6 @@
 export default {
   containers: [],
-  pageLoading: true,
+  loading: false,
   pageError: false,
+  segment: 'active',
 }
