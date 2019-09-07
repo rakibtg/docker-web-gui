@@ -19,7 +19,6 @@ class ContainersList extends React.PureComponent {
 }
 
 const mapStateToProps = state => {
-  console.log('State:', state)
   return {containers: state.container}
 }
 
