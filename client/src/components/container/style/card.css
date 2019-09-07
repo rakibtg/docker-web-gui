@@ -1,0 +1,12 @@
+.element-card {
+  width: 100%;
+  max-width: 755px;
+  border-color: #fff;
+}
+
+.element-card:hover {
+  border-width: 1;
+  border-color: #ebf1f9;
+  background-color: #f9fbff;
+  display: inline;
+}
