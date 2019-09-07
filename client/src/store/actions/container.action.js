@@ -60,3 +60,35 @@ export const toggleContainer = (container, status) => {
       })
   }
 }
+
+export const restartContainer = (container, status) => {
+  return dispatch => {
+    dispatch(updateContainer({
+      containerId: container.shortId,
+      data: { 
+        stateToggling: true,
+        State: {
+          ...container.State,
+          ...{
+            Running: false
+          }
+        }
+      },
+    }))
+    request('get', `container/command?container=${container.shortId}&command=${status}`)
+      .then(res => {
+        dispatch(updateContainer({
+          containerId: container.shortId,
+          data: { 
+            State: {
+              ...container.State,
+              ...{
+                Running: true
+              }
+            },
+            stateToggling: false,
+          },
+        }))
+      })
+  }
+}
