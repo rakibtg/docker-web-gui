@@ -4,9 +4,9 @@
   border-color: #fff;
 }
 
-.element-card:hover {
+.card-active {
   border-width: 1;
-  border-color: #ebf1f9;
+  border-color: #d6e0ef;
   background-color: #f9fbff;
   display: inline;
 }
