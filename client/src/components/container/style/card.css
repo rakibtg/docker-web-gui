@@ -6,7 +6,7 @@
 
 .card-active {
   border-width: 1;
-  border-color: #d6e0ef;
+  border-color: #d6e0ef !important;
   background-color: #f9fbff;
   display: inline;
 }
