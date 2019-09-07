@@ -10,7 +10,8 @@ export const getContainers = (status = 'active') => {
     dispatch(genericContainer({
       loading: status,
       pageError: false,
-      segment: status
+      segment: status,
+      activeIndex: 0,
     }))
     request('get', `container/fetch?status=${status}`, {})
       .then(response => {
