@@ -1,9 +1,15 @@
 import React from 'react'
 import { Pane, Spinner, SegmentedControl } from 'evergreen-ui'
 
+import { bindActionCreators } from 'redux'
+import { connect } from 'react-redux'
+
+import { getContainers } from '../store/actions/container.action'
+
 class SecondaryNavBar extends React.PureComponent {
+
   render() {
-    const loadingContainerFilter = ''
+    const { segment, loading, getContainers } = this.props
     return <Pane 
       backgroundColor="#f1f1f1" 
       display="flex" 
@@ -13,17 +19,31 @@ class SecondaryNavBar extends React.PureComponent {
         width={400}
         height={26}
         options={[
-          { label: loadingContainerFilter === 'all' ? <Spinner size={16} /> : 'All', value: 'all' },
-          { label: loadingContainerFilter === 'active' ? <Spinner size={16} /> : 'Active', value: 'active' },
-          { label: loadingContainerFilter === 'stopped' ? <Spinner size={16} /> : 'Stopped', value: 'stopped' }
+          { label: loading === 'all' ? <Spinner size={16} /> : 'All', value: 'all' },
+          { label: loading === 'active' ? <Spinner size={16} /> : 'Active', value: 'active' },
+          { label: loading === 'stopped' ? <Spinner size={16} /> : 'Stopped', value: 'stopped' }
         ]}
-        value={'active'}
+        value={segment}
         onChange={value => {
-          console.log(value)
+          getContainers(value)
         }}
       />
     </Pane>
   }
 }
 
-export default SecondaryNavBar
+const mapStateToProps = state => {
+  return {
+    segment: state.container.segment,
+    loading: state.container.loading,
+  }
+}
+
+const mapDispatchToProps = dispatch => bindActionCreators(
+  {
+    getContainers
+  },
+  dispatch
+)
+
+export default connect(mapStateToProps, mapDispatchToProps)( SecondaryNavBar )
