@@ -2,7 +2,7 @@ export default (state = null, action) => {
 
   switch (action.type) {
 
-    case 'GET_CONTAINERS':
+    case 'GENERIC_CONTAINER':
       return {
         ...state,
         ...action.payload
