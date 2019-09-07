@@ -1,10 +1,10 @@
 import React from 'react'
-import DockerImage from './components/DockerImage';
-import Stats from './components/Stats';
-import {BrowserRouter, Route, Switch} from 'react-router-dom';
+import {BrowserRouter, Route, Switch} from 'react-router-dom'
 import Navbar from './components/NavBar'
 
 import ContainerPage from './pages/container.page'
+import ImagePage from './pages/image.page'
+import CleanupPage from './pages/cleanup.page'
 
 const Routes = () => {
     return (
@@ -14,12 +14,12 @@ const Routes = () => {
                 <Switch>
                     <Route path="/" exact component={ContainerPage}/>
                     <Route path="/containers" exact component={ContainerPage}/>
-                    <Route path="/images" component={DockerImage}/>
-                    <Route path="/stats" component={Stats}/>
+                    <Route path="/images" component={ImagePage}/>
+                    <Route path="/cleanup" component={CleanupPage}/>
                 </Switch>
             </BrowserRouter>
         </React.Fragment>
-    );
-};
+    )
+}
 
 export default Routes
