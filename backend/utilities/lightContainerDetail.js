@@ -3,5 +3,5 @@ exports.lightContainerDetail = (id, inspectedData) => ({
   shortId: id,
   Created: inspectedData.Created,
   State: inspectedData.State,
-  Name: inspectedData.Name
+  Name: inspectedData.Name.replace('/', '')
 })
