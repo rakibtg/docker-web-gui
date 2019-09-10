@@ -122,7 +122,6 @@ export const getLog = (container) => {
     dispatch(updateContainerLog({
       container: container,
       isShowingSideSheet: false,
-      logData:{}
     }))
     request('get', `container/logs?container=${container.shortId}`)
       .then(response => {
