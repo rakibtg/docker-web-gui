@@ -47,7 +47,7 @@ class ContainerCard extends React.PureComponent {
                     height={22} 
                     iconBefore="trash" 
                     onClick={() => {
-                      deleteContainer(container)
+                      deleteContainer(container, 'rm')
                     }}>
                     Delete
             </Button>
