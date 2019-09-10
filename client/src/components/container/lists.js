@@ -6,6 +6,7 @@ import { connect } from 'react-redux'
 import { getContainers } from '../../store/actions/container.action'
 
 import ContainerCard from './card'
+import LogSideSheet from '../LogSideSheet'
 
 class ContainersList extends React.PureComponent {
 
@@ -21,6 +22,7 @@ class ContainersList extends React.PureComponent {
       justifyContent="center" 
       alignItems="center"
       marginTop={20}>
+      <LogSideSheet />
         {
           containers.map((container, index) => 
             <ContainerCard 
