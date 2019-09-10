@@ -12,7 +12,7 @@ import ContainerRestart from './restartButton'
 class ContainerCard extends React.PureComponent {
 
   render () {
-    const { container, activeIndex, genericContainer, index } = this.props
+    const { container, activeIndex, genericContainer, index, deleteContainer } = this.props
     const active = activeIndex == index
       return <Pane 
             display="flex" 
@@ -65,7 +65,8 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => bindActionCreators(
   {
-    genericContainer
+    genericContainer,
+    deleteContainer
   },
   dispatch
 )
