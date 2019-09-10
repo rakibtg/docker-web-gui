@@ -4,7 +4,7 @@ import './style/card.css'
 
 import { bindActionCreators } from 'redux'
 import { connect } from 'react-redux'
-import { genericContainer } from '../../store/actions/container.action'
+import { genericContainer, deleteContainer } from '../../store/actions/container.action'
 
 import ContainerSwitch from './switch'
 import ContainerRestart from './restartButton'
@@ -43,7 +43,14 @@ class ContainerCard extends React.PureComponent {
           <Pane display="flex" marginTop={12} marginLeft={46}>
             <ContainerRestart container={container} />
             <Button marginRight={5} height={22} iconBefore="application">Log</Button>
-            <Button marginRight={5} height={22} iconBefore="trash">Delete</Button>
+            <Button marginRight={5} 
+                    height={22} 
+                    iconBefore="trash" 
+                    onClick={() => {
+                      deleteContainer(container)
+                    }}>
+                    Delete
+            </Button>
           </Pane>
         }
     </Pane>
