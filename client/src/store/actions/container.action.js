@@ -120,20 +120,16 @@ export const deleteContainer = (container, command) => {
 export const getLog = (container) => {
   return dispatch => {
     dispatch(updateContainerLog({
-      containerId: container.shortId,
+      container: container,
       isShowingSideSheet: false,
-      data:{
-        logData:{}
-      }
+      logData:{}
     }))
     request('get', `container/logs?container=${container.shortId}`)
       .then(response => {
         dispatch(updateContainerLog({
-          containerId: container.shortId,
+          container: container,
           isShowingSideSheet: true,
-          data:{
-            logData: response.data
-          }  
+          logData: response.data
         }))
       })
   }
