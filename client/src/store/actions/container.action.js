@@ -15,6 +15,11 @@ export const removeContainer = payload => ({
   payload
 })
 
+export const updateContainerLog = payload => ({
+  type: 'UPDATE_LOG',
+  payload
+})
+
 export const getContainers = (status = 'active') => {
   return dispatch => {
     dispatch(genericContainer({
@@ -107,6 +112,28 @@ export const deleteContainer = (container, command) => {
       .then(res => {
         dispatch(removeContainer({
           containerId: container.shortId
+        }))
+      })
+  }
+}
+
+export const getLog = (container) => {
+  return dispatch => {
+    dispatch(updateContainerLog({
+      containerId: container.shortId,
+      data: { 
+        isShowingSideSheet: false,
+        logData:{}
+      },
+    }))
+    request('get', `container/logs?container=${container.shortId}`)
+      .then(response => {
+        dispatch(updateContainerLog({
+          containerId: container.shortId,
+          data: { 
+            isShowingSideSheet: true,
+            logData: response.data
+          },
         }))
       })
   }
