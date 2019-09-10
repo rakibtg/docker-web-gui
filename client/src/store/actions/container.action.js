@@ -10,7 +10,7 @@ export const updateContainer = payload => ({
   payload
 })
 
-export const deleteContainer = payload => ({
+export const removeContainer = payload => ({
   type: 'DELETE_CONTAINER',
   payload
 })
@@ -100,12 +100,12 @@ export const restartContainer = (container, status) => {
 
 export const deleteContainer = (container) => {
   return dispatch => {
-    dispatch(deleteContainer({
+    dispatch(removeContainer({
       containerId: container.shortId
     }))
     request('get', `container/command?container=${container.shortId}&command=${rm}`)
       .then(res => {
-        dispatch(deleteContainer({
+        dispatch(removeContainer({
           containerId: container.shortId
         }))
       })
