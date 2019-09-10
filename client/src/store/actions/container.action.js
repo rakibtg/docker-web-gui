@@ -10,6 +10,11 @@ export const updateContainer = payload => ({
   payload
 })
 
+export const deleteContainer = payload => ({
+  type: 'DELETE_CONTAINER',
+  payload
+})
+
 export const getContainers = (status = 'active') => {
   return dispatch => {
     dispatch(genericContainer({
