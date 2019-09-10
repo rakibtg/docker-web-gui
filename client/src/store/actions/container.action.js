@@ -98,7 +98,7 @@ export const restartContainer = (container, status) => {
   }
 }
 
-export const deleteContainer = (container, status) => {
+export const deleteContainer = (container) => {
   return dispatch => {
     dispatch(deleteContainer({
       containerId: container.shortId
