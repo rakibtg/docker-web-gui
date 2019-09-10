@@ -35,6 +35,24 @@ export default (state = null, action) => {
         }
       }
 
+    case 'UPDATE_LOG':
+      return {
+        ...state,
+        ...{
+          containers: state.containers.map(c => {
+            if(c.shortId == action.payload.containerId) {
+              return {
+                ...c,
+                ...action.payload.data
+              }
+            } else {
+              return c
+            }
+          }),
+          isShowingSideSheet: action.payload.isShowingSideSheet
+        }
+      }
+
     default:
       return state
 
