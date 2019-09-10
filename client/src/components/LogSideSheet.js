@@ -1,17 +1,17 @@
 import React from 'react'
-import { Pane, Spinner, SegmentedControl } from 'evergreen-ui'
+import { Pane, Spinner, SegmentedControl, SideSheet, Heading, Paragraph, Card } from 'evergreen-ui'
 
 import { bindActionCreators } from 'redux'
 import { connect } from 'react-redux'
 
 
-class SecondaryNavBar extends React.PureComponent {
+class LogSideSheet extends React.PureComponent {
 
   render() {
     const { isShowingSideSheet, logData } = this.props
     return <SideSheet
-                isShown={state.isShowingSideSheet}
-                onCloseComplete={() => setState({ isShowingSideSheet: false })}
+                isShown={isShowingSideSheet}
+                onCloseComplete={() => this.setState({ isShowingSideSheet: false })}
                 containerProps={{
                 display: 'flex',
                 flex: '1',
@@ -20,10 +20,12 @@ class SecondaryNavBar extends React.PureComponent {
             >
                 <Pane zIndex={1} flexShrink={0} elevation={0} backgroundColor="white">
                 <Pane padding={16}>
-                    <Heading size={600}>Title</Heading>
-                    <Paragraph size={400}>
-                    Optional description or sub title
-                    </Paragraph>
+                    <Heading size={600}>Container logs</Heading>
+                    {logData.container && 
+                        <Paragraph size={400}>
+                            {`${logData.container.Name}`}
+                        </Paragraph>
+                    }
                 </Pane>
                 </Pane>
                 <Pane flex="1" overflowY="scroll" background="tint1" padding={16}>
@@ -32,10 +34,10 @@ class SecondaryNavBar extends React.PureComponent {
                     elevation={0}
                     height={240}
                     display="flex"
-                    alignItems="center"
+                    alignItems="left"
                     justifyContent="center"
                 >
-                    <Heading>Some content</Heading>
+                    {logData && <Heading>{logData.data}</Heading>}
                 </Card>
                 </Pane>
             </SideSheet>
@@ -44,10 +46,10 @@ class SecondaryNavBar extends React.PureComponent {
 
 const mapStateToProps = state => {
   return {
-    isShowingSideSheet,
-    logData,
+    isShowingSideSheet: state.container.isShowingSideSheet,
+    logData: state.container.logData
   }
 }
 
 
-export default connect(mapStateToProps, null)( SecondaryNavBar )
+export default connect(mapStateToProps, null)( LogSideSheet )
