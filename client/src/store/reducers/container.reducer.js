@@ -30,7 +30,7 @@ export default (state = null, action) => {
         ...state,
         ...{
           containers: state.containers.filter(c => {
-            return c.shortId == action.payload.containerId
+            return c.shortId !== action.payload.containerId
           })
         }
       }
