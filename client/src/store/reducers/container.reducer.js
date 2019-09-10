@@ -39,16 +39,10 @@ export default (state = null, action) => {
       return {
         ...state,
         ...{
-          containers: state.containers.map(c => {
-            if(c.shortId == action.payload.containerId) {
-              return {
-                ...c,
-                ...action.payload.data
-              }
-            } else {
-              return c
-            }
-          }),
+          logData: {
+            container: action.payload.container,
+            data: action.payload.logData
+          },
           isShowingSideSheet: action.payload.isShowingSideSheet
         }
       }
