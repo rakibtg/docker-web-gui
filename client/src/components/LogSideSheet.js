@@ -1,5 +1,5 @@
 import React from 'react'
-import { Pane, Spinner, SegmentedControl, SideSheet, Heading, Paragraph, Card } from 'evergreen-ui'
+import { Pane, Spinner, Pre, SideSheet, Heading, Paragraph, Card } from 'evergreen-ui'
 
 import { bindActionCreators } from 'redux'
 import { connect } from 'react-redux'
@@ -10,6 +10,7 @@ class LogSideSheet extends React.PureComponent {
   render() {
     const { isShowingSideSheet, logData } = this.props
     return <SideSheet
+                width={1000}
                 isShown={isShowingSideSheet}
                 onCloseComplete={() => this.setState({ isShowingSideSheet: false })}
                 containerProps={{
@@ -29,16 +30,9 @@ class LogSideSheet extends React.PureComponent {
                 </Pane>
                 </Pane>
                 <Pane flex="1" overflowY="scroll" background="tint1" padding={16}>
-                <Card
-                    backgroundColor="white"
-                    elevation={0}
-                    height={240}
-                    display="flex"
-                    alignItems="left"
-                    justifyContent="center"
-                >
-                    {logData && <Heading>{logData.data}</Heading>}
-                </Card>
+                    <Pane>
+                      {logData && <Pre marginTop={0}>{logData.data}</Pre>}
+                    </Pane>
                 </Pane>
             </SideSheet>
   }
