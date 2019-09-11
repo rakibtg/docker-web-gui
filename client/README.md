@@ -1,6 +1,9 @@
 ## Available Scripts
 
-In the project directory, you can run:
+For the client app: in the project directory, you can run:
+
+### `npm install`
+To install dependencies
 
 ### `npm start`
 

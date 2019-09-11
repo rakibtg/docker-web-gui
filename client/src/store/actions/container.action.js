@@ -10,6 +10,16 @@ export const updateContainer = payload => ({
   payload
 })
 
+export const removeContainer = payload => ({
+  type: 'DELETE_CONTAINER',
+  payload
+})
+
+export const updateContainerLog = payload => ({
+  type: 'UPDATE_LOG',
+  payload
+})
+
 export const getContainers = (status = 'active') => {
   return dispatch => {
     dispatch(genericContainer({
@@ -88,6 +98,37 @@ export const restartContainer = (container, status) => {
             },
             stateToggling: false,
           },
+        }))
+      })
+  }
+}
+
+export const deleteContainer = (container, command) => {
+  return dispatch => {
+    dispatch(removeContainer({
+      containerId: container.shortId
+    }))
+    request('get', `container/command?container=${container.shortId}&command=${command}`)
+      .then(res => {
+        dispatch(removeContainer({
+          containerId: container.shortId
+        }))
+      })
+  }
+}
+
+export const getLog = (container) => {
+  return dispatch => {
+    dispatch(updateContainerLog({
+      container: container,
+      isShowingSideSheet: false,
+    }))
+    request('get', `container/logs?container=${container.shortId}`)
+      .then(response => {
+        dispatch(updateContainerLog({
+          container: container,
+          isShowingSideSheet: true,
+          logData: response.data
         }))
       })
   }

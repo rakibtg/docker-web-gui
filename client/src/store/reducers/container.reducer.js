@@ -24,6 +24,28 @@ export default (state = null, action) => {
           })
         }
       }
+    
+    case 'DELETE_CONTAINER':
+      return {
+        ...state,
+        ...{
+          containers: state.containers.filter(c => {
+            return c.shortId !== action.payload.containerId
+          })
+        }
+      }
+
+    case 'UPDATE_LOG':
+      return {
+        ...state,
+        ...{
+          logData: {
+            container: action.payload.container,
+            data: action.payload.logData
+          },
+          isShowingSideSheet: action.payload.isShowingSideSheet
+        }
+      }
 
     default:
       return state
