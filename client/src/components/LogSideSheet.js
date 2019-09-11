@@ -23,7 +23,7 @@ class LogSideSheet extends React.PureComponent {
                     <Heading size={600}>Container logs</Heading>
                     {logData.container && 
                         <Paragraph size={400}>
-                            {`${logData.container.Name}`}
+                            {`Container Name: ${logData.container.Name}`}
                         </Paragraph>
                     }
                 </Pane>
