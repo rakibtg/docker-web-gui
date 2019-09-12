@@ -51,7 +51,8 @@ export default (state = null, action) => {
       return {
         ...state,
         ...{
-          showModal: action.payload.showModal
+          showModal: action.payload.showModal,
+          selectedContainer: action.payload.selectedContainer
         }
       }
       
