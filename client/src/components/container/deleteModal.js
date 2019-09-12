@@ -36,7 +36,7 @@ class Modal extends Component {
                   border="default"
                   className="modal-pane">
                      <Pane display="flex">
-                        <Pane flex={1} display="flex">
+                        <Pane flex={1} display="flex" justifyContent="center" alignItems="center">
                            <Heading size={400}>Are you sure to delete this container?</Heading>
                         </Pane>
                         <Pane>
@@ -49,9 +49,7 @@ class Modal extends Component {
                      <Pane display="flex" alignItems="center" justifyContent="center">
                         <Heading size={600}>{container.Name}</Heading>
                      </Pane>
-                     <Pane display="flex" marginTop={10}>
-                        <Pane flex={1} alignItems="center" display="flex">
-                        </Pane>
+                     <Pane display="flex" marginTop={10} justifyContent="center" alignItems="center">
                         <Pane>
                            <Button marginRight={10} height={22} onClick={()=>{toggleDeleteModal()}}>Cancel</Button>
                            <Button  height={22} iconBefore="trash" onClick={()=>{deleteContainer(container, 'rm')}}>Delete</Button>
