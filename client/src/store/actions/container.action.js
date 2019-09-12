@@ -118,7 +118,7 @@ export const deleteContainer = (container, command) => (dispatch, getState)=>{
           selectedContainer: {}
         }))
         toaster.success(
-          `${container.Name} is removed.`,
+          `Container ${container.Name} is no more!!!.`,
           {
             duration: 5
           }

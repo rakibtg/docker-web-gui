@@ -24,17 +24,7 @@ class ContainersList extends React.PureComponent {
       alignItems="center"
       marginTop={20}>
       <LogSideSheet />
-      {/* { showModal && <Modal container={selectedContainer} />} */}
-      {showModal && <Dialog
-        isShown={showModal}
-        title="Are you sure to delete this container?"
-        intent="danger"
-        onCloseComplete={() => toggleDeleteModal()}
-        onConfirm={() => deleteContainer(selectedContainer, 'rm')}
-        confirmLabel="Delete"
-      >
-        {selectedContainer.Name}
-      </Dialog>}
+      { showModal && <Modal container={selectedContainer} />} 
         {
           containers.map((container, index) => 
             <ContainerCard 
