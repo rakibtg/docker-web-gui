@@ -145,8 +145,9 @@ export const resetLogSideSheet = () => (dispatch, getState)=>{
   }))
 }
 
-export const toggleDeleteModal = () => (dispatch, getState)=>{
+export const toggleDeleteModal = (container) => (dispatch, getState)=>{
   dispatch(toggleModal({
     showModal: !getState().container.showModal,
+    selectedContainer: container
   }))
 }
