@@ -6,5 +6,6 @@ export default {
   activeIndex: 0,
   isShowingSideSheet: false,
   logData: {},
-  showModal: false
+  showModal: false,
+  selectedContainer: {}
 }
