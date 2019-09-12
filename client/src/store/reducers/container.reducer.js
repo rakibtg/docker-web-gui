@@ -46,7 +46,15 @@ export default (state = null, action) => {
           isShowingSideSheet: action.payload.isShowingSideSheet
         }
       }
-
+    
+    case 'TOGGLE_MODAL':
+      return {
+        ...state,
+        ...{
+          showModal: action.payload.showModal
+        }
+      }
+      
     default:
       return state
 
