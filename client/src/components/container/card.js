@@ -8,12 +8,11 @@ import { genericContainer, deleteContainer , getLog, toggleDeleteModal } from '.
 
 import ContainerSwitch from './switch'
 import ContainerRestart from './restartButton'
-import Modal from './deleteModal'
 
 class ContainerCard extends React.PureComponent {
 
   render () {
-    const { container, activeIndex, genericContainer, index, deleteContainer, getLog, toggleDeleteModal, showModal } = this.props
+    const { container, activeIndex, genericContainer, index, deleteContainer, getLog, toggleDeleteModal } = this.props
     const active = activeIndex == index
       return <Pane 
             display="flex" 
@@ -53,13 +52,12 @@ class ContainerCard extends React.PureComponent {
                     height={22} 
                     iconBefore="trash" 
                     onClick={() => {
-                      toggleDeleteModal()
+                      toggleDeleteModal(container)
                     }}>
                     Delete
             </Button>
           </Pane>
         }
-        { showModal && <Modal/>}
     </Pane>
   }
 }
@@ -67,7 +65,6 @@ class ContainerCard extends React.PureComponent {
 const mapStateToProps = state => {
   return {
     activeIndex: state.container.activeIndex,
-    showModal: state.container.showModal
   }
 }
 
