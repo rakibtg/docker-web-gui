@@ -1,4 +1,5 @@
 import { request } from '../../utilities/request'
+import { toaster } from 'evergreen-ui'
 
 export const genericContainer = payload => ({
   type: 'GENERIC_CONTAINER',
@@ -116,6 +117,12 @@ export const deleteContainer = (container, command) => (dispatch, getState)=>{
           showModal: !getState().container.showModal,
           selectedContainer: {}
         }))
+        toaster.success(
+          `${container.Name} is removed.`,
+          {
+            duration: 5
+          }
+        )
       })  
 }
 
