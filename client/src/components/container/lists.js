@@ -1,9 +1,9 @@
 import React from 'react'
-import { Pane } from 'evergreen-ui'
+import { Pane, Dialog } from 'evergreen-ui'
 
 import { bindActionCreators } from 'redux'
 import { connect } from 'react-redux'
-import { getContainers } from '../../store/actions/container.action'
+import { getContainers, toggleDeleteModal, deleteContainer } from '../../store/actions/container.action'
 
 import ContainerCard from './card'
 import LogSideSheet from '../LogSideSheet'
@@ -16,7 +16,7 @@ class ContainersList extends React.PureComponent {
   }
 
   render () {
-    const { containers, showModal, selectedContainer } = this.props
+    const { containers, showModal, selectedContainer, toggleDeleteModal, deleteContainer } = this.props
     return <Pane 
       display="flex" 
       flexDirection="column" 
@@ -24,7 +24,17 @@ class ContainersList extends React.PureComponent {
       alignItems="center"
       marginTop={20}>
       <LogSideSheet />
-      { showModal && <Modal container={selectedContainer} />}
+      {/* { showModal && <Modal container={selectedContainer} />} */}
+      {showModal && <Dialog
+        isShown={showModal}
+        title="Are you sure to delete this container?"
+        intent="danger"
+        onCloseComplete={() => toggleDeleteModal()}
+        onConfirm={() => deleteContainer(selectedContainer, 'rm')}
+        confirmLabel="Delete"
+      >
+        {selectedContainer.Name}
+      </Dialog>}
         {
           containers.map((container, index) => 
             <ContainerCard 
@@ -49,7 +59,9 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => bindActionCreators(
   {
-    getContainers
+    getContainers,
+    toggleDeleteModal,
+    deleteContainer
   },
   dispatch
 )
