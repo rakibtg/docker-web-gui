@@ -5,5 +5,7 @@ export default {
   segment: 'active',
   activeIndex: 0,
   isShowingSideSheet: false,
-  logData: {}
+  logData: {},
+  showModal: false,
+  selectedContainer: {}
 }

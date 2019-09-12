@@ -3,16 +3,17 @@ import { Pane, Spinner, Pre, SideSheet, Heading, Paragraph, Card } from 'evergre
 
 import { bindActionCreators } from 'redux'
 import { connect } from 'react-redux'
+import { resetLogSideSheet } from '../store/actions/container.action'
 
 
 class LogSideSheet extends React.PureComponent {
 
   render() {
-    const { isShowingSideSheet, logData } = this.props
+    const { isShowingSideSheet, logData,resetLogSideSheet } = this.props
     return <SideSheet
                 width={1000}
                 isShown={isShowingSideSheet}
-                onCloseComplete={() => this.setState({ isShowingSideSheet: false })}
+                onCloseComplete={resetLogSideSheet}
                 containerProps={{
                 display: 'flex',
                 flex: '1',
@@ -45,5 +46,11 @@ const mapStateToProps = state => {
   }
 }
 
+const mapDispatchToProps = dispatch => bindActionCreators(
+    {
+        resetLogSideSheet
+    },
+    dispatch
+  )
 
-export default connect(mapStateToProps, null)( LogSideSheet )
+export default connect(mapStateToProps, mapDispatchToProps)( LogSideSheet )

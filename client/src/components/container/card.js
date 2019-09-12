@@ -4,7 +4,7 @@ import './style/card.css'
 
 import { bindActionCreators } from 'redux'
 import { connect } from 'react-redux'
-import { genericContainer, deleteContainer , getLog} from '../../store/actions/container.action'
+import { genericContainer, deleteContainer , getLog, toggleDeleteModal } from '../../store/actions/container.action'
 
 import ContainerSwitch from './switch'
 import ContainerRestart from './restartButton'
@@ -12,7 +12,7 @@ import ContainerRestart from './restartButton'
 class ContainerCard extends React.PureComponent {
 
   render () {
-    const { container, activeIndex, genericContainer, index, deleteContainer, getLog } = this.props
+    const { container, activeIndex, genericContainer, index, deleteContainer, getLog, toggleDeleteModal } = this.props
     const active = activeIndex == index
       return <Pane 
             display="flex" 
@@ -52,7 +52,7 @@ class ContainerCard extends React.PureComponent {
                     height={22} 
                     iconBefore="trash" 
                     onClick={() => {
-                      deleteContainer(container, 'rm')
+                      toggleDeleteModal(container)
                     }}>
                     Delete
             </Button>
@@ -64,7 +64,7 @@ class ContainerCard extends React.PureComponent {
 
 const mapStateToProps = state => {
   return {
-    activeIndex: state.container.activeIndex
+    activeIndex: state.container.activeIndex,
   }
 }
 
@@ -72,7 +72,8 @@ const mapDispatchToProps = dispatch => bindActionCreators(
   {
     genericContainer,
     deleteContainer,
-    getLog
+    getLog,
+    toggleDeleteModal
   },
   dispatch
 )

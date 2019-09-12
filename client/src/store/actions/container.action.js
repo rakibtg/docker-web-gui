@@ -1,4 +1,5 @@
 import { request } from '../../utilities/request'
+import { toaster } from 'evergreen-ui'
 
 export const genericContainer = payload => ({
   type: 'GENERIC_CONTAINER',
@@ -17,6 +18,11 @@ export const removeContainer = payload => ({
 
 export const updateContainerLog = payload => ({
   type: 'UPDATE_LOG',
+  payload
+})
+
+export const toggleModal = payload => ({
+  type: 'TOGGLE_MODAL',
   payload
 })
 
@@ -103,18 +109,21 @@ export const restartContainer = (container, status) => {
   }
 }
 
-export const deleteContainer = (container, command) => {
-  return dispatch => {
-    dispatch(removeContainer({
-      containerId: container.shortId
-    }))
+export const deleteContainer = (container, command) => (dispatch, getState)=>{
     request('get', `container/command?container=${container.shortId}&command=${command}`)
       .then(res => {
         dispatch(removeContainer({
-          containerId: container.shortId
+          containerId: container.shortId,
+          showModal: !getState().container.showModal,
+          selectedContainer: {}
         }))
-      })
-  }
+        toaster.success(
+          `Container ${container.Name} is no more!!!.`,
+          {
+            duration: 5
+          }
+        )
+      })  
 }
 
 export const getLog = (container) => {
@@ -132,4 +141,17 @@ export const getLog = (container) => {
         }))
       })
   }
+}
+
+export const resetLogSideSheet = () => (dispatch, getState)=>{
+  dispatch(updateContainerLog({
+    isShowingSideSheet: !getState().container.isShowingSideSheet,
+  }))
+}
+
+export const toggleDeleteModal = (container) => (dispatch, getState)=>{
+  dispatch(toggleModal({
+    showModal: !getState().container.showModal,
+    selectedContainer: container ? container : {}
+  }))
 }

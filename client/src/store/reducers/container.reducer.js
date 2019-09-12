@@ -31,7 +31,10 @@ export default (state = null, action) => {
         ...{
           containers: state.containers.filter(c => {
             return c.shortId !== action.payload.containerId
-          })
+          },
+          ),
+          showModal: action.payload.showModal,
+          selectedContainer: action.payload.selectedContainer
         }
       }
 
@@ -39,14 +42,23 @@ export default (state = null, action) => {
       return {
         ...state,
         ...{
-          logData: {
-            container: action.payload.container,
-            data: action.payload.logData
-          },
+          logData: action.payload.logData && action.payload.container ? {
+            container: action.payload.container ,
+            data:  action.payload.logData
+          } : {},
           isShowingSideSheet: action.payload.isShowingSideSheet
         }
       }
-
+    
+    case 'TOGGLE_MODAL':
+      return {
+        ...state,
+        ...{
+          showModal: action.payload.showModal,
+          selectedContainer: action.payload.selectedContainer
+        }
+      }
+      
     default:
       return state
 
