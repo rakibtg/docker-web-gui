@@ -110,3 +110,29 @@
     ...
     ...
     ```
+
+- Get a list of images
+  - Endpoint: `/api/image/fetch`
+  - Method: `GET`
+  - Query Params: `None`
+  - Response: Array
+    ```JSON
+    [
+      {
+        "ID": "8f60bf1d0f34",
+        "CreatedSince": "2 weeks ago",
+        "Size": "470MB",
+        "VirtualSize": "470MB",
+        "Repository": "gsk_kubernets"
+      },
+      {
+        "ID": "cea865d1a9a0",
+        "CreatedSince": "2 weeks ago",
+        "Size": "470MB",
+        "VirtualSize": "470MB",
+        "Repository": "docker_web"
+      },
+      {...},
+      {...}
+    ]
+    ```
