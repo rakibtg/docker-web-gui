@@ -133,3 +133,9 @@ export const getLog = (container) => {
       })
   }
 }
+
+export const resetLogSideSheet = () => (dispatch, getState)=>{
+  dispatch(updateContainerLog({
+    isShowingSideSheet: !getState().container.isShowingSideSheet,
+  }))
+}
