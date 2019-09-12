@@ -16,7 +16,7 @@ class ContainersList extends React.PureComponent {
   }
 
   render () {
-    const { containers, showModal } = this.props
+    const { containers, showModal, selectedContainer } = this.props
     return <Pane 
       display="flex" 
       flexDirection="column" 
@@ -24,7 +24,7 @@ class ContainersList extends React.PureComponent {
       alignItems="center"
       marginTop={20}>
       <LogSideSheet />
-      <Modal/>}
+      { showModal && <Modal container={selectedContainer} />}
         {
           containers.map((container, index) => 
             <ContainerCard 
@@ -42,7 +42,8 @@ class ContainersList extends React.PureComponent {
 const mapStateToProps = state => {
   return {
     containers: state.container.containers,
-    showModal: state.container.showModal
+    showModal: state.container.showModal,
+    selectedContainer: state.container.selectedContainer
   }
 }
 
