@@ -108,18 +108,15 @@ export const restartContainer = (container, status) => {
   }
 }
 
-export const deleteContainer = (container, command) => {
-  return dispatch => {
-    dispatch(removeContainer({
-      containerId: container.shortId
-    }))
+export const deleteContainer = (container, command) => (dispatch, getState)=>{
     request('get', `container/command?container=${container.shortId}&command=${command}`)
       .then(res => {
         dispatch(removeContainer({
-          containerId: container.shortId
+          containerId: container.shortId,
+          showModal: !getState().container.showModal,
+          selectedContainer: {}
         }))
-      })
-  }
+      })  
 }
 
 export const getLog = (container) => {
@@ -148,6 +145,6 @@ export const resetLogSideSheet = () => (dispatch, getState)=>{
 export const toggleDeleteModal = (container) => (dispatch, getState)=>{
   dispatch(toggleModal({
     showModal: !getState().container.showModal,
-    selectedContainer: container
+    selectedContainer: container ? container : {}
   }))
 }
