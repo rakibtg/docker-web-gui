@@ -1,10 +1,10 @@
 import React, { Component } from 'react'
 import ReactDOM from 'react-dom'
-import './style/card.css'
-import { Pane, Button, Heading, Badge, Switch, Icon } from 'evergreen-ui'
+import './style/modal.css'
+import { Pane, Button, Heading, Icon } from 'evergreen-ui'
 import { bindActionCreators } from 'redux'
 import { connect } from 'react-redux'
-import { toggleDeleteModal, deleteContainer, toggleContainer } from '../../store/actions/container.action'
+import { toggleDeleteModal, deleteContainer } from '../../store/actions/container.action'
 
 const modalRoot = document.getElementById('modal-root')
 
@@ -14,7 +14,6 @@ class Modal extends Component {
         super(props);
         this.el = document.createElement('div');
     }
-
 
     componentDidMount() {
         modalRoot.appendChild(this.el);
@@ -35,14 +34,13 @@ class Modal extends Component {
                   padding={12}
                   borderRadius={6}
                   border="default"
-                  className="modal-pane"
-                  >
+                  className="modal-pane">
                      <Pane display="flex">
                         <Pane flex={1} display="flex">
                            <Heading size={400}>Are you sure to delete this container?</Heading>
                         </Pane>
                         <Pane>
-                           <Icon icon='cross' 
+                           <Icon icon='cross' className='modal-close'
                            onClick={()=>{
                                  toggleDeleteModal()
                            }}/>
@@ -55,20 +53,8 @@ class Modal extends Component {
                         <Pane flex={1} alignItems="center" display="flex">
                         </Pane>
                         <Pane>
-                           <Button marginRight={10} height={22} 
-                                 onClick={()=>{
-                                    toggleDeleteModal()
-                                 }}
-                                 >Cancel</Button>
-                           <Button  
-                                 height={22} 
-                                 iconBefore="trash" 
-                                 onClick={()=>{
-                                    deleteContainer(container, 'rm')
-                                 }}
-                                 >
-                                 Delete
-                           </Button>
+                           <Button marginRight={10} height={22} onClick={()=>{toggleDeleteModal()}}>Cancel</Button>
+                           <Button  height={22} iconBefore="trash" onClick={()=>{deleteContainer(container, 'rm')}}>Delete</Button>
                         </Pane>
                      </Pane>
                </Pane>
@@ -78,7 +64,7 @@ class Modal extends Component {
     }
 }
  
- const mapDispatchToProps = dispatch => bindActionCreators(
+const mapDispatchToProps = dispatch => bindActionCreators(
    {
       toggleDeleteModal,
       deleteContainer
