@@ -20,6 +20,11 @@ export const updateContainerLog = payload => ({
   payload
 })
 
+export const toggleModal = payload => ({
+  type: 'TOGGLE_MODAL',
+  payload
+})
+
 export const getContainers = (status = 'active') => {
   return dispatch => {
     dispatch(genericContainer({
@@ -137,5 +142,11 @@ export const getLog = (container) => {
 export const resetLogSideSheet = () => (dispatch, getState)=>{
   dispatch(updateContainerLog({
     isShowingSideSheet: !getState().container.isShowingSideSheet,
+  }))
+}
+
+export const toggleDeleteModal = () => (dispatch, getState)=>{
+  dispatch(toggleModal({
+    showModal: !getState().container.showModal,
   }))
 }
