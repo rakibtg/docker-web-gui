@@ -3,7 +3,7 @@ import { Pane, Dialog } from 'evergreen-ui'
 
 import { bindActionCreators } from 'redux'
 import { connect } from 'react-redux'
-import { getContainers, toggleDeleteModal, deleteContainer } from '../../store/actions/container.action'
+import { getContainers } from '../../store/actions/container.action'
 
 import ContainerCard from './card'
 import LogSideSheet from '../LogSideSheet'
@@ -16,7 +16,7 @@ class ContainersList extends React.PureComponent {
   }
 
   render () {
-    const { containers, showModal, selectedContainer, toggleDeleteModal, deleteContainer } = this.props
+    const { containers, showModal, selectedContainer} = this.props
     return <Pane 
       display="flex" 
       flexDirection="column" 
@@ -49,9 +49,7 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => bindActionCreators(
   {
-    getContainers,
-    toggleDeleteModal,
-    deleteContainer
+    getContainers
   },
   dispatch
 )
