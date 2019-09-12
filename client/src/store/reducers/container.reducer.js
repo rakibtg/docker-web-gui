@@ -39,10 +39,10 @@ export default (state = null, action) => {
       return {
         ...state,
         ...{
-          logData: {
-            container: action.payload.container,
-            data: action.payload.logData
-          },
+          logData: action.payload.logData && action.payload.container ? {
+            container: action.payload.container ,
+            data:  action.payload.logData
+          } : {},
           isShowingSideSheet: action.payload.isShowingSideSheet
         }
       }
