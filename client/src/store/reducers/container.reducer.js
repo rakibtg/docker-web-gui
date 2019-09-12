@@ -31,7 +31,10 @@ export default (state = null, action) => {
         ...{
           containers: state.containers.filter(c => {
             return c.shortId !== action.payload.containerId
-          })
+          },
+          ),
+          showModal: action.payload.showModal,
+          selectedContainer: action.payload.selectedContainer
         }
       }
 
