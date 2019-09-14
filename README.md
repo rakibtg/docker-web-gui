@@ -136,3 +136,16 @@
       {...}
     ]
     ```
+
+- Run generic command to a specific image
+  - Endpoint: `/api/image/command?image=image-id&command=run`
+  - Method: `GET`
+  - Query Params:
+    - `image`
+      - Value: `image-id` ex: 3da3ad7b90e3
+    - `command`
+      - Value: `run`, `rmi` etc
+  - Response: It might return the image id most of the time. It could be different based on the command.
+    ```
+    "3da3ad7b90e3"
+    ```
