@@ -37,3 +37,6 @@ exports.newGroup = ({name, containers}) => {
   })
 }
 
+exports.deleteGroup = id => {
+  return this.knex('books').where('id', id).del()
+}
