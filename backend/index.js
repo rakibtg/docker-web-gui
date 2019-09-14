@@ -21,5 +21,6 @@ app.get('/api/container/logs', ContainerController.logs)
 app.get('/api/container/stats', ContainerController.stats)
 
 app.get('/api/image/fetch', ImageController.fetch)
+app.get('/api/image/command', ImageController.command)
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`))
