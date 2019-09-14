@@ -10,3 +10,13 @@ exports.fetch = async (req, res) => {
     .map(image => JSON.parse(image))
   res.json(imagesArray)
 }
+
+exports.command = async (req, res) => {
+  const imageID = req.query.image
+  const command = req.query.command
+  const cmd = `docker image ${command} ${imageID}`
+  const cmdData = await Terminal(cmd)
+  res.json(
+    cmdData.replace("\n", "")
+  )
+}
