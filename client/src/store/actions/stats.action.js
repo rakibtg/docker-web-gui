@@ -16,3 +16,10 @@ export const getContainersStat = () => {
   }
 }
 
+export const containerStatsProcess = () => {
+  return dispatch => {
+    setInterval(() => {
+      dispatch(getContainersStat())
+    }, 4000)
+  }
+}
