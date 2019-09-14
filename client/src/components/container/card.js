@@ -34,7 +34,7 @@ class ContainerCard extends React.PureComponent {
           </Pane>
           <Badge backgroundColor="#e7e9ef" fontWeight="bold" borderRadius={16} paddingLeft={10} fontSize={11} paddingRight={10} marginLeft={10} marginTop={3}>{container.shortId}</Badge>
           <CreatedAt time={container.Created} />
-          { container.State.Running && <ContainerStat /> }
+          { container.State.Running && <ContainerStat containerID={container.shortId} /> }
         </Pane>
         { active && 
           <Pane display="flex" marginTop={12} marginLeft={46}>
