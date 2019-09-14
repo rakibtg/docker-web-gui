@@ -1,3 +1,4 @@
+import { store } from '../'
 import { request } from '../../utilities/request'
 
 export const genericStats = payload => ({
@@ -17,9 +18,17 @@ export const getContainersStat = () => {
 }
 
 export const containerStatsProcess = () => {
-  return dispatch => {
-    setInterval(() => {
+  if(!store.getState().stats.isLive) {
+    return dispatch => {
       dispatch(getContainersStat())
-    }, 4000)
+      dispatch(genericStats({ isLive: true }))
+      setInterval(() => {
+        dispatch(getContainersStat())
+      }, 4000)
+    }
+  } else {
+    return dispatch => {
+      dispatch(genericStats({ isLive: true }))
+    }
   }
 }
