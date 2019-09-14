@@ -1,5 +1,5 @@
 import React from 'react'
-import { Pane, Dialog } from 'evergreen-ui'
+import { Pane } from 'evergreen-ui'
 
 import { bindActionCreators } from 'redux'
 import { connect } from 'react-redux'

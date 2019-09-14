@@ -1,5 +1,5 @@
 import React from 'react'
-import { Pane, Button, Heading, Badge, Switch } from 'evergreen-ui'
+import { Pane, Button, Heading, Badge } from 'evergreen-ui'
 import './style/card.css'
 
 import { bindActionCreators } from 'redux'
@@ -8,6 +8,8 @@ import { genericContainer, deleteContainer , getLog, toggleDeleteModal } from '.
 
 import ContainerSwitch from './switch'
 import ContainerRestart from './restartButton'
+import ContainerStat from './stat'
+import CreatedAt from '../createdAt'
 
 class ContainerCard extends React.PureComponent {
 
@@ -31,13 +33,8 @@ class ContainerCard extends React.PureComponent {
             <Heading size={400}>{container.Name}</Heading>
           </Pane>
           <Badge backgroundColor="#e7e9ef" fontWeight="bold" borderRadius={16} paddingLeft={10} fontSize={11} paddingRight={10} marginLeft={10} marginTop={3}>{container.shortId}</Badge>
-          <Badge backgroundColor="#d4eee3" fontWeight="bold" borderRadius={16} paddingLeft={10} fontSize={11} paddingRight={10} marginLeft={10} marginTop={3}>nov 6</Badge>
-          {
-            container.State.Running && <>
-              <Badge backgroundColor="#deebf7" fontWeight="bold" borderRadius={16} paddingLeft={10} fontSize={11} paddingRight={10} marginLeft={10} marginTop={3}>cpu 0.5%</Badge>
-              <Badge backgroundColor="#ebe7f8" fontWeight="bold" borderRadius={16} paddingLeft={10} fontSize={11} paddingRight={10} marginLeft={10} marginTop={3}>ram 423.3 mb</Badge>
-            </>
-          }
+          <CreatedAt time={container.Created} />
+          { container.State.Running && <ContainerStat /> }
         </Pane>
         { active && 
           <Pane display="flex" marginTop={12} marginLeft={46}>
