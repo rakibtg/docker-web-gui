@@ -8,7 +8,9 @@
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^4.17.1",
+    "file-exists": "^5.0.1",
     "knex": "^0.19.4",
-    "sqlite3": "^4.1.0"
+    "sqlite3": "^4.1.0",
+    "write": "^2.0.0"
   }
 }
