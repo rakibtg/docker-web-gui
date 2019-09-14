@@ -38,9 +38,9 @@ exports.newGroup = ({name, containers}) => {
 }
 
 exports.deleteGroup = id => {
-  return this.knex('books').where('id', id).del()
+  return this.knex('groups').where('id', id).del()
 }
 
 exports.getGroups = () => {
-  return this.knex('books').select()
+  return this.knex('groups').select()
 }
