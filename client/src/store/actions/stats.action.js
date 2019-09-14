@@ -5,3 +5,14 @@ export const genericStats = payload => ({
   payload
 })
 
+export const getContainersStat = () => {
+  return dispatch => {
+    request('get', `container/stats`, {})
+      .then(response => {
+        dispatch(genericStats({ containerStats: response.data }))
+      }).catch(error => {
+        console.log(error)
+      })
+  }
+}
+
