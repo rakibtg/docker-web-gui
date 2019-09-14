@@ -30,14 +30,10 @@ exports.boot = () => {
     })
 }
 
-exports.newGroup = () => {
-
+exports.newGroup = ({name, containers}) => {
+  return this.knex('groups').insert({
+    name, 
+    containers_id: JSON.stringify(containers)
+  })
 }
 
-exports.deleteGroup = () => {
-
-}
-
-exports.getGroups = () => {
-
-}
