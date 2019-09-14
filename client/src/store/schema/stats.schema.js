@@ -1,3 +1,4 @@
 export default {
-  containerStats: []
+  containerStats: [],
+  isLive: false,
 }
