@@ -10,7 +10,8 @@ exports.knex = knexLibrary({
   client: 'sqlite3',
   connection: {
     filename: this.dbSource
-  }
+  },
+  useNullAsDefault: true
 })
 
 exports.boot = () => {
@@ -33,7 +34,9 @@ exports.boot = () => {
 exports.newGroup = ({name, containers}) => {
   return this.knex('groups').insert({
     name, 
-    containers_id: JSON.stringify(containers)
+    containers_id: JSON.stringify(containers),
+    created_at: this.knex.fn.now(),
+    updated_at: this.knex.fn.now(),
   })
 }
 

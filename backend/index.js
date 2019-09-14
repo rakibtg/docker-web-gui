@@ -6,11 +6,9 @@ const port = 3230
 app.use(express.json())
 app.use(cors())
 
-
 // Boot database.
 const db = require('./utilities/db')
 db.boot()
-
 
 const { DefaultController } = require('./controllers/DefaultController')
 const { GenericCommandController } = require('./controllers/GenericCommandController')
