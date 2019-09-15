@@ -1,20 +1,36 @@
 import React from 'react'
-import { Pane, Spinner, SegmentedControl } from 'evergreen-ui'
+import { Pane, Spinner, SegmentedControl, Button } from 'evergreen-ui'
 
 import { bindActionCreators } from 'redux'
 import { connect } from 'react-redux'
 
-import { getContainers } from '../store/actions/container.action'
+import { 
+  getContainers, 
+  genericContainer,
+} from '../store/actions/container.action'
 
 class SecondaryNavBar extends React.PureComponent {
 
   render() {
-    const { segment, loading, getContainers } = this.props
+    const { segment, loading, getContainers, genericContainer } = this.props
     return <Pane 
       backgroundColor="#f1f1f1" 
       display="flex" 
       justifyContent="center"
       padding={10}>
+      <Button 
+        marginRight={12} 
+        iconBefore="tag" 
+        paddingLeft={35}
+        paddingRight={30}
+        height={26}
+        onClick={() => {
+          genericContainer({
+            showGroupsPage: true,
+          })
+        }}>
+          Groups
+      </Button>
       <SegmentedControl
         width={400}
         height={26}
@@ -41,7 +57,8 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => bindActionCreators(
   {
-    getContainers
+    getContainers,
+    genericContainer,
   },
   dispatch
 )
