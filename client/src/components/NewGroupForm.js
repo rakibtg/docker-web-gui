@@ -9,7 +9,7 @@ class NewGroupForm extends React.PureComponent {
       alignItems='center'>
         <TextInput
           name="text-input-name"
-          placeholder="Write the group name here"
+          placeholder="New Group Name"
           height={26}
           display='flex'
           flexGrow={1}
