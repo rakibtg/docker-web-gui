@@ -45,10 +45,11 @@ class SecondaryNavBar extends React.PureComponent {
   }
 
   groupsToggler () {
-    const { genericGroups, showGroupsPage } = this.props
+    const { genericGroups, showGroupsPage, showNewGroupForm } = this.props
+    const isBack = showGroupsPage || showNewGroupForm
     return <Button 
       marginRight={12} 
-      iconBefore={showGroupsPage ? 'chevron-left' : 'tag'}
+      iconBefore={isBack ? 'chevron-left' : 'tag'}
       paddingLeft={35}
       paddingRight={30}
       height={26}
@@ -58,7 +59,7 @@ class SecondaryNavBar extends React.PureComponent {
           showNewGroupForm: false,
         })
       }}>
-        {showGroupsPage ? 'Back' : 'Groups'}
+        {isBack ? 'Back' : 'Groups'}
     </Button>
   }
 
