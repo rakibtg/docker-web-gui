@@ -22,7 +22,7 @@ exports.fetch = async (req, res) => {
       if(tintContainer.State.Running !== true) results.push(lightContainerDetail(container, tintContainer))
     }
   }))
-  res.json(results)
+  res.json(results.sort((a, b) => (a.Name > b.Name) ? 1 : -1))
 }
 
 exports.fetchById = async (req, res) => {
@@ -32,15 +32,20 @@ exports.fetchById = async (req, res) => {
   res.json(container)
 }
 
-exports.command = async (req, res) => {
+exports.command = async (req, res, next) => {
   const containerID = req.query.container
   const command = req.query.command
   const cmd = `docker container ${command} ${containerID}`
-  const cmdData = await Terminal(cmd)
-  res.json(
-    cmdData
-      .replace("\n", "")
-  )
+  try{
+    const cmdData = await Terminal(cmd)
+    res.json(
+      cmdData
+        .replace("\n", "")
+    )
+  } catch (error){
+    next(error)
+  }
+  
 }
 
 exports.logs = async (req, res) => {

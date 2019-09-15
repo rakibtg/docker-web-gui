@@ -73,6 +73,14 @@ export const toggleContainer = (container, status) => {
             stateToggling: false,
           },
         }))
+        toaster.success(`Container ${container.Name} has been ${status === 'start'? 'started' : 'stopped'}.`,{ duration: 5 })
+      })
+      .catch( ex => {
+        dispatch(updateContainer({
+          containerId: container.shortId,
+          data: { stateToggling: false },
+        }))
+        toaster.warning(`There is problem ${status === 'start'? 'starting' : 'stopping'} container ${container.Name}`,{duration: 5})
       })
   }
 }
@@ -105,6 +113,22 @@ export const restartContainer = (container, status) => {
             stateToggling: false,
           },
         }))
+        toaster.success(`Container ${container.Name} has been restarted.`,{ duration: 5 })
+      })
+      .catch( ex => {
+        dispatch(updateContainer({
+          containerId: container.shortId,
+          data: { 
+            State: {
+              ...container.State,
+              ...{
+                Running: false
+              }
+            },
+            stateToggling: false,
+          },
+        }))
+        toaster.warning(`There is problem restarting container ${container.Name}`,{duration: 5})
       })
   }
 }

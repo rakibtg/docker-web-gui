@@ -12,7 +12,7 @@ import Modal from './deleteModal'
 class ContainersList extends React.PureComponent {
 
   componentDidMount () {
-    this.props.getContainers('active')
+    this.props.getContainers(this.props.segment)
   }
 
   render () {
@@ -41,6 +41,7 @@ class ContainersList extends React.PureComponent {
 
 const mapStateToProps = state => {
   return {
+    segment: state.container.segment,
     containers: state.container.containers,
     showModal: state.container.showModal,
     selectedContainer: state.container.selectedContainer
