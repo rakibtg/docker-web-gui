@@ -7,14 +7,51 @@ import { connect } from 'react-redux'
 import { genericContainer, getLog, toggleDeleteModal } from '../../store/actions/container.action'
 
 import ContainerSwitch from './switch'
+import ContainerSelector from './selector'
 import ContainerRestart from './restartButton'
 import ContainerStat from './stat'
 import CreatedAt from '../createdAt'
 
 class ContainerCard extends React.PureComponent {
 
+  actionButtons (active) {
+    const { container, showNewGroupForm, toggleDeleteModal, getLog } = this.props
+    if(!showNewGroupForm) {
+      if(active) {
+        return <Pane display="flex" marginTop={12} marginLeft={46}>
+          <ContainerRestart container={container} />
+          <Button marginRight={5} 
+            height={22} 
+            iconBefore="application"
+            onClick={()=>{
+              getLog(container)
+            }}>Log</Button>
+          <Button marginRight={5} 
+            height={22} 
+            iconBefore="trash" 
+            onClick={() => {
+              toggleDeleteModal(container)
+            }}>
+            Delete
+          </Button>
+        </Pane>
+      } else {
+        return null
+      }
+    }
+  }
+
+  renderStats (container) {
+    const { showNewGroupForm } = this.props
+    if(!showNewGroupForm) {
+      if(container.State.Running) {
+        return <ContainerStat containerID={container.shortId} />
+      }
+    }
+  }
+
   render () {
-    const { container, activeIndex, genericContainer, index, getLog, toggleDeleteModal } = this.props
+    const { container, activeIndex, genericContainer, index, showNewGroupForm } = this.props
     const active = activeIndex == index
       return <Pane 
             display="flex" 
@@ -27,34 +64,20 @@ class ContainerCard extends React.PureComponent {
             onMouseEnter={() => genericContainer({
               activeIndex: index
             })}>
-        <Pane display="flex">
+        <Pane display="flex" alignItems="center">
           <Pane display="flex" justifyContent="center" alignItems="center">
-            <ContainerSwitch container={container} />
+            {
+              showNewGroupForm
+                ? <ContainerSelector container={container} />
+                : <ContainerSwitch container={container} />
+            }
             <Heading size={400}>{container.Name}</Heading>
           </Pane>
           <Badge backgroundColor="#e7e9ef" fontWeight="bold" borderRadius={16} paddingLeft={10} fontSize={11} paddingRight={10} marginLeft={10} marginTop={3}>{container.shortId}</Badge>
           <CreatedAt time={container.Created} />
-          { container.State.Running && <ContainerStat containerID={container.shortId} /> }
+          { this.renderStats(container) }
         </Pane>
-        { active && 
-          <Pane display="flex" marginTop={12} marginLeft={46}>
-            <ContainerRestart container={container} />
-            <Button marginRight={5} 
-                    height={22} 
-                    iconBefore="application"
-                    onClick={()=>{
-                      getLog(container)
-                    }}>Log</Button>
-            <Button marginRight={5} 
-                    height={22} 
-                    iconBefore="trash" 
-                    onClick={() => {
-                      toggleDeleteModal(container)
-                    }}>
-                    Delete
-            </Button>
-          </Pane>
-        }
+        { this.actionButtons(active) }
     </Pane>
   }
 }
@@ -62,6 +85,7 @@ class ContainerCard extends React.PureComponent {
 const mapStateToProps = state => {
   return {
     activeIndex: state.container.activeIndex,
+    showNewGroupForm: state.groups.showNewGroupForm,
   }
 }
 
