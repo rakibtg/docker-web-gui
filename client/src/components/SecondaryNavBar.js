@@ -38,7 +38,8 @@ class SecondaryNavBar extends React.PureComponent {
       height={26}
       onClick={() => {
         genericGroups({
-          showNewGroupForm: !showNewGroupForm
+          showGroupsPage: false,
+          showNewGroupForm: !showNewGroupForm,
         })
       }}>Create New Group</Button>
   }
