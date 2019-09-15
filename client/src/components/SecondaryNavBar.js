@@ -4,15 +4,21 @@ import { Pane, Spinner, SegmentedControl, Button } from 'evergreen-ui'
 import { bindActionCreators } from 'redux'
 import { connect } from 'react-redux'
 
-import { 
-  getContainers, 
-  genericContainer,
-} from '../store/actions/container.action'
+import { getContainers } from '../store/actions/container.action'
+import { genericGroups } from '../store/actions/groups.action'
+
+import NewGroupForm from './NewGroupForm'
 
 class SecondaryNavBar extends React.PureComponent {
 
   render() {
-    const { segment, loading, getContainers, genericContainer } = this.props
+    const { 
+      segment, 
+      loading, 
+      getContainers, 
+      genericGroups, 
+      showGroupsPage,
+    } = this.props
     return <Pane 
       backgroundColor="#f1f1f1" 
       display="flex" 
@@ -20,30 +26,33 @@ class SecondaryNavBar extends React.PureComponent {
       padding={10}>
       <Button 
         marginRight={12} 
-        iconBefore="tag" 
+        iconBefore={showGroupsPage ? 'chevron-left' : 'tag'}
         paddingLeft={35}
         paddingRight={30}
         height={26}
         onClick={() => {
-          genericContainer({
-            showGroupsPage: true,
-          })
+          genericGroups({ showGroupsPage: !showGroupsPage })
         }}>
-          Groups
+          {showGroupsPage ? 'Back' : 'Groups'}
       </Button>
-      <SegmentedControl
-        width={400}
-        height={26}
-        options={[
-          { label: loading === 'all' ? <Spinner size={16} /> : 'All', value: 'all' },
-          { label: loading === 'active' ? <Spinner size={16} /> : 'Active', value: 'active' },
-          { label: loading === 'stopped' ? <Spinner size={16} /> : 'Stopped', value: 'stopped' }
-        ]}
-        value={segment}
-        onChange={value => {
-          getContainers(value)
-        }}
-      />
+      {
+        showGroupsPage 
+          ? <NewGroupForm />
+          : <SegmentedControl
+              width={400}
+              height={26}
+              options={[
+                { label: loading === 'all' ? <Spinner size={16} /> : 'All', value: 'all' },
+                { label: loading === 'active' ? <Spinner size={16} /> : 'Active', value: 'active' },
+                { label: loading === 'stopped' ? <Spinner size={16} /> : 'Stopped', value: 'stopped' }
+              ]}
+              value={segment}
+              onChange={value => {
+                getContainers(value)
+              }}
+            />
+
+      }
     </Pane>
   }
 }
@@ -52,13 +61,14 @@ const mapStateToProps = state => {
   return {
     segment: state.container.segment,
     loading: state.container.loading,
+    showGroupsPage: state.groups.showGroupsPage,
   }
 }
 
 const mapDispatchToProps = dispatch => bindActionCreators(
   {
     getContainers,
-    genericContainer,
+    genericGroups,
   },
   dispatch
 )
