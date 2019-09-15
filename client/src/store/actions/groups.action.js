@@ -6,6 +6,25 @@ export const genericGroups = payload => ({
   payload
 })
 
+export const groupItemSelector = itemID => {
+  return dispatch => {
+    const selectedItems = store.getState().groups.selectedItems
+    if(selectedItems.includes(itemID)) {
+      // Remove item.
+      const modifiedListOfItems = selectedItems.filter(value => value != itemID)
+      dispatch(genericGroups({
+        selectedItems: modifiedListOfItems,
+      }))
+    } else {
+      // Add item.
+      selectedItems.push(itemID)
+      dispatch(genericGroups({
+        selectedItems
+      }))
+    }
+  }
+}
+
 /*
 export const getContainersStat = () => {
   return dispatch => {
