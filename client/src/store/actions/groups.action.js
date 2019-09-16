@@ -17,9 +17,12 @@ export const groupItemSelector = itemID => {
       }))
     } else {
       // Add item.
-      selectedItems.push(itemID)
+      const items = [
+        ...selectedItems,
+        itemID
+      ]
       dispatch(genericGroups({
-        selectedItems
+        selectedItems: items
       }))
     }
   }
