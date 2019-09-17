@@ -51,6 +51,7 @@ export const getImages = (status = 'active') => {
 }
 
 export const runImageToContainer = (image) => {
+  console.log('run ac')
   return dispatch => {
     dispatch(runImage({
       imageId: image.ID,
@@ -58,13 +59,9 @@ export const runImageToContainer = (image) => {
     }))
     request('get', `image/command?image=${image.ID}&command=${'run'}`)
       .then(res => {
-        const State = {
-          ...image.State,
-        }
         dispatch(runImage({
           imageId: image.ID,
           data: { 
-            State,
             stateToggling: false,
           },
         }))
@@ -100,7 +97,6 @@ export const deleteImage = (image, command) => (dispatch, getState)=>{
       .catch(ex=>{
         console.log('excep', ex)
         dispatch(removeImage({
-          imageId: image.ID,
           showModal: !getState().image.showModal,
           selectedImage: {}
         }))
@@ -112,29 +108,6 @@ export const deleteImage = (image, command) => (dispatch, getState)=>{
         )
       })
 }
-
-// export const getLog = (container) => {
-//   return dispatch => {
-//     dispatch(updateContainerLog({
-//       container: container,
-//       isShowingSideSheet: false,
-//     }))
-//     request('get', `container/logs?container=${container.shortId}`)
-//       .then(response => {
-//         dispatch(updateContainerLog({
-//           container: container,
-//           isShowingSideSheet: true,
-//           logData: response.data
-//         }))
-//       })
-//   }
-// }
-
-// export const resetLogSideSheet = () => (dispatch, getState)=>{
-//   dispatch(updateContainerLog({
-//     isShowingSideSheet: !getState().container.isShowingSideSheet,
-//   }))
-// }
 
 export const toggleImageDeleteModal = (image) => (dispatch, getState)=>{
   console.log('cccc')
