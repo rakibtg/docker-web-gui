@@ -26,12 +26,11 @@ export const toggleModal = payload => ({
   payload
 })
 
-export const getImages = (status = 'active') => {
+export const getImages = () => {
   return dispatch => {
     dispatch(genericImage({
-      loading: status,
+      loading: true,
       pageError: false,
-      segment: status,
       activeIndex: 0,
     }))
     request('get', `image/fetch`)
