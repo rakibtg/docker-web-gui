@@ -50,7 +50,6 @@ export const getImages = () => {
 }
 
 export const runImageToContainer = (image) => {
-  console.log('run ac')
   return dispatch => {
     dispatch(runImage({
       imageId: image.ID,
@@ -60,15 +59,13 @@ export const runImageToContainer = (image) => {
       .then(res => {
         dispatch(runImage({
           imageId: image.ID,
-          data: { 
-            stateToggling: false,
-          },
+          data: { stateToggling: false },
         }))
         toaster.success(`Image ${image.ID} has been started running.`,{ duration: 5 })
       })
       .catch( ex => {
         dispatch(runImage({
-          imageID: image.ID,
+          imageId: image.ID,
           data: { stateToggling: false },
         }))
         toaster.warning(`There is problem running image ${image.ID}`,{duration: 5})
@@ -94,7 +91,6 @@ export const deleteImage = (image, command) => (dispatch, getState)=>{
         )
       })
       .catch(ex=>{
-        console.log('excep', ex)
         dispatch(removeImage({
           showModal: !getState().image.showModal,
           selectedImage: {}
@@ -109,7 +105,6 @@ export const deleteImage = (image, command) => (dispatch, getState)=>{
 }
 
 export const toggleImageDeleteModal = (image) => (dispatch, getState)=>{
-  console.log('cccc')
   dispatch(toggleModal({
     showModal: !getState().image.showModal,
     selectedImage: image ? image : {}
