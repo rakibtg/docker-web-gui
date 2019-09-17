@@ -1,9 +1,17 @@
 import React from 'react'
 
-const Stats = () => {
-    return (
-        <div>Images</div>
-    );
-};
+import SecondaryNavBar from '../components/SecondaryNavBar'
+import ImageLists from '../components/image/imageLists'
 
-export default Stats;
+class ImagePage extends React.PureComponent {
+
+  render () {
+    return <>
+      {/* <SecondaryNavBar /> */}
+      <ImageLists />
+    </>
+  }
+
+}
+
+export default ImagePage
