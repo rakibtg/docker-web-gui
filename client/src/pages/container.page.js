@@ -13,7 +13,7 @@ import {store} from '../store'
 class ContainerPage extends React.PureComponent {
 
   componentDidMount () {
-    store.dispatch(containerStatsProcess())
+    // store.dispatch(containerStatsProcess())
   }
 
   render () {
