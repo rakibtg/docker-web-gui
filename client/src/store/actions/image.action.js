@@ -6,25 +6,25 @@ export const genericImage = payload => ({
   payload
 })
 
-// export const updateContainer = payload => ({
-//   type: 'UPDATE_CONTAINER',
-//   payload
-// })
+export const runImage = payload => ({
+  type: 'RUN_IMAGE',
+  payload
+})
 
-// export const removeContainer = payload => ({
-//   type: 'DELETE_CONTAINER',
-//   payload
-// })
+export const removeImage = payload => ({
+  type: 'DELETE_IMAGE',
+  payload
+})
 
 // export const updateContainerLog = payload => ({
 //   type: 'UPDATE_LOG',
 //   payload
 // })
 
-// export const toggleModal = payload => ({
-//   type: 'TOGGLE_MODAL',
-//   payload
-// })
+export const toggleModal = payload => ({
+  type: 'TOGGLE_IMAGE_MODAL',
+  payload
+})
 
 export const getImages = (status = 'active') => {
   return dispatch => {
@@ -50,105 +50,68 @@ export const getImages = (status = 'active') => {
   }
 }
 
-// export const toggleContainer = (container, status) => {
-//   return dispatch => {
-//     dispatch(updateContainer({
-//       containerId: container.shortId,
-//       data: { stateToggling: true },
-//     }))
-//     request('get', `container/command?container=${container.shortId}&command=${status}`)
-//       .then(res => {
-//         const State = {
-//           ...container.State,
-//           ...{
-//             Running: status === 'start'
-//               ? true
-//               : false
-//           }
-//         }
-//         dispatch(updateContainer({
-//           containerId: container.shortId,
-//           data: { 
-//             State,
-//             stateToggling: false,
-//           },
-//         }))
-//         toaster.success(`Container ${container.Name} has been ${status === 'start'? 'started' : 'stopped'}.`,{ duration: 5 })
-//       })
-//       .catch( ex => {
-//         dispatch(updateContainer({
-//           containerId: container.shortId,
-//           data: { stateToggling: false },
-//         }))
-//         toaster.warning(`There is problem ${status === 'start'? 'starting' : 'stopping'} container ${container.Name}`,{duration: 5})
-//       })
-//   }
-// }
+export const runImageToContainer = (image) => {
+  return dispatch => {
+    dispatch(runImage({
+      imageId: image.ID,
+      data: { stateToggling: true },
+    }))
+    request('get', `image/command?image=${image.ID}&command=${'run'}`)
+      .then(res => {
+        const State = {
+          ...image.State,
+        }
+        dispatch(runImage({
+          imageId: image.ID,
+          data: { 
+            State,
+            stateToggling: false,
+          },
+        }))
+        toaster.success(`Image ${image.ID} has been started running.`,{ duration: 5 })
+      })
+      .catch( ex => {
+        dispatch(runImage({
+          imageID: image.ID,
+          data: { stateToggling: false },
+        }))
+        toaster.warning(`There is problem running image ${image.ID}`,{duration: 5})
+      })
+  }
+}
 
-// export const restartContainer = (container, status) => {
-//   return dispatch => {
-//     dispatch(updateContainer({
-//       containerId: container.shortId,
-//       data: { 
-//         stateToggling: true,
-//         State: {
-//           ...container.State,
-//           ...{
-//             Running: false
-//           }
-//         }
-//       },
-//     }))
-//     request('get', `container/command?container=${container.shortId}&command=${status}`)
-//       .then(res => {
-//         dispatch(updateContainer({
-//           containerId: container.shortId,
-//           data: { 
-//             State: {
-//               ...container.State,
-//               ...{
-//                 Running: true
-//               }
-//             },
-//             stateToggling: false,
-//           },
-//         }))
-//         toaster.success(`Container ${container.Name} has been restarted.`,{ duration: 5 })
-//       })
-//       .catch( ex => {
-//         dispatch(updateContainer({
-//           containerId: container.shortId,
-//           data: { 
-//             State: {
-//               ...container.State,
-//               ...{
-//                 Running: false
-//               }
-//             },
-//             stateToggling: false,
-//           },
-//         }))
-//         toaster.warning(`There is problem restarting container ${container.Name}`,{duration: 5})
-//       })
-//   }
-// }
 
-// export const deleteContainer = (container, command) => (dispatch, getState)=>{
-//     request('get', `container/command?container=${container.shortId}&command=${command}`)
-//       .then(res => {
-//         dispatch(removeContainer({
-//           containerId: container.shortId,
-//           showModal: !getState().container.showModal,
-//           selectedContainer: {}
-//         }))
-//         toaster.success(
-//           `Container ${container.Name} is no more!!!.`,
-//           {
-//             duration: 5
-//           }
-//         )
-//       })  
-// }
+export const deleteImage = (image, command) => (dispatch, getState)=>{
+  console.log('deac')
+    request('get', `image/command?image=${image.ID}&command=${command}`)
+      .then(res => {
+        dispatch(removeImage({
+          imageId: image.ID,
+          showModal: !getState().image.showModal,
+          selectedImage: {}
+        }))
+        toaster.success(
+          `Image ${image.ID} is no more!!!.`,
+          {
+            duration: 5
+          }
+        )
+      })
+      .catch(ex=>{
+        console.log('excep', ex)
+        dispatch(removeImage({
+          imageId: image.ID,
+          showModal: !getState().image.showModal,
+          selectedImage: {}
+        }))
+        toaster.danger(
+          `Image ${image.ID} can not be deleted!!!.`,
+          {
+            duration: 5
+          },
+        )
+      })
+}
 
 // export const getLog = (container) => {
 //   return dispatch => {
@@ -173,9 +136,10 @@ export const getImages = (status = 'active') => {
 //   }))
 // }
 
-// export const toggleDeleteModal = (container) => (dispatch, getState)=>{
-//   dispatch(toggleModal({
-//     showModal: !getState().container.showModal,
-//     selectedContainer: container ? container : {}
-//   }))
-// }
+export const toggleImageDeleteModal = (image) => (dispatch, getState)=>{
+  console.log('cccc')
+  dispatch(toggleModal({
+    showModal: !getState().image.showModal,
+    selectedImage: image ? image : {}
+  }))
+}
