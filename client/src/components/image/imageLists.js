@@ -20,7 +20,6 @@ class ImageList extends React.PureComponent {
     if(loading || images.length == 0){
       return <Loader/>
     }
-   
     return <Pane 
       display="flex" 
       flexDirection="column" 
