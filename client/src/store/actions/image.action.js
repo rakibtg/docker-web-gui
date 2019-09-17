@@ -16,11 +16,6 @@ export const removeImage = payload => ({
   payload
 })
 
-// export const updateContainerLog = payload => ({
-//   type: 'UPDATE_LOG',
-//   payload
-// })
-
 export const toggleModal = payload => ({
   type: 'TOGGLE_IMAGE_MODAL',
   payload
@@ -75,7 +70,6 @@ export const runImageToContainer = (image) => {
 
 
 export const deleteImage = (image, command) => (dispatch, getState)=>{
-  console.log('deac')
     request('get', `image/command?image=${image.ID}&command=${command}`)
       .then(res => {
         dispatch(removeImage({
@@ -96,7 +90,7 @@ export const deleteImage = (image, command) => (dispatch, getState)=>{
           selectedImage: {}
         }))
         toaster.danger(
-          `Image ${image.ID} can not be deleted!!!.`,
+          `Image ${image.ID} can not be deleted! May be used by some containers.`,
           {
             duration: 5
           },
