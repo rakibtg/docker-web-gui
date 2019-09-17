@@ -7,7 +7,6 @@ class ImagePage extends React.PureComponent {
 
   render () {
     return <>
-      {/* <SecondaryNavBar /> */}
       <ImageLists />
     </>
   }
