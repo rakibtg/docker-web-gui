@@ -7,6 +7,7 @@ import { getImages, toggleImageDeleteModal } from '../../store/actions/image.act
 
 import ImageCard from './imageCard'
 import Modal from '../container/deleteModal'
+import Loader from '../Loader'
 
 class ImageList extends React.PureComponent {
 
@@ -15,14 +16,18 @@ class ImageList extends React.PureComponent {
   }
 
   render () {
-    const { images, showModal, selectedImage, toggleImageDeleteModal } = this.props
+    const { images, showModal, selectedImage, toggleImageDeleteModal, loading } = this.props
+    if(loading || images.length == 0){
+      return <Loader/>
+    }
+   
     return <Pane 
       display="flex" 
       flexDirection="column" 
       justifyContent="center" 
       alignItems="center"
       marginTop={20}>
-      {/* <LogSideSheet /> */}
+      
       { showModal && <Modal image={selectedImage} toggleModal={toggleImageDeleteModal} />} 
         {
           images.map((image, index) => 
@@ -42,7 +47,8 @@ const mapStateToProps = state => {
   return {
     images: state.image.images,
     showModal: state.image.showModal,
-    selectedImage: state.image.selectedImage
+    selectedImage: state.image.selectedImage,
+    loading: state.image.loading
   }
 }
 
