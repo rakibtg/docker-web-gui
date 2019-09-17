@@ -11,17 +11,31 @@ export default (state = null, action) => {
      case 'RUN_IMAGE':
        return {
          ...state,
-
+         ...{
+          images: state.images.map(c => {
+            if(c.ID == action.payload.imageId) {
+              return {
+                ...c,
+                ...action.payload.data
+              }
+            } else {
+              return c
+            }
+          })
+        }
        }
 
      case 'DELETE_IMAGE':
        return {
          ...state,
          ...{
-           containers: state.images.filter(c => {
-             return c.ID !== action.payload.imageId
-           },
-           ),
+           images: state.images.filter(c => {
+            if(action.payload.imageId) {
+              return c.ID !== action.payload.imageId
+            } else {
+              return c
+            }
+           }),
            showModal: action.payload.showModal,
            selectedImage: action.payload.selectedImage
          }
