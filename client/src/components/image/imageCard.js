@@ -1,5 +1,5 @@
 import React from 'react'
-import { Pane, Button, Heading, Badge } from 'evergreen-ui'
+import { Pane, Button, Heading, Badge, Spinner } from 'evergreen-ui'
 import '../../components/container/style/card.css'
 
 import { bindActionCreators } from 'redux'
@@ -25,7 +25,7 @@ class ImageCard extends React.PureComponent {
             })}>
             <Pane display="flex">
                <Pane display="flex" justifyContent="center" alignItems="center">
-                  <Heading size={400}>{`${image.Repository != '<none>'? image.Repository : 'No Repository'}:${image.Tag ? image.Tag : 'No Tag'}`}</Heading>
+                  <Heading size={400}>{`${image.Repository != '<none>'? image.Repository : 'No Repository'}: ${image.Tag ? image.Tag : 'No Tag'}`}</Heading>
                </Pane>
                <Badge backgroundColor="#e7e9ef" fontWeight="bold" borderRadius={16} paddingLeft={10} fontSize={11} paddingRight={10} marginLeft={10} marginTop={3}>{image.ID}</Badge>
                <Badge backgroundColor="#d4eee3" fontWeight="bold" borderRadius={16} paddingLeft={10} fontSize={11} paddingRight={10} marginLeft={10} marginTop={3}>{image.Size}</Badge>
@@ -39,15 +39,13 @@ class ImageCard extends React.PureComponent {
                         onClick={()=>{
                           runImageToContainer(image)
                         }}
-                        disabled={image.stateToggling}
-                       >Run</Button>
+                       >{image.stateToggling ? <Spinner size={16}/> : 'Run'}</Button>
                   <Button marginRight={5} 
                         height={22} 
                         iconBefore="trash" 
                         onClick={()=>{
                           toggleImageDeleteModal(image)
                         }}
-                        disabled={image.stateToggling}
                         >
                         Delete
                   </Button>
