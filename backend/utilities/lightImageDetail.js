@@ -1,5 +1,7 @@
-exports.lightContainerDetail = (id, inspectedData) => ({
-  Id: inspectedData.Id.replace('sha256:', ''),
-  ShortId: id,
-  Created: inspectedData.Created
+exports.lightImageDetail = (image, inspectedData) => ({
+  Id: image.ID,
+  Repository: inspectedData.RepoTags[0],
+  Created: inspectedData.Created,
+  Size: image.Size,
+  VirtualSize: image.VirtualSize
 })
