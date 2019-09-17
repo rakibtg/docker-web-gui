@@ -4,12 +4,13 @@ import '../../components/container/style/card.css'
 
 import { bindActionCreators } from 'redux'
 import { connect } from 'react-redux'
-import { genericImage} from '../../store/actions/image.action'
+import { genericImage, runImage, toggleImageDeleteModal } from '../../store/actions/image.action'
+
 
 class ImageCard extends React.PureComponent {
 
   render () {
-    const { image, activeIndex, genericImage, index } = this.props
+    const { image, activeIndex, genericImage, index, toggleImageDeleteModal } = this.props
     const active = activeIndex == index
    return <Pane 
             display="flex" 
@@ -24,7 +25,6 @@ class ImageCard extends React.PureComponent {
             })}>
             <Pane display="flex">
                <Pane display="flex" justifyContent="center" alignItems="center">
-                  {/* <ContainerSwitch container={container} /> */}
                   <Heading size={400}>{image.ID}</Heading>
                </Pane>
                <Badge backgroundColor="#e7e9ef" fontWeight="bold" borderRadius={16} paddingLeft={10} fontSize={11} paddingRight={10} marginLeft={10} marginTop={3}>{image.Repository !== '<none>' ? image.Repository : "No Repository"}</Badge>
@@ -36,10 +36,16 @@ class ImageCard extends React.PureComponent {
                   <Button marginRight={5} 
                         height={22} 
                         iconBefore="application"
+                        onClick={()=>{
+                          runImage(image)
+                        }}
                        >Run</Button>
                   <Button marginRight={5} 
                         height={22} 
                         iconBefore="trash" 
+                        onClick={()=>{
+                          toggleImageDeleteModal(image)
+                        }}
                         >
                         Delete
                   </Button>
@@ -57,7 +63,8 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => bindActionCreators(
   {
-    genericImage
+    genericImage,
+    toggleImageDeleteModal
   },
   dispatch
 )
