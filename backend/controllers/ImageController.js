@@ -3,7 +3,7 @@ const { lightImageDetail } = require('../utilities/lightImageDetail')
 
 exports.fetch = async (req, res) => {
   const images = await Terminal(
-    `docker images --format '{"ID": "{{.ID}}", "TAG":"{{}.Tag}",CreatedSince": "{{.CreatedSince}}", "Size": "{{.Size}}", "VirtualSize": "{{.VirtualSize}}", "Repository": "{{.Repository}}"}'`
+    `docker images --format '{"ID": "{{.ID}}", "Tag": "{{.Tag}}", "CreatedSince": "{{.CreatedSince}}", "Size": "{{.Size}}", "VirtualSize": "{{.VirtualSize}}", "Repository": "{{.Repository}}"}'`
   )
   const imagesArray = images
     .split("\n")
