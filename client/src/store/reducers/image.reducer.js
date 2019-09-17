@@ -8,27 +8,33 @@ export default (state = null, action) => {
          ...action.payload
        }
 
-   //   case 'DELETE_IMAGE':
-   //     return {
-   //       ...state,
-   //       ...{
-   //         containers: state.containers.filter(c => {
-   //           return c.shortId !== action.payload.containerId
-   //         },
-   //         ),
-   //         showModal: action.payload.showModal,
-   //         selectedContainer: action.payload.selectedContainer
-   //       }
-   //     }
+     case 'RUN_IMAGE':
+       return {
+         ...state,
+
+       }
+
+     case 'DELETE_IMAGE':
+       return {
+         ...state,
+         ...{
+           containers: state.images.filter(c => {
+             return c.ID !== action.payload.imageId
+           },
+           ),
+           showModal: action.payload.showModal,
+           selectedImage: action.payload.selectedImage
+         }
+       }
  
-   //   case 'TOGGLE_MODAL':
-   //     return {
-   //       ...state,
-   //       ...{
-   //         showModal: action.payload.showModal,
-   //         selectedContainer: action.payload.selectedContainer
-   //       }
-   //     }
+     case 'TOGGLE_IMAGE_MODAL':
+       return {
+         ...state,
+         ...{
+           showModal: action.payload.showModal,
+           selectedImage: action.payload.selectedImage
+         }
+       }
        
      default:
        return state
