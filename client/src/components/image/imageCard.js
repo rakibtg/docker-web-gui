@@ -39,7 +39,8 @@ class ImageCard extends React.PureComponent {
                         onClick={()=>{
                           runImageToContainer(image)
                         }}
-                       >{image.stateToggling ? <Spinner size={16}/> : 'Run'}</Button>
+                        isLoading={image.stateToggling}
+                       >Run</Button>
                   <Button marginRight={5} 
                         height={22} 
                         iconBefore="trash" 
