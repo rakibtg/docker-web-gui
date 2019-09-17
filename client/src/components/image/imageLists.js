@@ -17,7 +17,9 @@ class ImageList extends React.PureComponent {
 
   render () {
     const { images, showModal, selectedImage, toggleImageDeleteModal, loading } = this.props
-    if(loading || images.length == 0){
+    if(loading){
+      return <Loader spinner={true}/>
+    } else if(images.length == 0){
       return <Loader/>
     }
     return <Pane 
