@@ -9,8 +9,8 @@ const Loader = (props) => {
       justifyContent="center" 
       alignItems="center"
       marginTop={20}>
-         <Heading>Loading images. Please wait....</Heading>
-         <Spinner marginX="auto" marginY={120}/>
+         <Heading>{props.spinner ? `Loading images. Please wait....` : `No image on this machine`}</Heading>
+         {props.spinner && <Spinner marginX="auto" marginY={120}/>}
       </Pane>
     )
 };
