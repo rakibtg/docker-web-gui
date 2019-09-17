@@ -3,9 +3,10 @@ import { Pane } from 'evergreen-ui'
 
 import { bindActionCreators } from 'redux'
 import { connect } from 'react-redux'
-import { getImages } from '../../store/actions/image.action'
+import { getImages, toggleImageDeleteModal } from '../../store/actions/image.action'
 
 import ImageCard from './imageCard'
+import Modal from '../container/deleteModal'
 
 class ImageList extends React.PureComponent {
 
@@ -14,15 +15,15 @@ class ImageList extends React.PureComponent {
   }
 
   render () {
-    const { images, showModal, selectedImage} = this.props
+    const { images, showModal, selectedImage, toggleImageDeleteModal } = this.props
     return <Pane 
       display="flex" 
       flexDirection="column" 
       justifyContent="center" 
       alignItems="center"
       marginTop={20}>
-      {/* <LogSideSheet />
-      { showModal && <Modal container={selectedImage} />}  */}
+      {/* <LogSideSheet /> */}
+      { showModal && <Modal image={selectedImage} toggleModal={toggleImageDeleteModal} />} 
         {
           images.map((image, index) => 
             <ImageCard 
@@ -40,12 +41,15 @@ class ImageList extends React.PureComponent {
 const mapStateToProps = state => {
   return {
     images: state.image.images,
+    showModal: state.image.showModal,
+    selectedImage: state.image.selectedImage
   }
 }
 
 const mapDispatchToProps = dispatch => bindActionCreators(
   {
-    getImages
+    getImages,
+    toggleImageDeleteModal
   },
   dispatch
 )
