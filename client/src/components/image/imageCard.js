@@ -4,13 +4,13 @@ import '../../components/container/style/card.css'
 
 import { bindActionCreators } from 'redux'
 import { connect } from 'react-redux'
-import { genericImage, runImage, toggleImageDeleteModal } from '../../store/actions/image.action'
+import { genericImage, runImageToContainer, toggleImageDeleteModal } from '../../store/actions/image.action'
 
 
 class ImageCard extends React.PureComponent {
 
   render () {
-    const { image, activeIndex, genericImage, index, toggleImageDeleteModal } = this.props
+    const { image, activeIndex, genericImage, index, toggleImageDeleteModal, runImageToContainer } = this.props
     const active = activeIndex == index
    return <Pane 
             display="flex" 
@@ -25,9 +25,9 @@ class ImageCard extends React.PureComponent {
             })}>
             <Pane display="flex">
                <Pane display="flex" justifyContent="center" alignItems="center">
-                  <Heading size={400}>{image.ID}</Heading>
+                  <Heading size={400}>{`${image.Repository != '<none>'? image.Repository : 'No Repository'}:${image.Tag ? image.Tag : 'No Tag'}`}</Heading>
                </Pane>
-               <Badge backgroundColor="#e7e9ef" fontWeight="bold" borderRadius={16} paddingLeft={10} fontSize={11} paddingRight={10} marginLeft={10} marginTop={3}>{image.Repository !== '<none>' ? image.Repository : "No Repository"}</Badge>
+               <Badge backgroundColor="#e7e9ef" fontWeight="bold" borderRadius={16} paddingLeft={10} fontSize={11} paddingRight={10} marginLeft={10} marginTop={3}>{image.ID}</Badge>
                <Badge backgroundColor="#d4eee3" fontWeight="bold" borderRadius={16} paddingLeft={10} fontSize={11} paddingRight={10} marginLeft={10} marginTop={3}>{image.Size}</Badge>
                <Badge backgroundColor="#deebf7" fontWeight="bold" borderRadius={16} paddingLeft={10} fontSize={11} paddingRight={10} marginLeft={10} marginTop={3}>{image.CreatedSince}</Badge>
             </Pane>
@@ -37,8 +37,9 @@ class ImageCard extends React.PureComponent {
                         height={22} 
                         iconBefore="application"
                         onClick={()=>{
-                          runImage(image)
+                          runImageToContainer(image)
                         }}
+                        disabled={image.stateToggling}
                        >Run</Button>
                   <Button marginRight={5} 
                         height={22} 
@@ -46,6 +47,7 @@ class ImageCard extends React.PureComponent {
                         onClick={()=>{
                           toggleImageDeleteModal(image)
                         }}
+                        disabled={image.stateToggling}
                         >
                         Delete
                   </Button>
@@ -64,7 +66,8 @@ const mapStateToProps = state => {
 const mapDispatchToProps = dispatch => bindActionCreators(
   {
     genericImage,
-    toggleImageDeleteModal
+    toggleImageDeleteModal,
+    runImageToContainer
   },
   dispatch
 )
