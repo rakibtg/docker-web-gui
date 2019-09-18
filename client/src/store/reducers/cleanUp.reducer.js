@@ -11,6 +11,15 @@ export default (state = null, action) => {
             })
           }
        }
+      
+      case 'EXECUTE_PRUNE':
+       return {
+         ...state,
+         ...{
+            isShowingSideSheet: action.payload.isShowingSideSheet,
+            responseData: action.payload.responseData
+          }
+       }
        
      default:
        return state
