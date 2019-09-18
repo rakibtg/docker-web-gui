@@ -28,31 +28,21 @@ export const groupItemSelector = itemID => {
   }
 }
 
-/*
-export const getContainersStat = () => {
+export const createGroup = data => {
   return dispatch => {
-    request('get', `container/stats`, {})
-      .then(response => {
-        dispatch(genericStats({ containerStats: response.data }))
-      }).catch(error => {
-        console.log(error)
+    dispatch(genericGroups({ createFormLoading: true }))
+    request('post', 'groups', {name: data.newGroupName, containers: data.selectedItems})
+      .then(res => {
+        setTimeout(() => {
+          dispatch(genericGroups({ 
+            newGroupName: '',
+            selectedItems: [],
+            showGroupsPage: true,
+            showNewGroupForm: false,
+            createFormLoading: false,
+          }))
+        }, 1200)
       })
   }
 }
 
-export const containerStatsProcess = () => {
-  if(!store.getState().stats.isLive) {
-    return dispatch => {
-      dispatch(getContainersStat())
-      dispatch(genericStats({ isLive: true }))
-      setInterval(() => {
-        dispatch(getContainersStat())
-      }, 4000)
-    }
-  } else {
-    return dispatch => {
-      dispatch(genericStats({ isLive: true }))
-    }
-  }
-}
-*/
