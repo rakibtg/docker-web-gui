@@ -5,4 +5,5 @@ export default {
   showNewGroupForm: false,
   newGroupName: '',
   createFormLoading: false,
+  groupListLoading: true,
 }
