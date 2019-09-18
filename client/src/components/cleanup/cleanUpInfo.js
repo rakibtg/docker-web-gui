@@ -10,7 +10,7 @@ class CleanUpInfo extends React.PureComponent {
 
   render () {
 
-     const { selectedSegment, pruneCommand } = this.props
+     const { selectedSegment, pruneCommand, apiCallStarted } = this.props
      return <Pane 
                display="flex" 
                flexDirection="column" 
@@ -39,6 +39,7 @@ class CleanUpInfo extends React.PureComponent {
                         height={22} 
                         iconBefore="trash" 
                         intent="danger"
+                        isLoading={apiCallStarted}
                         onClick={()=>{
                            pruneCommand(selectedSegment.value)
                         }}
@@ -54,7 +55,8 @@ class CleanUpInfo extends React.PureComponent {
 
 const mapStateToProps = state => {
   return {
-      selectedSegment: state.cleanup.selectedSegment
+      selectedSegment: state.cleanup.selectedSegment,
+      apiCallStarted: state.cleanup.apiCallStarted
   }
 }
 
