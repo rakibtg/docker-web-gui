@@ -19,7 +19,8 @@ export default (state = null, action) => {
             isShowingSideSheet: action.payload.isShowingSideSheet,
             responseData: action.payload.responseData ? {
               data: action.payload.responseData
-            } : {}
+            } : {},
+            apiCallStarted: action.payload.apiCallStarted
           }
        }
        
