@@ -1,4 +1,5 @@
 import { request } from '../../utilities/request'
+import { toaster } from 'evergreen-ui'
 
 export const setCleanUpSegment = payload => ({
   type: 'SELECTED_SEGMENT',
@@ -19,11 +20,21 @@ export const setSelectedCleanUpSegment = (value) => (dispatch, getState)=>{
 
 
 export const pruneCommand = (type) => (dispatch, getState)=>{
-  request('get', `container/command?type=${type}`)
+  request('get', `cleanup/command?type=${type}`)
     .then(res => {
+      console.log('reeee', res)
       dispatch(executePrune({
-        isShowingSideSheet: true,
-        responseData: res.Data
+        isShowingSideSheet: res.data ? true : false,
+        responseData: res.data
       }))
+      if(!res.data){
+        toaster.success(`${type} prune success`, {duration: 5})
+      }
     })  
+}
+
+export const resetLogSideSheet = () => (dispatch, getState)=>{
+  dispatch(executePrune({
+    isShowingSideSheet: !getState().cleanup.isShowingSideSheet,
+  }))
 }
