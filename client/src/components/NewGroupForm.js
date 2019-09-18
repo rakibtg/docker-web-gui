@@ -38,7 +38,7 @@ class NewGroupForm extends React.PureComponent {
           marginLeft={12}
           intent="success"
           disabled={(selectedItems.length <= 0) || (newGroupName === '')}
-          
+          isLoading={createFormLoading}
           onClick={(e) => {
             e.preventDefault()
             this.handleSubmit()
