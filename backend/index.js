@@ -14,6 +14,7 @@ const { DefaultController } = require('./controllers/DefaultController')
 const { GenericCommandController } = require('./controllers/GenericCommandController')
 const ContainerController = require('./controllers/ContainerController')
 const ImageController = require('./controllers/ImageController')
+const GroupController = require('./controllers/GroupController')
 
 app.get('/', DefaultController)
 app.get('/api/generic', GenericCommandController)
@@ -26,5 +27,7 @@ app.get('/api/container/stats', ContainerController.stats)
 
 app.get('/api/image/fetch', ImageController.fetch)
 app.get('/api/image/command', ImageController.command)
+
+app.post('/api/groups', GroupController.create)
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`))
