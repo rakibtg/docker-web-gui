@@ -1,9 +1,22 @@
 import React from 'react'
 
-const Stats = () => {
-    return (
-        <div>Clean-up</div>
-    );
-};
+import CleanUpNavBar from '../components/cleanup/cleanupSubNav'
 
-export default Stats;
+import { connect } from 'react-redux'
+
+class CleanUpPage extends React.PureComponent {
+  render () {
+    return <>
+      <CleanUpNavBar />
+    </>
+  }
+
+}
+
+const mapStateToProps = state => {
+    return {
+      
+    }
+  }
+
+export default connect(mapStateToProps, null)( CleanUpPage )
