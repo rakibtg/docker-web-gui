@@ -12,7 +12,6 @@ import { connect } from 'react-redux'
 class CleanUpPage extends React.PureComponent {
   render () {
     const { resetLogSideSheet, isShowingSideSheet, logData } = this.props
-    console.log('sssss', isShowingSideSheet)
     return <>
       <LogSideSheet resetLogSideSheet={resetLogSideSheet} isShowingSideSheet={isShowingSideSheet} logData={logData} />
       <CleanUpNavBar />
