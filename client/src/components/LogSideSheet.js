@@ -1,15 +1,11 @@
 import React from 'react'
-import { Pane, Spinner, Pre, SideSheet, Heading, Paragraph, Card } from 'evergreen-ui'
-
-import { bindActionCreators } from 'redux'
-import { connect } from 'react-redux'
-import { resetLogSideSheet } from '../store/actions/container.action'
-
+import { Pane, Pre, SideSheet, Heading, Paragraph } from 'evergreen-ui'
 
 class LogSideSheet extends React.PureComponent {
 
   render() {
-    const { isShowingSideSheet, logData,resetLogSideSheet } = this.props
+    const { isShowingSideSheet, logData, resetLogSideSheet } = this.props
+    console.log('llll', isShowingSideSheet)
     return <SideSheet
                 width={1000}
                 isShown={isShowingSideSheet}
@@ -21,14 +17,19 @@ class LogSideSheet extends React.PureComponent {
                 }}
             >
                 <Pane zIndex={1} flexShrink={0} elevation={0} backgroundColor="white">
-                <Pane padding={16}>
-                    <Heading size={600}>Container logs</Heading>
-                    {logData.container && 
+                {logData && logData.container && 
+                    <Pane padding={16}>
+                        <Heading size={600}>Container logs</Heading>                  
                         <Paragraph size={400}>
                             {`Container Name: ${logData.container.Name}`}
                         </Paragraph>
-                    }
-                </Pane>
+                    </Pane>
+                 }
+                 { !logData.container && 
+                    <Pane padding={16}>
+                        <Heading size={600}>Prune response</Heading>                  
+                    </Pane>
+                 }
                 </Pane>
                 <Pane flex="1" overflowY="scroll" background="tint1" padding={16}>
                     <Pane>
@@ -39,18 +40,4 @@ class LogSideSheet extends React.PureComponent {
   }
 }
 
-const mapStateToProps = state => {
-  return {
-    isShowingSideSheet: state.container.isShowingSideSheet,
-    logData: state.container.logData
-  }
-}
-
-const mapDispatchToProps = dispatch => bindActionCreators(
-    {
-        resetLogSideSheet
-    },
-    dispatch
-  )
-
-export default connect(mapStateToProps, mapDispatchToProps)( LogSideSheet )
+export default  LogSideSheet 
