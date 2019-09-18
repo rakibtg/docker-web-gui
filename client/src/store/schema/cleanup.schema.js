@@ -7,5 +7,6 @@ export default {
     ],
    selectedSegment: { label: 'Prune Images', value: 'image', message: 'This action will allow you to clean up unused images. It cleans up dangling images. A dangling image is one that is not tagged and is not referenced by any container.' },
    responseData: {},
-   isShowingSideSheet: false
+   isShowingSideSheet: false,
+   apiCallStarted: false
  }
