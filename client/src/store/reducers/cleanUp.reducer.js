@@ -17,7 +17,9 @@ export default (state = null, action) => {
          ...state,
          ...{
             isShowingSideSheet: action.payload.isShowingSideSheet,
-            responseData: action.payload.responseData
+            responseData: action.payload.responseData ? {
+              data: action.payload.responseData
+            } : {}
           }
        }
        
