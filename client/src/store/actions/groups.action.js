@@ -46,3 +46,13 @@ export const createGroup = data => {
   }
 }
 
+export const getGroups = () => {
+  return dispatch => {
+    request('get', 'groups', {})
+      .then(res => {
+        dispatch(genericGroups({
+          groups: res.data
+        }))
+      })
+  }
+}
