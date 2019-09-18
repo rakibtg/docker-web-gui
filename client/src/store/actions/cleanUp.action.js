@@ -20,21 +20,34 @@ export const setSelectedCleanUpSegment = (value) => (dispatch, getState)=>{
 
 
 export const pruneCommand = (type) => (dispatch, getState)=>{
+  dispatch(executePrune({
+    apiCallStarted: true,
+    responseData: {},
+    isShowingSideSheet:false,
+  }))
   request('get', `cleanup/command?type=${type}`)
     .then(res => {
-      console.log('reeee', res)
       dispatch(executePrune({
         isShowingSideSheet: res.data ? true : false,
-        responseData: res.data
+        responseData: res.data,
+        apiCallStarted: false
       }))
       if(!res.data){
         toaster.success(`${type} prune success`, {duration: 5})
       }
-    })  
+    }) 
+    .catch(ex=>{
+      dispatch(executePrune({
+        responseData: {},
+        isShowingSideSheet:false,
+        apiCallStarted:false
+      }))
+    }) 
 }
 
 export const resetLogSideSheet = () => (dispatch, getState)=>{
   dispatch(executePrune({
     isShowingSideSheet: !getState().cleanup.isShowingSideSheet,
+    apiCallStarted: getState().cleanup.apiCallStarted
   }))
 }
