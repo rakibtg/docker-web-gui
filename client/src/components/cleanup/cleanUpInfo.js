@@ -4,12 +4,14 @@ import { Pane, Button, Heading, Paragraph } from 'evergreen-ui'
 import { bindActionCreators } from 'redux'
 import { connect } from 'react-redux'
 import '../container/style/card.css'
+import { pruneCommand } from '../../store/actions/cleanUp.action'
 
 class CleanUpInfo extends React.PureComponent {
 
   render () {
-     const { selectedSegment } = this.props
-    return <Pane 
+
+     const { selectedSegment, pruneCommand } = this.props
+     return <Pane 
                display="flex" 
                flexDirection="column" 
                justifyContent="center" 
@@ -37,8 +39,11 @@ class CleanUpInfo extends React.PureComponent {
                         height={22} 
                         iconBefore="trash" 
                         intent="danger"
+                        onClick={()=>{
+                           pruneCommand(selectedSegment.value)
+                        }}
                         >
-                        Proceed to Prune images
+                        {`Proceed to Prune ${selectedSegment.value}`}
                      </Button>
                   </Pane>                    
                </Pane>
@@ -55,7 +60,7 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => bindActionCreators(
   {
-    
+   pruneCommand
   },
   dispatch
 )
