@@ -54,6 +54,7 @@ const mapStateToProps = state => {
   return {
     newGroupName: state.groups.newGroupName,
     selectedItems: state.groups.selectedItems,
+    createFormLoading: state.groups.createFormLoading,
   }
 }
 
