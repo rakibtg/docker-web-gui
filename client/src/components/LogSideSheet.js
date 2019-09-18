@@ -5,7 +5,6 @@ class LogSideSheet extends React.PureComponent {
 
   render() {
     const { isShowingSideSheet, logData, resetLogSideSheet } = this.props
-    console.log('llll', isShowingSideSheet)
     return <SideSheet
                 width={1000}
                 isShown={isShowingSideSheet}
