@@ -29,5 +29,6 @@ app.get('/api/image/fetch', ImageController.fetch)
 app.get('/api/image/command', ImageController.command)
 
 app.post('/api/groups', GroupController.create)
+app.get('/api/groups', GroupController.fetch)
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`))
