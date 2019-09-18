@@ -4,11 +4,17 @@ import { Pane, Button, TextInput } from 'evergreen-ui'
 import { bindActionCreators } from 'redux'
 import { connect } from 'react-redux'
 
-import { genericGroups } from '../store/actions/groups.action'
+import { genericGroups, createGroup } from '../store/actions/groups.action'
 
 class NewGroupForm extends React.PureComponent {
+
+  handleSubmit () {
+    const { createGroup, newGroupName, selectedItems } = this.props
+    createGroup({newGroupName, selectedItems})
+  }
+
   render () {
-    const { selectedItems, newGroupName, genericGroups } = this.props
+    const { selectedItems, newGroupName, genericGroups, createFormLoading } = this.props
     return <Pane 
       display='flex'
       justifyContent='center'
@@ -32,6 +38,11 @@ class NewGroupForm extends React.PureComponent {
           marginLeft={12}
           intent="success"
           disabled={(selectedItems.length <= 0) || (newGroupName === '')}
+          
+          onClick={(e) => {
+            e.preventDefault()
+            this.handleSubmit()
+          }}
         >
           Create Group
         </Button>
@@ -48,7 +59,8 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => bindActionCreators(
   {
-    genericGroups
+    createGroup,
+    genericGroups,
   },
   dispatch
 )
