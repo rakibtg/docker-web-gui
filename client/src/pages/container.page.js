@@ -2,7 +2,7 @@ import React from 'react'
 
 import SecondaryNavBar from '../components/SecondaryNavBar'
 import ContainerLists from '../components/container/lists'
-import GroupsList from '../components/GroupsList'
+import GroupsList from '../components/groups/GroupsList'
 
 import { connect } from 'react-redux'
 
