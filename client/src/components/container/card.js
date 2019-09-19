@@ -51,8 +51,14 @@ class ContainerCard extends React.PureComponent {
   }
 
   render () {
-    const { container, activeIndex, genericContainer, index, showNewGroupForm } = this.props
+    const { container, activeIndex, genericContainer, index, showNewGroupForm, noHoverStyle } = this.props
     const active = activeIndex == index
+    let cardName = 'element-card'
+    if(!noHoverStyle) {
+      if(active) {
+        cardName += ' card-active'
+      }
+    }
       return <Pane 
             display="flex" 
             flexDirection="column" 
@@ -60,7 +66,7 @@ class ContainerCard extends React.PureComponent {
             padding={12}
             borderRadius={6}
             border="default"
-            className={active ? "element-card card-active" : "element-card"}
+            className={cardName}
             onMouseEnter={() => genericContainer({
               activeIndex: index
             })}>
