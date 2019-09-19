@@ -7,6 +7,7 @@ import { connect } from 'react-redux'
 import { genericGroups } from '../../store/actions/groups.action'
 
 import ContainerCard from '../container/card'
+import GroupSwitch from '../groups/GroupSwitch'
 
 class GroupCard extends React.PureComponent {
 
@@ -36,13 +37,21 @@ class GroupCard extends React.PureComponent {
         >
           <Pane display="flex" alignItems="center">
             <Pane display="flex" justifyContent="center" alignItems="center">
-              <Heading size={600}>{group.name}</Heading>
+              <GroupSwitch 
+                containers={containers} 
+                groupIndex={index}/>
+              <Heading 
+                display="flex" 
+                alignItems="center" 
+                size={600}>{group.name} 
+                <Badge
+                  marginLeft={6}>{containers.length}</Badge>
+              </Heading>
             </Pane>
-            {/* <Badge backgroundColor="#e7e9ef" fontWeight="bold" borderRadius={16} paddingLeft={10} fontSize={11} paddingRight={10} marginLeft={10} marginTop={3}>{container.shortId}</Badge> */}
           </Pane>
           {
             active && <Pane marginLeft={30} marginTop={10}>
-              <Heading size={400} marginLeft={14} marginTop={10}>All Containers</Heading>
+              <Heading size={400} marginLeft={14} marginTop={10} color="#999">All Containers</Heading>
               {
                 containers.map((container, index) => {
                   return <ContainerCard
