@@ -7,7 +7,7 @@ import { connect } from 'react-redux'
 import { getContainers } from '../store/actions/container.action'
 import { genericGroups } from '../store/actions/groups.action'
 
-import NewGroupForm from './NewGroupForm'
+import NewGroupForm from './groups/NewGroupForm'
 
 class SecondaryNavBar extends React.PureComponent {
 

@@ -45,5 +45,11 @@ exports.deleteGroup = id => {
 }
 
 exports.getGroups = () => {
-  return this.knex('groups').select()
+  return this.knex('groups')
+    .select()
+    .orderBy('id', 'desc')
 }
+
+exports.getGroupById = id => this.knex('groups')
+  .select()
+  .where('id', id)

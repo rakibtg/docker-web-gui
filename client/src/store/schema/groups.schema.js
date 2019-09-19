@@ -1,6 +1,9 @@
 export default {
   groups: [],
   selectedItems: [],
-  showGroupsPage: false,
+  showGroupsPage: true,
   showNewGroupForm: false,
+  newGroupName: '',
+  createFormLoading: false,
+  groupListLoading: true,
 }
