@@ -15,6 +15,7 @@ const { GenericCommandController } = require('./controllers/GenericCommandContro
 const ContainerController = require('./controllers/ContainerController')
 const ImageController = require('./controllers/ImageController')
 const GroupController = require('./controllers/GroupController')
+const CleanUpController = require('./controllers/CleanUpController')
 
 app.get('/', DefaultController)
 app.get('/api/generic', GenericCommandController)
@@ -27,6 +28,7 @@ app.get('/api/container/stats', ContainerController.stats)
 
 app.get('/api/image/fetch', ImageController.fetch)
 app.get('/api/image/command', ImageController.command)
+app.get('/api/cleanup/command', CleanUpController.command)
 
 app.post('/api/groups', GroupController.create)
 app.get('/api/groups', GroupController.fetch)
