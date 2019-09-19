@@ -28,6 +28,29 @@ export const groupItemSelector = itemID => {
   }
 }
 
+export const groupStatusUpdater = (groupSchemaProperty, groupIndex, add) => {
+  return dispatch => {
+    const items = store.getState().groups[groupSchemaProperty]
+    // if(items.includes(groupIndex)) {
+    if(add) {
+      // Remove the group index.
+      const newItems = items.filter(value => value != groupIndex)
+      dispatch(genericGroups({
+        [groupSchemaProperty]: newItems
+      }))
+    } else {
+      // Add the group index.
+      const newItems = [
+        ...items,
+        groupIndex
+      ]
+      dispatch(genericGroups({
+        [groupSchemaProperty]: newItems
+      }))
+    }
+  }
+}
+
 export const createGroup = data => {
   return dispatch => {
     dispatch(genericGroups({ createFormLoading: true }))
