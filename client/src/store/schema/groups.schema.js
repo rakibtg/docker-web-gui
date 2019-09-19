@@ -2,7 +2,7 @@ export default {
   groups: [],
   selectedItems: [],
   showGroupsPage: true,
-  showNewGroupForm: false,
+  showNewGroupForm: true,
   newGroupName: '',
   createFormLoading: false,
   groupListLoading: true,
