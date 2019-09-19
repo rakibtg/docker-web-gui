@@ -48,10 +48,14 @@ export const createGroup = data => {
 
 export const getGroups = () => {
   return dispatch => {
+    dispatch(genericGroups({
+      groupListLoading: true,
+    }))
     request('get', 'groups', {})
       .then(res => {
         dispatch(genericGroups({
-          groups: res.data
+          groups: res.data,
+          groupListLoading: false,
         }))
       })
   }
