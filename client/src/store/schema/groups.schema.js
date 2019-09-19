@@ -7,4 +7,6 @@ export default {
   newGroupName: '',
   createFormLoading: false,
   groupListLoading: true,
+  groupsRunning: [],
+  groupsSwitchDisabled: [],
 }
