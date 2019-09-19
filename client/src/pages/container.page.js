@@ -20,11 +20,13 @@ class ContainerPage extends React.PureComponent {
     const { showGroupsPage } = this.props
     return <>
       <SecondaryNavBar />
-      {
-        showGroupsPage
-          ? <GroupsList />
-          : <ContainerLists />
-      }
+      <div className="subnavaware-view">
+        {
+          showGroupsPage
+            ? <GroupsList />
+            : <ContainerLists />
+        }
+      </div>
     </>
   }
 

@@ -11,3 +11,10 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;
 }
+
+div.subnavaware-view {
+  height: calc(100vh - 148px);
+  overflow-x: hidden;
+  overflow-y: scroll;
+  /* background: #e2e2e2; */
+}
