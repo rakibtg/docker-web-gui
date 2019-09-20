@@ -29,6 +29,7 @@ class ContainerCard extends React.PureComponent {
           <Button marginRight={5} 
             height={22} 
             iconBefore="trash" 
+            disabled={container.State.Running}
             onClick={() => {
               toggleDeleteModal(container)
             }}>
