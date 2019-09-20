@@ -4,7 +4,7 @@ import { Switch } from 'evergreen-ui'
 import { bindActionCreators } from 'redux'
 import { connect } from 'react-redux'
 
-import { groupStatusUpdater } from '../../store/actions/groups.action'
+import { groupStatusUpdater, genericGroups } from '../../store/actions/groups.action'
 import { toggleContainer } from '../../store/actions/container.action'
 
 class GroupSwitch extends React.PureComponent {
@@ -22,11 +22,14 @@ class GroupSwitch extends React.PureComponent {
   }
 
   toggleAllContainers () {
-    const { containers, toggleContainer } = this.props
+    const { containers, toggleContainer, genericGroups, groupIndex } = this.props
     const isRunning = this.isRunning()
     const command = isRunning
       ? 'stop'
       : 'start'
+    genericGroups({
+      activeIndex: groupIndex
+    })
     containers.map(container => {
       toggleContainer(container, command, true)
     })
@@ -47,12 +50,19 @@ class GroupSwitch extends React.PureComponent {
   }
 }
 
+const mapStateToProps = state => {
+  return {
+    activeIndex: state.groups.activeIndex,
+  }
+}
+
 const mapDispatchToProps = dispatch => bindActionCreators(
   {
+    genericGroups,
     toggleContainer,
     groupStatusUpdater,
   },
   dispatch
 )
 
-export default connect(null, mapDispatchToProps)( GroupSwitch )
+export default connect(mapStateToProps, mapDispatchToProps)( GroupSwitch )
