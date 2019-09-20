@@ -9,29 +9,39 @@ import { toggleContainer } from '../../store/actions/container.action'
 
 class GroupSwitch extends React.PureComponent {
 
-  init () {
-    const { containers, groupIndex, groupStatusUpdater } = this.props
+  isRunning () {
+    const { containers } = this.props
     const runningContainers = containers.filter(c => c.State.Running === true)
-    const add = containers.length === runningContainers.length
-    groupStatusUpdater('groupsRunning', groupIndex, add)
+    return containers.length === runningContainers.length
+  }
+
+  isLoading () {
+    const { containers } = this.props
+    const loadingContainers = containers.filter(c => !!c.stateToggling)
+    return loadingContainers === 0
+  }
+
+  toggleAllContainers () {
+    const { containers, toggleContainer } = this.props
+    const isRunning = this.isRunning()
+    const command = isRunning
+      ? 'stop'
+      : 'start'
+    containers.map(container => {
+      toggleContainer(container, command, true)
+    })
   }
 
   render () {
-    // const { container, toggleContainer } = this.props
-    // const command = container.State.Running
-    //   ? 'stop'
-    //   : 'start'
-    // const disabled = !!container.stateToggling
-    this.init()
-    const disabled = true
+    const runningStatus = this.isRunning()
     return <Switch 
       marginRight={10} 
       height={22} 
       marginTop={2}
-      // checked={container.State.Running} 
-      // disabled={disabled}
+      checked={runningStatus} 
+      disabled={this.isLoading()}
       onChange={() => {
-        // toggleContainer(container, command)
+        this.toggleAllContainers()
       }}
     />
   }
