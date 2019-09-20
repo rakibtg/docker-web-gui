@@ -55,7 +55,7 @@ class NewGroupForm extends React.PureComponent {
           }
         </Pane>
         <Pane display="flex" style={{height: '100%'}}>
-          <IconButton 
+          {/*<IconButton 
             icon="link" 
             height={26} 
             marginLeft={6} 
@@ -66,6 +66,7 @@ class NewGroupForm extends React.PureComponent {
               })
             }}
           />
+          */}
           <Button
             height={26}
             appearance="primary"
