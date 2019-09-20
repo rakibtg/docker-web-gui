@@ -1,7 +1,7 @@
 export default {
   groups: [],
   selectedItems: [],
-  showGroupsPage: true,
+  showGroupsPage: false,
   showNewGroupForm: false,
   activeIndex: 0,
   newGroupName: '',
