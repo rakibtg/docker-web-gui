@@ -6,8 +6,6 @@ import { connect } from 'react-redux'
 import { getContainers, toggleDeleteModal, resetLogSideSheet } from '../../store/actions/container.action'
 
 import ContainerCard from './card'
-import LogSideSheet from '../LogSideSheet'
-import Modal from './deleteModal'
 
 class ContainersList extends React.PureComponent {
 
@@ -16,16 +14,14 @@ class ContainersList extends React.PureComponent {
   }
 
   render () {
-    const { containers, showModal, selectedContainer, toggleDeleteModal, 
-      resetLogSideSheet, isShowingSideSheet, logData} = this.props
+    const { containers } = this.props
     return <Pane 
       display="flex" 
       flexDirection="column" 
       justifyContent="center" 
       alignItems="center"
       marginTop={20}>
-      <LogSideSheet resetLogSideSheet={resetLogSideSheet} isShowingSideSheet={isShowingSideSheet} logData={logData} />
-      { showModal && <Modal container={selectedContainer} toggleModal={toggleDeleteModal} />} 
+      
         {
           containers.map((container, index) => 
             <ContainerCard 
@@ -44,18 +40,12 @@ const mapStateToProps = state => {
   return {
     segment: state.container.segment,
     containers: state.container.containers,
-    showModal: state.container.showModal,
-    selectedContainer: state.container.selectedContainer,
-    isShowingSideSheet: state.container.isShowingSideSheet,
-    logData: state.container.logData
   }
 }
 
 const mapDispatchToProps = dispatch => bindActionCreators(
   {
-    getContainers,
-    toggleDeleteModal,
-    resetLogSideSheet
+    getContainers
   },
   dispatch
 )
