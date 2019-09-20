@@ -50,8 +50,17 @@ class ContainerCard extends React.PureComponent {
     }
   }
 
+  renderInfo (container) {
+    const { showStatsInNewLine } = this.props
+    const marginLeft = !!showStatsInNewLine ? 35:0
+    const marginTop = !!showStatsInNewLine ? 5:0
+    return <Pane display="flex" marginLeft={marginLeft} marginTop={marginTop}>
+      { this.renderStats(container) }
+    </Pane>
+  }
+
   render () {
-    const { container, activeIndex, genericContainer, index, showNewGroupForm, noHoverStyle } = this.props
+    const { container, activeIndex, genericContainer, index, showNewGroupForm, noHoverStyle, showStatsInNewLine } = this.props
     const active = activeIndex == index
     let cardName = 'element-card'
     if(!noHoverStyle) {
@@ -59,6 +68,7 @@ class ContainerCard extends React.PureComponent {
         cardName += ' card-active'
       }
     }
+    const showColumn = !!showStatsInNewLine ? 'column':'row'
       return <Pane 
             display="flex" 
             flexDirection="column" 
@@ -70,18 +80,27 @@ class ContainerCard extends React.PureComponent {
             onMouseEnter={() => genericContainer({
               activeIndex: index
             })}>
-        <Pane display="flex" alignItems="center">
-          <Pane display="flex" justifyContent="center" alignItems="center">
+        <Pane display="flex" flexDirection={showColumn}>
+          <Pane display="flex" alignItems="flex-start">
             {
               showNewGroupForm
                 ? <ContainerSelector container={container} />
                 : <ContainerSwitch container={container} />
             }
             <Heading size={400}>{container.Name}</Heading>
+            <Badge 
+              backgroundColor="#e7e9ef" 
+              fontWeight="bold" 
+              borderRadius={16} 
+              paddingLeft={10} 
+              fontSize={11} 
+              paddingRight={10} 
+              marginLeft={10} 
+              marginTop={3}>{container.shortId}
+            </Badge>
+            <CreatedAt time={container.Created} />
           </Pane>
-          <Badge backgroundColor="#e7e9ef" fontWeight="bold" borderRadius={16} paddingLeft={10} fontSize={11} paddingRight={10} marginLeft={10} marginTop={3}>{container.shortId}</Badge>
-          <CreatedAt time={container.Created} />
-          { this.renderStats(container) }
+          { this.renderInfo(container) }
         </Pane>
         { this.actionButtons(active) }
     </Pane>
