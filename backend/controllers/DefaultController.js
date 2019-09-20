@@ -1,3 +1,5 @@
+const path = require('path')
+
 exports.DefaultController = (req, res) => {
-  res.json(['Docker Web GUI API Endpooint!'])
+  res.sendFile(path.join(__dirname + '/../web/index.html'))
 }
