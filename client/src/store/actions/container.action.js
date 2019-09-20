@@ -53,7 +53,7 @@ export const getContainers = (status = 'active') => {
   }
 }
 
-export const toggleContainer = (container, status) => {
+export const toggleContainer = (container, status, hideToaster) => {
   return dispatch => {
     dispatch(updateContainer({
       containerId: container.shortId,
@@ -76,7 +76,12 @@ export const toggleContainer = (container, status) => {
             stateToggling: false,
           },
         }))
-        toaster.success(`Container ${container.Name} has been ${status === 'start'? 'started' : 'stopped'}.`,{ duration: 5 })
+        if(! !!hideToaster) {
+          toaster.success(
+            `Container ${container.Name} has been ${status === 'start'? 'started' : 'stopped'}.`,
+            { duration: 5 }
+          )
+        }
       })
       .catch( ex => {
         dispatch(updateContainer({
