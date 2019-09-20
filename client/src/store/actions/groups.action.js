@@ -28,31 +28,57 @@ export const groupItemSelector = itemID => {
   }
 }
 
-/*
-export const getContainersStat = () => {
+export const groupStatusUpdater = (groupSchemaProperty, groupIndex, add) => {
   return dispatch => {
-    request('get', `container/stats`, {})
-      .then(response => {
-        dispatch(genericStats({ containerStats: response.data }))
-      }).catch(error => {
-        console.log(error)
+    const items = store.getState().groups[groupSchemaProperty]
+    if(add) {
+      // Remove the group index.
+      const newItems = items.filter(value => value != groupIndex)
+      dispatch(genericGroups({
+        [groupSchemaProperty]: newItems
+      }))
+    } else {
+      // Add the group index.
+      const newItems = [
+        ...items,
+        groupIndex
+      ]
+      dispatch(genericGroups({
+        [groupSchemaProperty]: newItems
+      }))
+    }
+  }
+}
+
+export const createGroup = data => {
+  return dispatch => {
+    dispatch(genericGroups({ createFormLoading: true }))
+    request('post', 'groups', {name: data.newGroupName, containers: data.selectedItems})
+      .then(res => {
+        setTimeout(() => {
+          dispatch(genericGroups({ 
+            newGroupName: '',
+            selectedItems: [],
+            showGroupsPage: true,
+            showNewGroupForm: false,
+            createFormLoading: false,
+          }))
+        }, 1200)
       })
   }
 }
 
-export const containerStatsProcess = () => {
-  if(!store.getState().stats.isLive) {
-    return dispatch => {
-      dispatch(getContainersStat())
-      dispatch(genericStats({ isLive: true }))
-      setInterval(() => {
-        dispatch(getContainersStat())
-      }, 4000)
-    }
-  } else {
-    return dispatch => {
-      dispatch(genericStats({ isLive: true }))
-    }
+export const getGroups = () => {
+  return dispatch => {
+    dispatch(genericGroups({
+      groupListLoading: true,
+    }))
+    request('get', 'groups', {})
+      .then(res => {
+        dispatch(genericGroups({
+          groups: res.data,
+          groupListLoading: false,
+        }))
+      })
   }
 }
-*/

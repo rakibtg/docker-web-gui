@@ -1,0 +1,7 @@
+.groupOptToggler {
+  cursor: pointer;
+}
+
+.groupOptToggler:hover {
+  color: #0f71c1;
+}

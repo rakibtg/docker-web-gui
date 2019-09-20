@@ -7,7 +7,7 @@ import { connect } from 'react-redux'
 import { getContainers } from '../store/actions/container.action'
 import { genericGroups } from '../store/actions/groups.action'
 
-import NewGroupForm from './NewGroupForm'
+import NewGroupForm from './groups/NewGroupForm'
 
 class SecondaryNavBar extends React.PureComponent {
 
@@ -29,7 +29,7 @@ class SecondaryNavBar extends React.PureComponent {
   }
 
   newGroupButton () {
-    const { showNewGroupForm, genericGroups } = this.props
+    const { showNewGroupForm, genericGroups, getContainers } = this.props
     return <Button 
       marginRight={12} 
       iconBefore='add'
@@ -37,10 +37,14 @@ class SecondaryNavBar extends React.PureComponent {
       paddingRight={30}
       height={26}
       onClick={() => {
+        const groupForm = !showNewGroupForm
         genericGroups({
           showGroupsPage: false,
-          showNewGroupForm: !showNewGroupForm,
+          showNewGroupForm: groupForm,
         })
+        if(groupForm) {
+          getContainers('all')
+        }
       }}>Create New Group</Button>
   }
 

@@ -33,6 +33,7 @@ export const getContainers = (status = 'active') => {
       pageError: false,
       segment: status,
       activeIndex: 0,
+      containerListLoading: true,
     }))
     request('get', `container/fetch?status=${status}`, {})
       .then(response => {
@@ -40,17 +41,19 @@ export const getContainers = (status = 'active') => {
           loading: false,
           containers: response.data,
           pageError: false,
+          containerListLoading: false,
         }))
       }).catch(error => {
         dispatch(genericContainer({
           loading: false,
           pageError: true,
+          containerListLoading: false,
         }))
       })
   }
 }
 
-export const toggleContainer = (container, status) => {
+export const toggleContainer = (container, status, hideToaster) => {
   return dispatch => {
     dispatch(updateContainer({
       containerId: container.shortId,
@@ -73,7 +76,12 @@ export const toggleContainer = (container, status) => {
             stateToggling: false,
           },
         }))
-        toaster.success(`Container ${container.Name} has been ${status === 'start'? 'started' : 'stopped'}.`,{ duration: 5 })
+        if(! !!hideToaster) {
+          toaster.success(
+            `Container ${container.Name} has been ${status === 'start'? 'started' : 'stopped'}.`,
+            { duration: 5 }
+          )
+        }
       })
       .catch( ex => {
         dispatch(updateContainer({

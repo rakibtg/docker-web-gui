@@ -1,6 +1,7 @@
 export default {
   containers: [],
   loading: false,
+  containerListLoading: true,
   pageError: false,
   segment: 'active',
   activeIndex: 0,
