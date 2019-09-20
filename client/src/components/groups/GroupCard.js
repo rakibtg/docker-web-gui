@@ -22,6 +22,7 @@ class GroupCard extends React.PureComponent {
   render () {
     const { group, genericGroups, index, activeIndex } = this.props
     const containers = this.filterContainers()
+    if(containers.length <= 0) return null
     const active = activeIndex == index
       return <Pane 
         display="flex" 
