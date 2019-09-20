@@ -1,5 +1,6 @@
 import React from 'react'
 import { Pane, Button, Heading, Badge } from 'evergreen-ui'
+import './style/GroupCard.css'
 
 import { bindActionCreators } from 'redux'
 import { connect } from 'react-redux'
@@ -31,9 +32,6 @@ class GroupCard extends React.PureComponent {
         marginBottom={16}
         border="default"
         className="element-card card-active"
-        onMouseEnter={() => genericGroups({
-          activeIndex: index
-        })}
         >
           <Pane display="flex" alignItems="center">
             <Pane display="flex" justifyContent="center" alignItems="center">
@@ -43,6 +41,10 @@ class GroupCard extends React.PureComponent {
               <Heading 
                 display="flex" 
                 alignItems="center" 
+                className="groupOptToggler"
+                onClick={() => genericGroups({
+                  activeIndex: index
+                })}
                 size={600}>{group.name} 
                 <Badge
                   marginLeft={6}>{containers.length}</Badge>
