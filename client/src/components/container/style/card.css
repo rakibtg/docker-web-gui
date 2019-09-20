@@ -1,7 +1,7 @@
 .element-card {
   width: 100%;
   max-width: 755px;
-  border-color: #fff;
+  border-color: transparent;
 }
 
 .card-active {
