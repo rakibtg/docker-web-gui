@@ -59,6 +59,7 @@ class GroupCard extends React.PureComponent {
                     index={index} 
                     container={container}
                     noHoverStyle 
+                    showStatsInNewLine
                   />
                 })
               }
