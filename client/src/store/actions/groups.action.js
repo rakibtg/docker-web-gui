@@ -31,7 +31,6 @@ export const groupItemSelector = itemID => {
 export const groupStatusUpdater = (groupSchemaProperty, groupIndex, add) => {
   return dispatch => {
     const items = store.getState().groups[groupSchemaProperty]
-    // if(items.includes(groupIndex)) {
     if(add) {
       // Remove the group index.
       const newItems = items.filter(value => value != groupIndex)
