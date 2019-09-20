@@ -9,6 +9,7 @@ import { genericGroups } from '../../store/actions/groups.action'
 
 import ContainerCard from '../container/card'
 import GroupSwitch from '../groups/GroupSwitch'
+import GroupDeleteButton from './GroupDeleteButton'
 
 class GroupCard extends React.PureComponent {
 
@@ -34,8 +35,8 @@ class GroupCard extends React.PureComponent {
         border="default"
         className="element-card card-active"
         >
-          <Pane display="flex" alignItems="center">
-            <Pane display="flex" justifyContent="center" alignItems="center">
+          <Pane display="flex" flexGrow={1} alignItems="center">
+            <Pane display="flex" flexGrow={1} justifyContent="center" alignItems="center">
               <GroupSwitch 
                 containers={containers} 
                 groupIndex={index}/>
@@ -50,6 +51,9 @@ class GroupCard extends React.PureComponent {
                 <Badge
                   marginLeft={6}>{containers.length}</Badge>
               </Heading>
+              <Pane display="flex" flexGrow={1} justifyContent="flex-end">
+                <GroupDeleteButton />
+              </Pane>
             </Pane>
           </Pane>
           {
