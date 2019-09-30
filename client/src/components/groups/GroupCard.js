@@ -52,7 +52,7 @@ class GroupCard extends React.PureComponent {
                   marginLeft={6}>{containers.length}</Badge>
               </Heading>
               <Pane display="flex" flexGrow={1} justifyContent="flex-end">
-                <GroupDeleteButton />
+                <GroupDeleteButton groupName={group.name} groupId={group.id} />
               </Pane>
             </Pane>
           </Pane>
