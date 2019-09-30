@@ -36,5 +36,6 @@ app.get('/api/cleanup/command', CleanUpController.command)
 
 app.post('/api/groups', GroupController.create)
 app.get('/api/groups', GroupController.fetch)
+app.delete('/api/groups', GroupController.delete)
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`))
