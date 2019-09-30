@@ -167,6 +167,22 @@
   {...},
   ```
 
+- Create a container
+  - Endpoint: `/api/groups`
+  - Method: `POST`
+  - Query Params: 
+    - `name`
+      - Value: 'my group name'
+    - `containers`
+      - Value: `['4232ewdw', 'sdsdw24343']`
+
+- Delete a container
+  - Endpoint: `/api/groups`
+  - Method: `DELETE`
+  - Query Params:
+    - `id`
+      - Value: `23`
+
 
 # For the back-end app
 
