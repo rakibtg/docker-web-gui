@@ -1,12 +1,12 @@
 .element-card {
-  width: 100%;
-  max-width: 755px;
-  border-color: transparent;
+  width: 100% !important;
+  max-width: 755px !important;
+  border-color: transparent !important;
 }
 
 .card-active {
-  border-width: 1;
+  border-width: 1 !important;
   border-color: #d6e0ef !important;
-  background-color: #f9fbff;
-  display: inline;
+  background-color: #f9fbff !important;
+  display: inline !important;
 }

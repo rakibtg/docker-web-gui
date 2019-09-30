@@ -1,20 +1,20 @@
 body {
-  margin: 0;
+  margin: 0 !important;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
     "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+    sans-serif !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
 }
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
-    monospace;
+    monospace !important;
 }
 
 div.subnavaware-view {
-  height: calc(100vh - 148px);
-  overflow-x: hidden;
-  overflow-y: scroll;
+  height: calc(100vh - 148px) !important;
+  overflow-x: hidden !important;
+  overflow-y: scroll !important;
   /* background: #e2e2e2; */
 }

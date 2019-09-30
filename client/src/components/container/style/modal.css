@@ -1,36 +1,36 @@
 .modal {
-   display: block; 
-   position: fixed; 
-   z-index: 10; 
-   padding-top: 100px; 
-   left: 0;
-   top: 0;
-   width: 100%; 
-   height: 100%; 
-   overflow: auto; 
-   background-color: rgb(0,0,0); 
-   background-color: rgba(0,0,0,0.4); 
+   display: block !important; 
+   position: fixed !important; 
+   z-index: 10 !important; 
+   padding-top: 100px !important; 
+   left: 0 !important;
+   top: 0 !important;
+   width: 100% !important; 
+   height: 100% !important; 
+   overflow: auto !important; 
+   background-color: rgb(0,0,0) !important; 
+   background-color: rgba(0,0,0,0.4) !important; 
  }
  
  .modal-pane {
-   background-color: #fefefe;
-   margin: auto;
-   padding: 10px;
-   border: 1px solid #888;
-   width: 80%;
-   height: 100px;
+   background-color: #fefefe !important;
+   margin: auto !important;
+   padding: 10px !important;
+   border: 1px solid #888 !important;
+   width: 80% !important;
+   height: 100px !important;
    width: 500px
  }
  .modal-close {
-   color: #aaaaaa;
-   float: right;
-   font-size: 28px;
-   font-weight: bold;
+   color: #aaaaaa !important;
+   float: right !important;
+   font-size: 28px !important;
+   font-weight: bold !important;
  }
  
  .modal-close:hover,
  .modal-close:focus {
-   color: #000;
-   text-decoration: none;
-   cursor: pointer;
+   color: #000 !important;
+   text-decoration: none !important;
+   cursor: pointer !important;
  }
