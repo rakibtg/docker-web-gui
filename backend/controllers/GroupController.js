@@ -14,3 +14,9 @@ exports.fetch = async (req, res) => {
   const response = await db.getGroups()
   res.json(response)
 }
+
+exports.delete = async (req, res) => {
+  const { id } = req.body
+  await db.deleteGroup(id)
+  res.json([])
+}
