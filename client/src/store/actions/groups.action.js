@@ -82,3 +82,12 @@ export const getGroups = () => {
       })
   }
 }
+
+export const deleteGroup = groupId => {
+  return dispatch => {
+    request('delete', 'groups', {id: groupId})
+      .then(res => {
+        dispatch(getGroups())
+      })
+  }
+}
