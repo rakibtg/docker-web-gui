@@ -6,9 +6,7 @@ const port = 3230
 
 app.use(express.json())
 app.use(cors())
-app.use(express.static(
-  path.join(__dirname, 'web')
-))
+app.use(express.static( path.join(__dirname, 'web') ))
 
 // Boot database.
 const db = require('./utilities/db')
