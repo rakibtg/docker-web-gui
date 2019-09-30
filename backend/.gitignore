@@ -1,4 +1,5 @@
 node_modules
 yarn.lock
 package.json.lock
+package-lock.json
 data.db
