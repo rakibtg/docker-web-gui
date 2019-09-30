@@ -150,6 +150,23 @@
     "3da3ad7b90e3"
     ```
 
+- Get a list of container groups
+  - Endpoint: `/api/groups`
+  - Method: `GET`
+  - Query Params: `None`
+  - Response: List of groups as object.
+  ```
+  {
+    "id": 13,
+    "name": "Alien Ship Project",
+    "containers_id": "[\"1bb3b55b3202\",\"171be371c488\",\"280f85e27167\"]",
+    "created_at": "2019-09-18 18:01:09",
+    "updated_at": "2019-09-18 18:01:09"
+  },
+  {...},
+  {...},
+  ```
+
 
 # For the back-end app
 
