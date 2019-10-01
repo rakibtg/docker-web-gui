@@ -4,9 +4,11 @@
   <img src="https://i.imgur.com/z95AFEC.png" alt="Docker Web Interface Project - A simple GUI interface for Docker" title="Docker Web Interface Project - A simple GUI interface for Docker">
 </p>
 
-| <p align="center"><img src="https://i.imgur.com/J2NIzEN.png"/><br/>Createing a group of container</p> | <p align="center"><img src="https://i.imgur.com/ug2hHo2.png"/><br/>List of containers</p> |
-|------|--------------|
-| <p align="center"><img src="https://i.imgur.com/HuUNz6h.png"/><br/>List of images</p> | <p align="center"><img src="https://i.imgur.com/s3CHjcQ.png"/><br/>Disk cleanup's</p> |
+|<p align="center"><img src="https://i.imgur.com/pgXpRJR.png"/><br/>Explore containers log</p> | <p align="center"><img src="https://i.imgur.com/ug2hHo2.png"/><br/>List of groups</p> |
+|--|--|
+
+| <p align="center"><img src="https://i.imgur.com/ug2hHo2.png"/><br/>List of groups</p> |<p align="center"><img src="https://i.imgur.com/HuUNz6h.png"/><br/>List of images</p> | <p align="center"><img src="https://i.imgur.com/s3CHjcQ.png"/><br/>Disk cleanup's</p> |
+|--|--|--|
 
 
 ## Features
