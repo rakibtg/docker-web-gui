@@ -22,8 +22,6 @@
 - Prune Docker systems.
 - No need to use the terminal for common tasks.
 
-In the backend directory, you can run:
-
 ## Start the app
 Before you follow below steps to start the app, make sure you have `node` and `npm` installed in your system.
 - Clone the repository
