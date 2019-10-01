@@ -42,4 +42,4 @@ Before you follow below steps to start the app, make sure you have `node` and `n
 - [Backend API](https://github.com/rakibtg/docker-web-gui/tree/master/backend)
 - [Client](https://github.com/rakibtg/docker-web-gui/tree/master/client)
 
-Developed by [Mehedi](https://twitter.com/rakibtg) and Akimul.
+Developed by [Mehedi](https://twitter.com/rakibtg) and [Akimul](https://www.linkedin.com/in/akimulakash/).
