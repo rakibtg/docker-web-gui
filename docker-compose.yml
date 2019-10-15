@@ -1,0 +1,24 @@
+version: '3'
+
+services:
+  backend:
+    build: ./backend
+    expose:
+      - 3230
+    volumes: 
+      - .:/app
+    ports: 
+      - 3230:3230
+    command: node index.js
+ 
+  client:
+    build: ./client
+    expose:
+      - 3000
+    command: npm start
+    volumes:
+      - .:/app
+    ports:
+      - "3000:3000"
+    links:
+      - backend
