@@ -40,6 +40,45 @@ Before you follow below steps to start the app, make sure you have `node` and `n
   ```
 - Now visit http://localhost:3230/
 
+## Using Docker
+
+A docker based installation has been added in this repo. You can use that with/without [**`docker compose`**](https://docs.docker.com/compose/).
+Also, the application will be exposed at port **http://localhost:3230**.
+
+### Without Docker Compose
+
+If you don't have a docker compose, then you can use the following commands:
+
+- To build the image:
+    ```
+    docker build . -t docker-web-gui
+    ```
+- To run the image:
+    ```
+    docker run -p 3230:3230 -v /usr/local/bin/docker:/usr/local/bin/docker -v /var/run/docker.sock:/var/run/docker.sock docker-web-gui
+    ```
+
+### With Docker Compose
+
+If you already docker compose installed, then simply do this:
+
+```
+docker-compose build
+docker-compose up
+```
+
+### Commands
+
+A `Makefile` has been included with this repo. It has following commands:
+
+1. `make up` to build the image and starting `docker-web-gui` container.
+2. `make build` to build the image.
+3. `make start` to start containers if application has been up already.
+4. `make stop` to stop application.
+5. `make restart` to restart application.
+6. `make build-without-compose` to build the application without *docker compose*.
+7. `make run-without-compose` to run the application without *docker compose*.
+
 # Documentations
 - [Backend API](https://github.com/rakibtg/docker-web-gui/tree/master/backend)
 - [Client](https://github.com/rakibtg/docker-web-gui/tree/master/client)
