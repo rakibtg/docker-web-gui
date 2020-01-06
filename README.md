@@ -43,7 +43,7 @@ Before you follow below steps to start the app, make sure you have `node` and `n
 ## Using Docker
 
 A docker based installation has been added in this repo. You can use that with/without [**`docker compose`**](https://docs.docker.com/compose/).
-Also, the application will be exposed at port **http://localhost:3230**.
+Also, the application will be exposed at port http://localhost:3230.
 
 ### Without Docker Compose
 
@@ -67,7 +67,7 @@ docker-compose build
 docker-compose up
 ```
 
-### Commands
+### Docker Based Commands
 
 A `Makefile` has been included with this repo. It has following commands:
 
