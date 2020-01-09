@@ -42,7 +42,7 @@ Before you follow below steps to start the app, make sure you have `node` and `n
 
 ## Using Docker
 
-A docker based installation has been added in this repo. You can use that with/without [**`docker compose`**](https://docs.docker.com/compose/).
+You can run this application through a docker container, but it only works in **MacOS**. You can use that with/without [**`docker compose`**](https://docs.docker.com/compose/).
 Also, the application will be exposed at port http://localhost:3230.
 
 ### Without Docker Compose
