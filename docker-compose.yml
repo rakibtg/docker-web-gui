@@ -1,0 +1,12 @@
+version: "3"
+
+services:
+  docker-web-gui:
+    container_name: docker-web-gui
+    build:
+      context: .
+    ports:
+      - "3230:3230"
+    volumes:
+      - /usr/local/bin/docker:/usr/local/bin/docker 
+      - /var/run/docker.sock:/var/run/docker.sock 
