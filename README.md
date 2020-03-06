@@ -1,4 +1,5 @@
-# A simple GUI interface for Docker Containers
+# Docker Dashboard
+## A simple GUI interface for Docker Containers
 
 <p align="center">
   <img src="https://i.imgur.com/z95AFEC.png" alt="Docker Web Interface Project - A simple GUI interface for Docker" title="Docker Web Interface Project - A simple GUI interface for Docker">
