@@ -84,4 +84,4 @@ A `Makefile` has been included with this repo. It has following commands:
 - [Backend API](https://github.com/rakibtg/docker-web-gui/tree/master/backend)
 - [Client](https://github.com/rakibtg/docker-web-gui/tree/master/client)
 
-Developed by [Mehedi](https://twitter.com/rakibtg) and [Akimul](https://www.linkedin.com/in/akimulakash/).
+Developed by [Hasan](https://twitter.com/rakibtg) and [Akimul](https://www.linkedin.com/in/akimulakash/).
