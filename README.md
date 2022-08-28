@@ -56,7 +56,7 @@ If you don't have a docker compose, then you can use the following commands:
     ```
 - To run the image:
     ```
-    docker run -p 3230:3230 -v /usr/local/bin/docker:/usr/local/bin/docker -v /var/run/docker.sock:/var/run/docker.sock docker-web-gui
+    docker run -p 3230:3230 -v /var/run/docker.sock:/var/run/docker.sock docker-web-gui
     ```
 
 ### With Docker Compose
