@@ -1,4 +1,5 @@
-FROM node:alpine
+FROM node:8.12-alpine
+RUN apk add g++ make python
 WORKDIR /src
 ADD ./backend /src/backend
 ADD ./client /src/client
