@@ -1,5 +1,5 @@
 import axios from 'axios'
-export const restPath = 'http://localhost:3230/api/'
+export const restPath = '/api/'
 
 export const request = ( method, path, data = {} ) => {
   const options = {
