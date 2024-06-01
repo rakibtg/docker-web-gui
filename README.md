@@ -1,18 +1,19 @@
 # Docker Dashboard
+
 ## A simple GUI interface for Docker Containers
 
 <p align="center">
   <img src="https://i.imgur.com/z95AFEC.png" alt="Docker Web Interface Project - A simple GUI interface for Docker" title="Docker Web Interface Project - A simple GUI interface for Docker">
 </p>
 
-|<p align="center"><img src="https://i.imgur.com/pgXpRJR.png"/><br/>Explore containers log</p> | <p align="center"><img src="https://i.imgur.com/ug2hHo2.png"/><br/>List of groups</p> |
-|--|--|
+| <p align="center"><img src="https://i.imgur.com/pgXpRJR.png"/><br/>Explore containers log</p> | <p align="center"><img src="https://i.imgur.com/ug2hHo2.png"/><br/>List of groups</p> |
+| --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
 
-| <p align="center"><img src="https://i.imgur.com/ug2hHo2.png"/><br/>List of groups</p> |<p align="center"><img src="https://i.imgur.com/HuUNz6h.png"/><br/>List of images</p> | <p align="center"><img src="https://i.imgur.com/s3CHjcQ.png"/><br/>Disk cleanup's</p> |
-|--|--|--|
-
+| <p align="center"><img src="https://i.imgur.com/ug2hHo2.png"/><br/>List of groups</p> | <p align="center"><img src="https://i.imgur.com/HuUNz6h.png"/><br/>List of images</p> | <p align="center"><img src="https://i.imgur.com/s3CHjcQ.png"/><br/>Disk cleanup's</p> |
+| ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
 
 ## Features
+
 - Instantly start/stop, restart, delete and see the logs of a docker container.
 - Filter containers by their running status.
 - Create groups of docker container.
@@ -26,7 +27,9 @@
 - No need to use the terminal for common tasks.
 
 ## Start the app
+
 Before you follow below steps to start the app, make sure you have `node` and `npm` installed in your system.
+
 - Clone the repository
   ```
   git clone git@github.com:rakibtg/docker-web-gui.git
@@ -34,7 +37,7 @@ Before you follow below steps to start the app, make sure you have `node` and `n
 - Change directory
   ```
   cd ./docker-web-gui
-  ````
+  ```
 - Run `app.js`, it will automatically install all the [node modules](https://github.com/rakibtg/docker-web-gui/blob/master/backend/package.json) for you if not installed already.
   ```
   node app.js
@@ -51,13 +54,13 @@ Also, the application will be exposed at port http://localhost:3230.
 If you don't have a docker compose, then you can use the following commands:
 
 - To build the image:
-    ```
-    docker build . -t docker-web-gui
-    ```
+  ```
+  docker build . -t docker-web-gui
+  ```
 - To run the image:
-    ```
-    docker run -p 3230:3230 -v /usr/local/bin/docker:/usr/local/bin/docker -v /var/run/docker.sock:/var/run/docker.sock docker-web-gui
-    ```
+  ```
+  docker run -p 3230:3230 -v /usr/local/bin/docker:/usr/local/bin/docker -v /var/run/docker.sock:/var/run/docker.sock docker-web-gui
+  ```
 
 ### With Docker Compose
 
@@ -77,11 +80,12 @@ A `Makefile` has been included with this repo. It has following commands:
 3. `make start` to start containers if application has been up already.
 4. `make stop` to stop application.
 5. `make restart` to restart application.
-6. `make build-without-compose` to build the application without *docker compose*.
-7. `make run-without-compose` to run the application without *docker compose*.
+6. `make build-without-compose` to build the application without _docker compose_.
+7. `make run-without-compose` to run the application without _docker compose_.
 
 # Documentations
+
 - [Backend API](https://github.com/rakibtg/docker-web-gui/tree/master/backend)
 - [Client](https://github.com/rakibtg/docker-web-gui/tree/master/client)
 
-Developed by [Hasan](https://twitter.com/rakibtg) and [Akimul](https://www.linkedin.com/in/akimulakash/).
+Developed by [Hasan](https://twitter.com/rakibtg) and [contributors](https://github.com/rakibtg/docker-web-gui/graphs/contributors).
