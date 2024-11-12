@@ -9,3 +9,4 @@ services:
       - "3230:3230"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+    restart: always  # This ensures the container auto-starts and restarts on failure
