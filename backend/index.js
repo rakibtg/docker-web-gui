@@ -3,10 +3,14 @@ const cors = require("cors");
 const path = require("path");
 const app = express();
 const port = 3230;
+const auditLogMiddleware = require("./middleware/auditLogMiddleware");
 
 app.use(express.json());
 app.use(cors());
 app.use(express.static(path.join(__dirname, "web")));
+
+// Add audit middleware before routes
+app.use(auditLogMiddleware);
 
 // Boot database.
 const db = require("./utilities/db");
