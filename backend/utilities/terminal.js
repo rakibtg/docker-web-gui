@@ -47,7 +47,7 @@ exports.safeTerminal = {
   },
   stats: () =>
     Terminal(
-      `docker container stats --no-stream --format '{"id": "{{.ID}}", "cpu_percentage": "{{.CPUPerc}}", "memory_usage": "{{.MemUsage}}", "network_io": "{{.NetIO}}"}'`
+      `docker container stats --no-stream --all --format "{\\"id\\": \\"{{.ID}}\\", \\"cpu_percentage\\": \\"{{.CPUPerc}}\\", \\"memory_usage\\": \\"{{.MemUsage}}\\", \\"network_io\\": \\"{{.NetIO}}\\"}"`,
     ),
   prune: (pruneType) => {
     if (!isValidString(pruneType)) {
@@ -58,7 +58,7 @@ exports.safeTerminal = {
   containerLs: () => Terminal(`docker container ls --format '{{json .}}'`),
   formattedImages: () =>
     Terminal(
-      `docker images --format '{"ID": "{{.ID}}", "Tag": "{{.Tag}}", "CreatedSince": "{{.CreatedSince}}", "Size": "{{.Size}}", "VirtualSize": "{{.VirtualSize}}", "Repository": "{{.Repository}}"}'`
+      `docker images --all --format "{\\"ID\\": \\"{{.ID}}\\", \\"Tag\\": \\"{{.Tag}}\\", \\"CreatedSince\\": \\"{{.CreatedSince}}\\", \\"Size\\": \\"{{.Size}}\\", \\"VirtualSize\\": \\"{{.VirtualSize}}\\", \\"Repository\\": \\"{{.Repository}}\\"}"`,
     ),
   singleImage: (task, id) => {
     if (!isValidString(task)) {
