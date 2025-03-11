@@ -24,6 +24,22 @@ const ContainerController = require("./controllers/ContainerController");
 const ImageController = require("./controllers/ImageController");
 const GroupController = require("./controllers/GroupController");
 const CleanUpController = require("./controllers/CleanUpController");
+const VolumeController = require("./controllers/VolumeController");
+
+// Add audit logs endpoint
+app.get("/api/audit-logs", async (req, res) => {
+  try {
+    const logs = await db
+      .knex("audit_logs")
+      .select()
+      .orderBy("created_at", "desc")
+      .limit(100);
+    res.json(logs);
+  } catch (error) {
+    console.error("Error fetching audit logs:", error);
+    res.status(500).json({ error: "Failed to fetch audit logs" });
+  }
+});
 
 app.get("/", DefaultController);
 app.get("/api/generic", GenericCommandController);
@@ -37,6 +53,11 @@ app.get("/api/container/stats", ContainerController.stats);
 app.get("/api/image/fetch", ImageController.fetch);
 app.get("/api/image/command", ImageController.command);
 app.get("/api/cleanup/command", CleanUpController.command);
+
+// Volume endpoints
+app.get("/api/volumes", VolumeController.fetch);
+app.post("/api/volumes", VolumeController.create);
+app.delete("/api/volumes/:name", VolumeController.remove);
 
 app.post("/api/groups", GroupController.create);
 app.get("/api/groups", GroupController.fetch);
