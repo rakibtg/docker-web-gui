@@ -1,79 +1,181 @@
-import { Typography, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Chip } from '@mui/material';
+import { useState, useEffect } from "react";
+import {
+  Typography,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Chip,
+  Alert,
+  Snackbar,
+  Box,
+  Tooltip,
+  IconButton,
+} from "@mui/material";
+import { AuditLog, auditService } from "../services/auditService";
+import RefreshIcon from "@mui/icons-material/Refresh";
 
 const AuditLogsPage = () => {
-    const mockLogs = [
-        { timestamp: '2024-01-20 10:30:00', action: 'Container Start', user: 'system', details: 'Started container: nginx', status: 'success' },
-        { timestamp: '2024-01-20 10:29:00', action: 'Image Pull', user: 'system', details: 'Pulled image: nginx:latest', status: 'success' },
-        { timestamp: '2024-01-20 10:28:00', action: 'Container Stop', user: 'system', details: 'Stopped container: mysql', status: 'warning' },
-        { timestamp: '2024-01-20 10:27:00', action: 'Volume Delete', user: 'system', details: 'Failed to delete volume: in use', status: 'error' },
-    ];
+  const [logs, setLogs] = useState<AuditLog[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-    const getChipColor = (status: string) => {
-        switch (status) {
-            case 'success': return 'success';
-            case 'warning': return 'warning';
-            case 'error': return 'error';
-            default: return 'default';
-        }
-    };
+  const fetchLogs = async () => {
+    try {
+      setLoading(true);
+      const data = await auditService.fetchLogs();
+      setLogs(data);
+    } catch (err) {
+      setError("Failed to fetch audit logs");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    return (
-        <Paper sx={{ p: 3 }}>
-            <Typography variant="h4" gutterBottom>
-                Audit Logs
-            </Typography>
-            <TableContainer sx={{ mt: 2 }}>
-                <Table size="small">
-                    <TableHead>
-                        <TableRow>
-                            <TableCell>Timestamp</TableCell>
-                            <TableCell>Action</TableCell>
-                            <TableCell>User</TableCell>
-                            <TableCell>Details</TableCell>
-                            <TableCell align="right">Status</TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {mockLogs.map((log, index) => (
-                            <TableRow 
-                                key={index}
-                                sx={{ 
-                                    '&:last-child td, &:last-child th': { border: 0 },
-                                    '&:hover': {
-                                        backgroundColor: 'action.hover',
-                                    }
-                                }}
-                            >
-                                <TableCell sx={{ whiteSpace: 'nowrap' }}>
-                                    {log.timestamp}
-                                </TableCell>
-                                <TableCell sx={{ whiteSpace: 'nowrap' }}>
-                                    <Typography variant="body2" fontWeight="medium">
-                                        {log.action}
-                                    </Typography>
-                                </TableCell>
-                                <TableCell>{log.user}</TableCell>
-                                <TableCell sx={{ maxWidth: '300px' }}>
-                                    <Typography noWrap>{log.details}</Typography>
-                                </TableCell>
-                                <TableCell align="right">
-                                    <Chip 
-                                        label={log.status}
-                                        size="small"
-                                        color={getChipColor(log.status)}
-                                        sx={{ 
-                                            textTransform: 'capitalize',
-                                            minWidth: '80px'
-                                        }}
-                                    />
-                                </TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </TableContainer>
-        </Paper>
-    );
+  useEffect(() => {
+    fetchLogs();
+    // Refresh every minute
+    const interval = setInterval(fetchLogs, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const getMethodColor = (method: string) => {
+    switch (method.toUpperCase()) {
+      case "GET":
+        return "success";
+      case "POST":
+        return "primary";
+      case "PUT":
+        return "warning";
+      case "DELETE":
+        return "error";
+      default:
+        return "default";
+    }
+  };
+
+  const formatTimestamp = (timestamp: string) => {
+    return new Date(timestamp).toLocaleString();
+  };
+
+  const formatParams = (params: string) => {
+    try {
+      const parsed = JSON.parse(params);
+      return Object.entries(parsed)
+        .map(([key, value]) => `${key}: ${value}`)
+        .join(", ");
+    } catch {
+      return params;
+    }
+  };
+
+  return (
+    <Paper
+      sx={{
+        p: 3,
+        height: "calc(100vh - 100px)",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 3,
+        }}
+      >
+        <Typography variant="h5" component="h1" sx={{ fontWeight: 500 }}>
+          Audit Logs
+        </Typography>
+        <Tooltip title="Refresh logs">
+          <IconButton onClick={fetchLogs} disabled={loading}>
+            <RefreshIcon />
+          </IconButton>
+        </Tooltip>
+      </Box>
+
+      <TableContainer sx={{ flex: 1, overflow: "auto" }}>
+        <Table stickyHeader size="small">
+          <TableHead>
+            <TableRow>
+              <TableCell>Timestamp</TableCell>
+              <TableCell>Method</TableCell>
+              <TableCell>Path</TableCell>
+              <TableCell>Parameters</TableCell>
+              <TableCell>IP</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {logs.map((log) => (
+              <TableRow
+                key={log.id}
+                sx={{
+                  "&:hover": {
+                    backgroundColor: "action.hover",
+                  },
+                }}
+              >
+                <TableCell sx={{ whiteSpace: "nowrap" }}>
+                  {formatTimestamp(log.created_at)}
+                </TableCell>
+                <TableCell>
+                  <Chip
+                    label={log.method}
+                    size="small"
+                    color={getMethodColor(log.method)}
+                    sx={{
+                      fontWeight: 500,
+                      minWidth: "70px",
+                    }}
+                  />
+                </TableCell>
+                <TableCell sx={{ maxWidth: "200px" }}>
+                  <Tooltip title={log.path}>
+                    <Typography noWrap variant="body2">
+                      {log.path}
+                    </Typography>
+                  </Tooltip>
+                </TableCell>
+                <TableCell sx={{ maxWidth: "300px" }}>
+                  <Tooltip title={formatParams(log.query_params)}>
+                    <Typography noWrap variant="body2">
+                      {formatParams(log.query_params)}
+                    </Typography>
+                  </Tooltip>
+                </TableCell>
+                <TableCell>{log.ip}</TableCell>
+              </TableRow>
+            ))}
+            {!loading && logs.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={5} align="center">
+                  <Typography color="text.secondary">
+                    No audit logs found
+                  </Typography>
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
+
+      <Snackbar
+        open={!!error}
+        autoHideDuration={6000}
+        onClose={() => setError(null)}
+      >
+        <Alert severity="error" onClose={() => setError(null)}>
+          {error}
+        </Alert>
+      </Snackbar>
+    </Paper>
+  );
 };
 
 export default AuditLogsPage;
