@@ -53,6 +53,26 @@
     - `command`: Command to execute
   - Returns: Command output
 
+## Volume Endpoints
+
+- `GET /api/volumes`
+
+  - Description: Fetches all Docker volumes
+  - Returns: Array of volume details including name, driver, and mountpoint
+
+- `POST /api/volumes`
+
+  - Description: Creates a new Docker volume
+  - Body Params:
+    - `name`: Volume name
+  - Returns: Volume creation response
+
+- `DELETE /api/volumes/:name`
+  - Description: Removes a Docker volume
+  - URL Params:
+    - `name`: Volume name
+  - Returns: Volume removal response
+
 ## Group Endpoints
 
 - `POST /api/groups`
