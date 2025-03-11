@@ -1,22 +1,18 @@
 import { useState, useEffect } from "react";
 import {
-  Typography,
-  Paper,
-  Card,
-  CardContent,
-  Grid,
-  Button,
-  Stack,
   Box,
-  IconButton,
-  Tooltip,
   Alert,
   Snackbar,
+  Chip,
+  IconButton,
+  Stack,
+  Tooltip,
+  Typography,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
-import StorageIcon from "@mui/icons-material/Storage";
 import { DockerVolume, volumeService } from "../services/volumeService";
+import { DataTable } from "../components/common/DataTable";
 import CreateVolumeDialog from "../components/volumes/CreateVolumeDialog";
 
 const VolumesPage = () => {
@@ -41,7 +37,6 @@ const VolumesPage = () => {
 
   useEffect(() => {
     fetchVolumes();
-    // Refresh every 30 seconds
     const interval = setInterval(fetchVolumes, 30000);
     return () => clearInterval(interval);
   }, []);
@@ -67,99 +62,96 @@ const VolumesPage = () => {
     }
   };
 
-  return (
-    <Paper sx={{ p: 3 }}>
-      <Stack
-        direction="row"
-        justifyContent="space-between"
-        alignItems="center"
-        mb={3}
-      >
-        <Typography variant="h5" component="h1" sx={{ fontWeight: 500 }}>
-          Docker Volumes
-        </Typography>
-        <Button
-          variant="contained"
-          color="primary"
-          startIcon={<AddIcon />}
-          size="medium"
-          onClick={() => setCreateDialogOpen(true)}
-        >
-          Create Volume
-        </Button>
-      </Stack>
+  const handleBulkDelete = async (selectedNames: string[]) => {
+    try {
+      await Promise.all(
+        selectedNames.map((name) => volumeService.removeVolume(name))
+      );
+      fetchVolumes();
+    } catch (err) {
+      setError("Failed to delete volumes");
+      console.error(err);
+    }
+  };
 
-      {loading && <Typography>Loading...</Typography>}
-
-      <Grid container spacing={2}>
-        {volumes.map((volume) => (
-          <Grid item xs={12} md={6} key={volume.Name}>
-            <Card
-              sx={{
-                height: "100%",
-                display: "flex",
-                flexDirection: "column",
-                transition: "transform 0.2s ease-in-out, box-shadow 0.2s",
-                "&:hover": {
-                  transform: "translateY(-2px)",
-                  boxShadow: (theme) => theme.shadows[4],
-                },
-              }}
+  const columns = [
+    {
+      id: "name",
+      label: "Name",
+      minWidth: 170,
+      getValue: (volume: DockerVolume) => volume.Name,
+    },
+    {
+      id: "driver",
+      label: "Driver",
+      minWidth: 130,
+      getValue: (volume: DockerVolume) => volume.Driver,
+      format: (value: string) => (
+        <Chip label={value} size="small" color="primary" variant="outlined" />
+      ),
+    },
+    {
+      id: "mountpoint",
+      label: "Mountpoint",
+      minWidth: 300,
+      getValue: (volume: DockerVolume) => volume.Mountpoint,
+      format: (value: string) => (
+        <Tooltip title={value}>
+          <Typography
+            variant="body2"
+            sx={{
+              maxWidth: "300px",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {value}
+          </Typography>
+        </Tooltip>
+      ),
+    },
+    {
+      id: "actions",
+      label: "Actions",
+      minWidth: 100,
+      align: "right" as const,
+      getValue: (volume: DockerVolume) => volume,
+      format: (volume: DockerVolume) => (
+        <Stack direction="row" spacing={1} justifyContent="flex-end">
+          <Tooltip title="Delete">
+            <IconButton
+              size="small"
+              color="error"
+              onClick={() => handleDeleteVolume(volume.Name)}
             >
-              <CardContent sx={{ flex: 1, p: 2 }}>
-                <Stack spacing={2}>
-                  <Stack direction="row" alignItems="center" spacing={1}>
-                    <StorageIcon color="primary" />
-                    <Typography variant="h6" sx={{ flex: 1 }}>
-                      {volume.Name}
-                    </Typography>
-                    <Tooltip title="Remove Volume">
-                      <IconButton
-                        size="small"
-                        color="error"
-                        onClick={() => handleDeleteVolume(volume.Name)}
-                        sx={{
-                          "&:hover": {
-                            backgroundColor: "error.main",
-                            color: "error.contrastText",
-                          },
-                        }}
-                      >
-                        <DeleteIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                  </Stack>
-                  <Box sx={{ pl: 4 }}>
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      gutterBottom
-                    >
-                      Driver: {volume.Driver}
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      sx={{
-                        wordBreak: "break-all",
-                      }}
-                    >
-                      Mountpoint: {volume.Mountpoint}
-                    </Typography>
-                  </Box>
-                </Stack>
-              </CardContent>
-            </Card>
-          </Grid>
-        ))}
-        {!loading && volumes.length === 0 && (
-          <Grid item xs={12}>
-            <Typography color="text.secondary" align="center">
-              No volumes found
-            </Typography>
-          </Grid>
-        )}
-      </Grid>
+              <DeleteIcon />
+            </IconButton>
+          </Tooltip>
+        </Stack>
+      ),
+    },
+  ];
+
+  const toolbarActions = (
+    <Tooltip title="Create Volume">
+      <IconButton color="primary" onClick={() => setCreateDialogOpen(true)}>
+        <AddIcon />
+      </IconButton>
+    </Tooltip>
+  );
+
+  return (
+    <Box sx={{ p: 3 }}>
+      <DataTable
+        title="Docker Volumes"
+        columns={columns}
+        rows={volumes}
+        loading={loading}
+        getRowId={(row) => row.Name}
+        toolbarActions={toolbarActions}
+        onBulkDelete={handleBulkDelete}
+      />
 
       <CreateVolumeDialog
         open={createDialogOpen}
@@ -176,7 +168,7 @@ const VolumesPage = () => {
           {error}
         </Alert>
       </Snackbar>
-    </Paper>
+    </Box>
   );
 };
 

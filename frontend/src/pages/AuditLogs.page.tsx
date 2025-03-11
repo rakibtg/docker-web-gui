@@ -1,22 +1,7 @@
 import { useState, useEffect } from "react";
-import {
-  Typography,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Chip,
-  Alert,
-  Snackbar,
-  Box,
-  Tooltip,
-  IconButton,
-} from "@mui/material";
+import { Box, Alert, Snackbar, Chip } from "@mui/material";
 import { AuditLog, auditService } from "../services/auditService";
-import RefreshIcon from "@mui/icons-material/Refresh";
+import { DataTable } from "../components/common/DataTable";
 
 const AuditLogsPage = () => {
   const [logs, setLogs] = useState<AuditLog[]>([]);
@@ -43,7 +28,13 @@ const AuditLogsPage = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const getMethodColor = (method: string) => {
+  const formatTimestamp = (timestamp: string) => {
+    return new Date(timestamp).toLocaleString();
+  };
+
+  const getMethodColor = (
+    method: string
+  ): "success" | "primary" | "warning" | "error" => {
     switch (method.toUpperCase()) {
       case "GET":
         return "success";
@@ -54,116 +45,77 @@ const AuditLogsPage = () => {
       case "DELETE":
         return "error";
       default:
-        return "default";
+        return "primary";
     }
   };
 
-  const formatTimestamp = (timestamp: string) => {
-    return new Date(timestamp).toLocaleString();
-  };
-
-  const formatParams = (params: string) => {
-    try {
-      const parsed = JSON.parse(params);
-      return Object.entries(parsed)
-        .map(([key, value]) => `${key}: ${value}`)
-        .join(", ");
-    } catch {
-      return params;
-    }
-  };
+  const columns = [
+    {
+      id: "timestamp",
+      label: "Timestamp",
+      minWidth: 170,
+      getValue: (log: AuditLog) => log.created_at,
+      format: formatTimestamp,
+    },
+    {
+      id: "method",
+      label: "Method",
+      minWidth: 100,
+      getValue: (log: AuditLog) => log.method,
+      format: (value: string) => (
+        <Chip
+          label={value.toUpperCase()}
+          size="small"
+          color={getMethodColor(value)}
+        />
+      ),
+    },
+    {
+      id: "path",
+      label: "Path",
+      minWidth: 200,
+      getValue: (log: AuditLog) => log.path,
+    },
+    {
+      id: "params",
+      label: "Parameters",
+      minWidth: 200,
+      getValue: (log: AuditLog) => log.query_params,
+      format: (value: string) => {
+        try {
+          const params = JSON.parse(value);
+          return Object.entries(params)
+            .map(([key, value]) => `${key}: ${value}`)
+            .join(", ");
+        } catch {
+          return value;
+        }
+      },
+    },
+    {
+      id: "ip",
+      label: "IP Address",
+      minWidth: 130,
+      getValue: (log: AuditLog) => log.ip,
+    },
+    {
+      id: "userAgent",
+      label: "User Agent",
+      minWidth: 200,
+      getValue: (log: AuditLog) => log.user_agent,
+    },
+  ];
 
   return (
-    <Paper
-      sx={{
-        p: 3,
-        height: "calc(100vh - 100px)",
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          mb: 3,
-        }}
-      >
-        <Typography variant="h5" component="h1" sx={{ fontWeight: 500 }}>
-          Audit Logs
-        </Typography>
-        <Tooltip title="Refresh logs">
-          <IconButton onClick={fetchLogs} disabled={loading}>
-            <RefreshIcon />
-          </IconButton>
-        </Tooltip>
-      </Box>
-
-      <TableContainer sx={{ flex: 1, overflow: "auto" }}>
-        <Table stickyHeader size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell>Timestamp</TableCell>
-              <TableCell>Method</TableCell>
-              <TableCell>Path</TableCell>
-              <TableCell>Parameters</TableCell>
-              <TableCell>IP</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {logs.map((log) => (
-              <TableRow
-                key={log.id}
-                sx={{
-                  "&:hover": {
-                    backgroundColor: "action.hover",
-                  },
-                }}
-              >
-                <TableCell sx={{ whiteSpace: "nowrap" }}>
-                  {formatTimestamp(log.created_at)}
-                </TableCell>
-                <TableCell>
-                  <Chip
-                    label={log.method}
-                    size="small"
-                    color={getMethodColor(log.method)}
-                    sx={{
-                      fontWeight: 500,
-                      minWidth: "70px",
-                    }}
-                  />
-                </TableCell>
-                <TableCell sx={{ maxWidth: "200px" }}>
-                  <Tooltip title={log.path}>
-                    <Typography noWrap variant="body2">
-                      {log.path}
-                    </Typography>
-                  </Tooltip>
-                </TableCell>
-                <TableCell sx={{ maxWidth: "300px" }}>
-                  <Tooltip title={formatParams(log.query_params)}>
-                    <Typography noWrap variant="body2">
-                      {formatParams(log.query_params)}
-                    </Typography>
-                  </Tooltip>
-                </TableCell>
-                <TableCell>{log.ip}</TableCell>
-              </TableRow>
-            ))}
-            {!loading && logs.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={5} align="center">
-                  <Typography color="text.secondary">
-                    No audit logs found
-                  </Typography>
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
+    <Box sx={{ p: 3 }}>
+      <DataTable
+        title="Audit Logs"
+        columns={columns}
+        rows={logs}
+        loading={loading}
+        getRowId={(row) => row.id.toString()}
+        selectable={false}
+      />
 
       <Snackbar
         open={!!error}
@@ -174,7 +126,7 @@ const AuditLogsPage = () => {
           {error}
         </Alert>
       </Snackbar>
-    </Paper>
+    </Box>
   );
 };
 

@@ -1,16 +1,27 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Box,
-  Typography,
-  Grid,
   ToggleButtonGroup,
   ToggleButton,
   Alert,
   Snackbar,
+  Chip,
+  IconButton,
+  Stack,
+  Tooltip,
 } from "@mui/material";
 import { Container, containerService } from "../services/containerService";
-import ContainerCard from "../components/containers/ContainerCard";
 import LogsDialog from "../components/containers/LogsDialog";
+import { DataTable } from "../components/common/DataTable";
+import PlayArrowIcon from "@mui/icons-material/PlayArrow";
+import StopIcon from "@mui/icons-material/Stop";
+import RestartAltIcon from "@mui/icons-material/RestartAlt";
+import TerminalIcon from "@mui/icons-material/Terminal";
+
+interface ContainerState {
+  Status?: string;
+  Running?: boolean;
+}
 
 function ContainersPage() {
   const [containers, setContainers] = useState<Container[]>([]);
@@ -27,7 +38,7 @@ function ContainersPage() {
     containerName: "",
   });
 
-  const fetchContainers = async () => {
+  const fetchContainers = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -39,14 +50,13 @@ function ContainersPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [status]);
 
   useEffect(() => {
     fetchContainers();
-    // Refresh every 10 seconds
     const interval = setInterval(fetchContainers, 10000);
     return () => clearInterval(interval);
-  }, [status]);
+  }, [fetchContainers]);
 
   const handleCommand = async (containerId: string, command: string) => {
     try {
@@ -54,6 +64,18 @@ function ContainersPage() {
       fetchContainers();
     } catch (err) {
       setError(`Failed to execute command: ${command}`);
+      console.error(err);
+    }
+  };
+
+  const handleBulkAction = async (selectedIds: string[], action: string) => {
+    try {
+      await Promise.all(
+        selectedIds.map((id) => containerService.executeCommand(id, action))
+      );
+      fetchContainers();
+    } catch (err) {
+      setError(`Failed to execute bulk action: ${action}`);
       console.error(err);
     }
   };
@@ -68,54 +90,152 @@ function ContainersPage() {
     }
   };
 
+  const getStateColor = (
+    state: string | ContainerState
+  ): "success" | "error" | "warning" => {
+    const status = (
+      typeof state === "string" ? state : state?.Status || "unknown"
+    ).toLowerCase();
+    switch (status) {
+      case "running":
+        return "success";
+      case "exited":
+        return "error";
+      default:
+        return "warning";
+    }
+  };
+
+  const columns = [
+    {
+      id: "name",
+      label: "Name",
+      minWidth: 170,
+      getValue: (container: Container) => container.Name.replace(/^\//, ""),
+    },
+    {
+      id: "state",
+      label: "State",
+      minWidth: 130,
+      getValue: (container: Container) => container.State,
+      format: (value: string | ContainerState) => (
+        <Chip
+          label={typeof value === "string" ? value : value?.Status || "Unknown"}
+          color={getStateColor(value)}
+          size="small"
+        />
+      ),
+    },
+    {
+      id: "image",
+      label: "Image",
+      minWidth: 170,
+      getValue: (container: Container) => container.Image,
+    },
+    {
+      id: "ports",
+      label: "Ports",
+      minWidth: 170,
+      getValue: (container: Container) => container.Ports,
+      format: (ports: string[]) => (
+        <Stack direction="row" spacing={1}>
+          {ports?.map((port, index) => (
+            <Chip key={index} label={port} size="small" variant="outlined" />
+          ))}
+        </Stack>
+      ),
+    },
+    {
+      id: "actions",
+      label: "Actions",
+      minWidth: 170,
+      align: "right" as const,
+      getValue: (container: Container) => container,
+      format: (container: Container) => {
+        const status = (
+          typeof container.State === "string"
+            ? container.State
+            : (container.State as ContainerState)?.Status || "unknown"
+        ).toLowerCase();
+        return (
+          <Stack direction="row" spacing={1} justifyContent="flex-end">
+            {status !== "running" ? (
+              <Tooltip title="Start">
+                <IconButton
+                  size="small"
+                  color="success"
+                  onClick={() => handleCommand(container.Id, "start")}
+                >
+                  <PlayArrowIcon />
+                </IconButton>
+              </Tooltip>
+            ) : (
+              <Tooltip title="Stop">
+                <IconButton
+                  size="small"
+                  color="error"
+                  onClick={() => handleCommand(container.Id, "stop")}
+                >
+                  <StopIcon />
+                </IconButton>
+              </Tooltip>
+            )}
+            <Tooltip title="Restart">
+              <IconButton
+                size="small"
+                color="primary"
+                onClick={() => handleCommand(container.Id, "restart")}
+              >
+                <RestartAltIcon />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="View Logs">
+              <IconButton
+                size="small"
+                color="info"
+                onClick={() => handleViewLogs(container.Id, container.Name)}
+              >
+                <TerminalIcon />
+              </IconButton>
+            </Tooltip>
+          </Stack>
+        );
+      },
+    },
+  ];
+
+  const toolbarActions = (
+    <ToggleButtonGroup
+      value={status}
+      exclusive
+      onChange={(_, newStatus) => newStatus && setStatus(newStatus)}
+      size="small"
+    >
+      <ToggleButton value="all">All</ToggleButton>
+      <ToggleButton value="active">Active</ToggleButton>
+      <ToggleButton value="stopped">Stopped</ToggleButton>
+    </ToggleButtonGroup>
+  );
+
+  const bulkActions = [
+    { label: "Start", action: "start" },
+    { label: "Stop", action: "stop" },
+    { label: "Restart", action: "restart" },
+  ];
+
   return (
     <Box sx={{ p: 3 }}>
-      <Box
-        sx={{
-          mb: 3,
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <Typography variant="h5" component="h1" sx={{ fontWeight: 500 }}>
-          Docker Containers
-        </Typography>
-        <ToggleButtonGroup
-          value={status}
-          exclusive
-          onChange={(_, newStatus) => newStatus && setStatus(newStatus)}
-          size="small"
-        >
-          <ToggleButton value="all">All</ToggleButton>
-          <ToggleButton value="active">Active</ToggleButton>
-          <ToggleButton value="stopped">Stopped</ToggleButton>
-        </ToggleButtonGroup>
-      </Box>
-
-      {loading && <Typography>Loading...</Typography>}
-
-      <Grid container spacing={2}>
-        {containers.map((container) => (
-          <Grid item xs={12} sm={6} md={4} key={container.Id}>
-            <ContainerCard
-              container={container}
-              onStart={(id) => handleCommand(id, "start")}
-              onStop={(id) => handleCommand(id, "stop")}
-              onRestart={(id) => handleCommand(id, "restart")}
-              onDelete={(id) => handleCommand(id, "rm")}
-              onViewLogs={(id) => handleViewLogs(id, container.Name)}
-            />
-          </Grid>
-        ))}
-        {!loading && containers.length === 0 && (
-          <Grid item xs={12}>
-            <Typography color="text.secondary" align="center">
-              No containers found
-            </Typography>
-          </Grid>
-        )}
-      </Grid>
+      <DataTable
+        title="Docker Containers"
+        columns={columns}
+        rows={containers}
+        loading={loading}
+        getRowId={(row) => row.Id}
+        toolbarActions={toolbarActions}
+        onBulkAction={handleBulkAction}
+        onBulkDelete={(ids) => handleBulkAction(ids, "rm")}
+        bulkActions={bulkActions}
+      />
 
       <LogsDialog
         open={logs.open}
