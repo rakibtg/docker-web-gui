@@ -1,7 +1,7 @@
 const child_process = require("child_process");
 
 const isValidId = (id) => /^[0-9a-zA-Z]+$/.test(id.trim());
-const isValidString = (id) => /^[a-zA-Z]+$/.test(id.trim());
+const isValidString = (id) => /^[0-9a-zA-Z_-]+$/.test(id.trim()); // Updated to allow numbers, hyphens, and underscores
 
 const Terminal = (command) =>
   new Promise((resolve, reject) => {
@@ -47,7 +47,7 @@ exports.safeTerminal = {
   },
   stats: () =>
     Terminal(
-      `docker container stats --no-stream --all --format "{\\"id\\": \\"{{.ID}}\\", \\"cpu_percentage\\": \\"{{.CPUPerc}}\\", \\"memory_usage\\": \\"{{.MemUsage}}\\", \\"network_io\\": \\"{{.NetIO}}\\"}"`,
+      `docker container stats --no-stream --all --format "{\\"id\\": \\"{{.ID}}\\", \\"cpu_percentage\\": \\"{{.CPUPerc}}\\", \\"memory_usage\\": \\"{{.MemUsage}}\\", \\"network_io\\": \\"{{.NetIO}}\\"}"`
     ),
   prune: (pruneType) => {
     if (!isValidString(pruneType)) {
@@ -58,7 +58,7 @@ exports.safeTerminal = {
   containerLs: () => Terminal(`docker container ls --format '{{json .}}'`),
   formattedImages: () =>
     Terminal(
-      `docker images --all --format "{\\"ID\\": \\"{{.ID}}\\", \\"Tag\\": \\"{{.Tag}}\\", \\"CreatedSince\\": \\"{{.CreatedSince}}\\", \\"Size\\": \\"{{.Size}}\\", \\"VirtualSize\\": \\"{{.VirtualSize}}\\", \\"Repository\\": \\"{{.Repository}}\\"}"`,
+      `docker images --all --format "{\\"ID\\": \\"{{.ID}}\\", \\"Tag\\": \\"{{.Tag}}\\", \\"CreatedSince\\": \\"{{.CreatedSince}}\\", \\"Size\\": \\"{{.Size}}\\", \\"VirtualSize\\": \\"{{.VirtualSize}}\\", \\"Repository\\": \\"{{.Repository}}\\"}"`
     ),
   singleImage: (task, id) => {
     if (!isValidString(task)) {
@@ -72,5 +72,25 @@ exports.safeTerminal = {
     } else {
       return Terminal(`docker image ${task} ${id}`);
     }
+  },
+  listVolumes: () =>
+    Terminal(
+      `docker volume ls --format "{\\"Name\\":\\"{{.Name}}\\",\\"Driver\\":\\"{{.Driver}}\\",\\"Mountpoint\\":\\"{{.Mountpoint}}\\"}"`
+    ),
+  createVolume: (name) => {
+    if (!isValidString(name)) {
+      throw new Error(
+        "Volume name can only contain letters, numbers, underscores, and hyphens"
+      );
+    }
+    return Terminal(`docker volume create ${name}`);
+  },
+  removeVolume: (name) => {
+    if (!isValidString(name)) {
+      throw new Error(
+        "Volume name can only contain letters, numbers, underscores, and hyphens"
+      );
+    }
+    return Terminal(`docker volume rm ${name}`);
   },
 };
