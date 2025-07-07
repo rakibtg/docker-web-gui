@@ -1,0 +1,27 @@
+{
+  "name": "docker-web-gui-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspace=client && npm run build --workspace=server",
+    "start:prod": "npm run start --workspace=server",
+    "prestart": "npm run build --workspace=server",
+    "start": "npm run start --workspace=server & wait-on tcp:8080 && npm run dev --workspace=client",
+    "dev": "concurrently --names \"SERVER,CLIENT\" --prefix-colors \"blue,green\" \"npm run dev --workspace=server\" \"wait-on tcp:8080 && npm run dev --workspace=client\"",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "concurrently": "^9.1.0",
+    "wait-on": "^8.0.3"
+  },
+  "dependencies": {
+    "node-pty": "^1.0.0"
+  }
+}
