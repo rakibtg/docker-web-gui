@@ -1,0 +1,187 @@
+import { useState } from "react";
+import { ToggleSwitch } from "./ToggleSwitch";
+import { UptimeDisplay } from "./UptimeDisplay";
+import type { ContainerWithStats } from "../types";
+import { BsFillTerminalFill } from "react-icons/bs";
+import { IoNewspaper } from "react-icons/io5";
+import { IoReloadCircle } from "react-icons/io5";
+import { FaCircleInfo } from "react-icons/fa6";
+import { formatDockerPort } from "../helpers/readablePort";
+
+interface ContainerCardProps {
+  container: ContainerWithStats;
+  onToggle: (containerId: string, currentState: string) => void;
+  onOpenTerminal?: (containerId: string, containerName: string) => void;
+  isToggling?: boolean;
+}
+
+export function ContainerCard({
+  container,
+  onToggle,
+  onOpenTerminal,
+  isToggling = false,
+}: ContainerCardProps) {
+  const [localToggling, setLocalToggling] = useState(false);
+  const isRunning = container.state === "running";
+
+  const handleToggle = async () => {
+    setLocalToggling(true);
+    try {
+      await onToggle(container.id, container.state);
+    } finally {
+      setTimeout(() => setLocalToggling(false), 1000);
+    }
+  };
+
+  return (
+    <div className="bg-theme-card rounded shadow-md border-theme border p-4 pt-2.5 hover:shadow-lg transition-all duration-200 flex flex-col gap-2">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center border-0 border-yellow-500 justify-between">
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-row items-center gap-2">
+              <h3 className="text-lg font-semibold text-theme-primary truncate transition-colors">
+                {container.name}
+              </h3>
+              <UptimeDisplay
+                status={container.status}
+                className={`inline-flex text-xs px-2 py-1 rounded-full transition-colors ${
+                  isRunning
+                    ? "border border-green-400/30 text-green-100"
+                    : "border border-red-400/50 text-red-100"
+                }`}
+              />
+            </div>
+            <p
+              className="text-sm text-theme-muted font-mono transition-colors flex items-center gap-1"
+              title={`ID: ${container.id.substring(0, 10)}`}
+            >
+              <span className="inline-block">
+                {container.id.substring(0, 10)}
+              </span>
+              <span className="inline-block text-xs">|</span>
+              <span
+                className="inline-block max-w-full truncate"
+                title={`Image: ${container.image}`}
+              >
+                {container.image}
+              </span>
+            </p>
+          </div>
+        </div>
+
+        <div className="">
+          <div className="flex items-center space-x-4 justify-around">
+            <div className="flex flex-col items-center gap-1  w-18 rounded-md p-2">
+              <ToggleSwitch
+                isOn={isRunning}
+                onToggle={handleToggle}
+                loading={isToggling || localToggling}
+                disabled={isToggling || localToggling}
+                size="md"
+              />
+              <p className="text-xs text-theme-primary cursor-default">
+                {isRunning ? "Stop" : "Start"}
+              </p>
+            </div>
+            {isRunning && onOpenTerminal && (
+              <button
+                onClick={() => onOpenTerminal(container.id, container.name)}
+                className="cursor-pointer w-18 p-2 text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 flex flex-col items-center"
+                title="Open terminal"
+                aria-label="Open terminal"
+              >
+                <BsFillTerminalFill className="w-5 h-5" />
+                <p className="text-xs text-theme-primary pt-1">Terminal</p>
+              </button>
+            )}
+            {isRunning && onOpenTerminal && (
+              <button
+                onClick={() => console.log("Open logs")}
+                className="cursor-pointer w-18 p-2 text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 flex flex-col items-center"
+                title="Open terminal"
+                aria-label="Open terminal"
+              >
+                <IoNewspaper className="w-5 h-5" />
+                <p className="text-xs text-theme-primary pt-1">Logs</p>
+              </button>
+            )}
+            {isRunning && onOpenTerminal && (
+              <button
+                onClick={() => console.log("reload")}
+                className="cursor-pointer w-18 p-2 text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 flex flex-col items-center"
+                title="Open terminal"
+                aria-label="Open terminal"
+              >
+                <IoReloadCircle className="w-6 h-6" />
+                <p className="text-xs text-theme-primary pt-1">Reload</p>
+              </button>
+            )}
+            {isRunning && onOpenTerminal && (
+              <button
+                onClick={() => console.log("More info")}
+                className="cursor-pointer  p-2 text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 flex flex-col items-center"
+                title="Open terminal"
+                aria-label="Open terminal"
+              >
+                <FaCircleInfo className="w-5 h-5" />
+                <p className="text-xs text-theme-primary pt-1">More info</p>
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {isRunning && container.stats && (
+        <div className="transition-colors">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            <div className="rounded-lg p-2 px-3 border-theme border transition-colors">
+              <p className="text-xs font-bold uppercase text-blue-600 dark:text-blue-400 transition-colors">
+                CPU
+              </p>
+              <p className="text-sm-theme font-mono text-theme-primary transition-colors">
+                {container.stats.cpuPerc}
+              </p>
+            </div>
+            <div className="rounded-lg p-2 px-3 border-theme border transition-colors col-span-1 md:col-span-2">
+              <p className="text-xs font-bold uppercase text-green-600 dark:text-green-400 transition-colors">
+                Memory
+              </p>
+              <div className="flex flex-row gap-1">
+                <p className="text-sm-theme font-mono text-theme-primary transition-colors">
+                  {container.stats.memPerc}
+                </p>{" "}
+                <p className="text-sm-theme font-mono text-theme-secondary transition-colors">
+                  ({container.stats.memUsage})
+                </p>
+              </div>
+            </div>
+            <div className="rounded-lg p-2 px-3 border-theme border transition-colors">
+              <div className="text-xs font-bold uppercase text-orange-600 dark:text-orange-400 transition-colors">
+                Block I/O
+              </div>
+              <div className="text-sm-theme font-mono text-theme-primary transition-colors">
+                {container.stats.blockIO}
+              </div>
+            </div>
+            <div className="rounded-lg p-2 px-3 border-theme border transition-colors">
+              <div className="text-xs font-bold uppercase text-purple-600 dark:text-purple-400 transition-colors">
+                Network I/O
+              </div>
+              <div className="text-sm-theme font-mono text-theme-primary transition-colors">
+                {container.stats.netIO}
+              </div>
+            </div>
+            <div className="rounded-lg p-2 px-3 border-theme border transition-colors">
+              <div className="text-xs font-bold uppercase text-yellow-600 dark:text-yellow-400 transition-colors">
+                Port
+              </div>
+              <div className="text-sm-theme font-mono text-theme-primary transition-colors">
+                {formatDockerPort(container.ports)}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
