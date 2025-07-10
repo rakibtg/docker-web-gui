@@ -14,7 +14,7 @@ function CardActionButton({
 }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
     <button
-      className={`cursor-pointer w-18 p-2 text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 flex flex-col items-center
+      className={`cursor-pointer w-18 p-1 text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 flex flex-col items-center
         disabled:opacity-50 disabled:cursor-not-allowed  
       `}
       {...rest}
