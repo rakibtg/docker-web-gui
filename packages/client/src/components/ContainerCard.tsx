@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { ToggleSwitch } from "./ToggleSwitch";
 import { UptimeDisplay } from "./UptimeDisplay";
 import type { ContainerWithStats } from "../types";
@@ -7,6 +7,22 @@ import { IoNewspaper } from "react-icons/io5";
 import { IoReloadCircle } from "react-icons/io5";
 import { FaCircleInfo } from "react-icons/fa6";
 import { formatDockerPort } from "../helpers/readablePort";
+
+function CardActionButton({
+  children,
+  ...rest
+}: React.ButtonHTMLAttributes<HTMLButtonElement>) {
+  return (
+    <button
+      className={`cursor-pointer w-18 p-2 text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 flex flex-col items-center
+        disabled:opacity-50 disabled:cursor-not-allowed  
+      `}
+      {...rest}
+    >
+      {children}
+    </button>
+  );
+}
 
 interface ContainerCardProps {
   container: ContainerWithStats;
@@ -83,50 +99,46 @@ export function ContainerCard({
                 {isRunning ? "Stop" : "Start"}
               </p>
             </div>
-            {isRunning && onOpenTerminal && (
-              <button
-                onClick={() => onOpenTerminal(container.id, container.name)}
-                className="cursor-pointer w-18 p-2 text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 flex flex-col items-center"
-                title="Open terminal"
-                aria-label="Open terminal"
-              >
-                <BsFillTerminalFill className="w-5 h-5" />
-                <p className="text-xs text-theme-primary pt-1">Terminal</p>
-              </button>
-            )}
-            {isRunning && onOpenTerminal && (
-              <button
-                onClick={() => console.log("Open logs")}
-                className="cursor-pointer w-18 p-2 text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 flex flex-col items-center"
-                title="Open terminal"
-                aria-label="Open terminal"
-              >
-                <IoNewspaper className="w-5 h-5" />
-                <p className="text-xs text-theme-primary pt-1">Logs</p>
-              </button>
-            )}
-            {isRunning && onOpenTerminal && (
-              <button
-                onClick={() => console.log("reload")}
-                className="cursor-pointer w-18 p-2 text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 flex flex-col items-center"
-                title="Open terminal"
-                aria-label="Open terminal"
-              >
-                <IoReloadCircle className="w-6 h-6" />
-                <p className="text-xs text-theme-primary pt-1">Reload</p>
-              </button>
-            )}
-            {isRunning && onOpenTerminal && (
-              <button
-                onClick={() => console.log("More info")}
-                className="cursor-pointer  p-2 text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 flex flex-col items-center"
-                title="Open terminal"
-                aria-label="Open terminal"
-              >
-                <FaCircleInfo className="w-5 h-5" />
-                <p className="text-xs text-theme-primary pt-1">More info</p>
-              </button>
-            )}
+
+            <CardActionButton
+              title="Open terminal"
+              aria-label="Open terminal"
+              onClick={() => onOpenTerminal(container.id, container.name)}
+              disabled={!isRunning || !onOpenTerminal}
+            >
+              <BsFillTerminalFill className="w-5 h-5" />
+              <p className="text-xs text-theme-primary pt-1">Terminal</p>
+            </CardActionButton>
+
+            <CardActionButton
+              title="Open logs"
+              aria-label="Open logs"
+              onClick={() => console.log("Open logs")}
+              disabled={!isRunning || !onOpenTerminal}
+            >
+              <IoNewspaper className="w-5 h-5" />
+              <p className="text-xs text-theme-primary pt-1">Logs</p>
+            </CardActionButton>
+
+            <CardActionButton
+              title="Reload container"
+              aria-label="Reload container"
+              onClick={() => console.log("Reload container")}
+              disabled={!isRunning || !onOpenTerminal}
+            >
+              <IoReloadCircle className="w-6 h-6" />
+              <p className="text-xs text-theme-primary pt-1">Reload</p>
+            </CardActionButton>
+
+            <CardActionButton
+              title="More info"
+              aria-label="More information about this container"
+              onClick={() => console.log("More info")}
+              disabled={!isRunning || !onOpenTerminal}
+            >
+              <FaCircleInfo className="w-5 h-5" />
+              <p className="text-xs text-theme-primary pt-1">More info</p>
+            </CardActionButton>
           </div>
         </div>
       </div>

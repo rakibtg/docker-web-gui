@@ -23,7 +23,7 @@ export function ContainerGrid({
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between pb-1.5">
         <div className="flex items-center gap-2.5">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-300">
             Containers{" "}
@@ -49,8 +49,9 @@ export function ContainerGrid({
             }`}
           >
             <HiViewList className="h-4 w-4 mr-2" />
-            Table
+            All
           </button>
+
           <button
             onClick={() => setViewMode("grid")}
             className={`flex items-center px-3 py-0.5 rounded-md text-sm font-medium transition-colors ${
@@ -60,7 +61,19 @@ export function ContainerGrid({
             }`}
           >
             <HiViewGrid className="h-4 w-4 mr-2" />
-            Grid
+            Active
+          </button>
+
+          <button
+            onClick={() => setViewMode("grid")}
+            className={`flex items-center px-3 py-0.5 rounded-md text-sm font-medium transition-colors ${
+              viewMode === "inactive"
+                ? "bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300"
+                : "text-theme-muted hover:text-theme-primary"
+            }`}
+          >
+            <HiViewGrid className="h-4 w-4 mr-2" />
+            Inactive
           </button>
         </div>
       </div>
