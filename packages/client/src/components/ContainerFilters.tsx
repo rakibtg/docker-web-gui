@@ -7,7 +7,10 @@ interface ContainerFiltersProps {
   onFilterChange: (filter: ContainerFilterStatus) => void;
 }
 
-export function ContainerFilters({ activeFilter, onFilterChange }: ContainerFiltersProps) {
+export function ContainerFilters({
+  activeFilter,
+  onFilterChange,
+}: ContainerFiltersProps) {
   const filters = [
     {
       id: "all" as const,
@@ -31,7 +34,7 @@ export function ContainerFilters({ activeFilter, onFilterChange }: ContainerFilt
       {filters.map((filter) => {
         const Icon = filter.icon;
         const isActive = activeFilter === filter.id;
-        
+
         return (
           <button
             key={filter.id}

@@ -16,14 +16,16 @@ export function filterContainers(
   }
 
   return containers.filter((container) => {
-    const isRunning = container.state === "running" || container.status.toLowerCase().includes("up");
-    
+    const isRunning =
+      container.state === "running" ||
+      container.status.toLowerCase().includes("up");
+
     if (filterStatus === "active") {
       return isRunning;
     } else if (filterStatus === "stopped") {
       return !isRunning;
     }
-    
+
     return true;
   });
 }

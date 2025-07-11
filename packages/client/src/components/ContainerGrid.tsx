@@ -38,7 +38,11 @@ export function ContainerGrid({
           <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-300">
             Containers{" "}
             <span className="text-sm text-gray-500 dark:text-gray-400 px-1">
-              ({filteredContainers.length}{filteredContainers.length !== containers.length ? ` of ${containers.length}` : ""})
+              ({filteredContainers.length}
+              {filteredContainers.length !== containers.length
+                ? ` of ${containers.length}`
+                : ""}
+              )
             </span>
           </h2>
           <button
@@ -57,7 +61,8 @@ export function ContainerGrid({
 
       {filteredContainers.length === 0 ? (
         <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-          No {containerListStatus === "all" ? "" : containerListStatus} containers found.
+          No {containerListStatus === "all" ? "" : containerListStatus}{" "}
+          containers found.
         </div>
       ) : (
         <div className="flex flex-col gap-3.5">
