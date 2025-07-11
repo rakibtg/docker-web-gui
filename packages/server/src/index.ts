@@ -570,6 +570,105 @@ wss.on("connection", function connection(ws) {
           }
           break;
 
+        case "logs-connect":
+          try {
+            const { terminalId, containerId } = parsedMessage;
+            if (!terminalId || !containerId) {
+              throw new Error("Terminal ID and Container ID are required");
+            }
+
+            // Check if logs session already exists for this terminalId
+            if (client.terminals?.has(terminalId)) {
+              console.log(
+                `Logs session already exists for terminal ${terminalId}, ignoring duplicate request`
+              );
+              return; // Ignore duplicate connection request
+            }
+
+            // Create logs session
+            const logsSession = await dockerService.createLogsSession(
+              containerId
+            );
+            client.terminals?.set(terminalId, logsSession);
+
+            console.log(
+              `Created logs session ${terminalId} for container ${containerId}`
+            );
+
+            // Handle logs output
+            logsSession.on("data", (data: string) => {
+              if (client.isActive && ws.readyState === 1) {
+                ws.send(
+                  JSON.stringify({
+                    type: "logs-data",
+                    terminalId,
+                    containerId,
+                    data: data,
+                  })
+                );
+              }
+            });
+
+            logsSession.on("exit", (code: number, signal: number) => {
+              console.log(
+                `Logs session ${terminalId} for container ${containerId} exited with code ${code}, signal ${signal}`
+              );
+              if (client.isActive && ws.readyState === 1) {
+                ws.send(
+                  JSON.stringify({
+                    type: "logs-disconnected",
+                    terminalId,
+                    containerId,
+                    code,
+                    signal,
+                  })
+                );
+              }
+              client.terminals?.delete(terminalId);
+            });
+
+            logsSession.on("error", (error: Error) => {
+              if (client.isActive && ws.readyState === 1) {
+                ws.send(
+                  JSON.stringify({
+                    type: "logs-error",
+                    terminalId,
+                    containerId,
+                    error: error.message,
+                  })
+                );
+              }
+              client.terminals?.delete(terminalId);
+            });
+          } catch (error) {
+            ws.send(
+              JSON.stringify({
+                type: "logs-error",
+                terminalId: parsedMessage.terminalId,
+                containerId: parsedMessage.containerId,
+                error:
+                  error instanceof Error
+                    ? error.message
+                    : "Failed to connect to logs",
+              })
+            );
+          }
+          break;
+
+        case "logs-disconnect":
+          try {
+            const { terminalId } = parsedMessage;
+            const logsSession = client.terminals?.get(terminalId);
+            if (logsSession) {
+              logsSession.kill();
+              client.terminals?.delete(terminalId);
+              console.log(`Disconnected logs session ${terminalId}`);
+            }
+          } catch (error) {
+            console.error("Error disconnecting logs session:", error);
+          }
+          break;
+
         default:
           ws.send(
             JSON.stringify({
