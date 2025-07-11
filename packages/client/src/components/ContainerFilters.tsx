@@ -1,4 +1,4 @@
-import { HiViewGrid, HiViewList } from "react-icons/hi";
+import { HiServer, HiPlay, HiStop } from "react-icons/hi";
 
 export type ContainerFilterStatus = "all" | "active" | "stopped";
 
@@ -15,17 +15,17 @@ export function ContainerFilters({
     {
       id: "all" as const,
       label: "All",
-      icon: HiViewList,
+      icon: HiServer,
     },
     {
       id: "active" as const,
       label: "Running",
-      icon: HiViewGrid,
+      icon: HiPlay,
     },
     {
       id: "stopped" as const,
       label: "Stopped",
-      icon: HiViewGrid,
+      icon: HiStop,
     },
   ];
 
@@ -39,7 +39,7 @@ export function ContainerFilters({
           <button
             key={filter.id}
             onClick={() => onFilterChange(filter.id)}
-            className={`flex items-center px-3 py-0.5 rounded-md text-sm font-medium transition-colors ${
+            className={`flex items-center px-4 py-1 rounded-md text-sm font-medium transition-colors cursor-pointer ${
               isActive
                 ? "bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300"
                 : "text-theme-muted hover:text-theme-primary"
