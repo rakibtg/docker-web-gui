@@ -60,6 +60,7 @@ interface AppContextType {
   startStatsStreaming: () => void;
   stopStatsStreaming: () => void;
   handleContainerToggle: (containerId: string, currentState: string) => void;
+  handleContainerRestart: (containerId: string) => void;
   addTerminal: (containerId: string, containerName: string) => void;
   removeTerminal: (terminalId: string) => void;
   closeTerminal: (terminalId: string) => void;
@@ -180,6 +181,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
       sendMessage({
         type: action,
+        containerId: containerId,
+      });
+    },
+    [sendMessage]
+  );
+
+  const handleContainerRestart = useCallback(
+    (containerId: string) => {
+      sendMessage({
+        type: "restart-container",
         containerId: containerId,
       });
     },
@@ -400,10 +411,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
               });
 
               if (success) {
+                const actionPastTense =
+                  action === "start"
+                    ? "started"
+                    : action === "stop"
+                    ? "stopped"
+                    : "restarted";
                 console.log(
-                  `Container ${containerId} ${
-                    action === "start" ? "started" : "stopped"
-                  } successfully`
+                  `Container ${containerId} ${actionPastTense} successfully`
                 );
                 // Container list will be refreshed automatically by the server
               } else {
@@ -607,6 +622,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       startStatsStreaming,
       stopStatsStreaming,
       handleContainerToggle,
+      handleContainerRestart,
       addTerminal,
       removeTerminal,
       closeTerminal,
@@ -630,6 +646,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       startStatsStreaming,
       stopStatsStreaming,
       handleContainerToggle,
+      handleContainerRestart,
       addTerminal,
       removeTerminal,
       closeTerminal,
