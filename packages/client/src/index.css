@@ -94,6 +94,10 @@
   border-color: var(--border-hover);
 }
 
+.border-theme-border {
+  border-color: var(--border-color);
+}
+
 .bg-theme-button {
   background-color: var(--button-bg);
 }
