@@ -11,6 +11,7 @@ interface ContainerGridProps {
   onContainerToggle: (containerId: string, currentState: string) => void;
   onContainerRestart?: (containerId: string) => void;
   onOpenTerminal?: (containerId: string, containerName: string) => void;
+  onOpenLogs?: (containerId: string, containerName: string) => void;
 }
 
 export function ContainerGrid({
@@ -18,6 +19,7 @@ export function ContainerGrid({
   onContainerToggle,
   onContainerRestart,
   onOpenTerminal,
+  onOpenLogs,
 }: ContainerGridProps) {
   const { requestContainers, containerListStatus, setContainerListStatus } =
     useApp();
@@ -73,6 +75,7 @@ export function ContainerGrid({
               onToggle={onContainerToggle}
               onRestart={onContainerRestart}
               onOpenTerminal={onOpenTerminal}
+              onOpenLogs={onOpenLogs}
             />
           ))}
         </div>
