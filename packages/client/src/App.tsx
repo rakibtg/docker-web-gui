@@ -18,6 +18,7 @@ function AppContent() {
     showTerminals,
     requestContainers,
     handleContainerToggle,
+    handleContainerRestart,
     addTerminal,
   } = useApp();
 
@@ -43,6 +44,7 @@ function AppContent() {
                 <ContainerGrid
                   containers={containers}
                   onContainerToggle={handleContainerToggle}
+                  onContainerRestart={handleContainerRestart}
                   onOpenTerminal={handleOpenTerminal}
                 />
               ) : (
