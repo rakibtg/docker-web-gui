@@ -26,15 +26,14 @@ export function TerminalManager() {
   }
 
   return (
-    <div className="flex-1 bg-theme-card rounded-t-lg rounded-t-rg shadow-lg border-theme border flex flex-col">
-      {/* Terminal Tabs */}
-      <div className="flex items-center bg-theme-tertiary border-theme px-4 py-2 rounded-t-lg">
+    <div className="flex-1 bg-theme-card border-theme border-t flex flex-col">
+      <div className="flex items-center bg-theme-tertiary px-2 py-1.5">
         <div className="flex items-center space-x-1 flex-1 overflow-x-auto">
           {terminals.map((terminal) => (
             <button
               key={terminal.id}
               onClick={() => setActiveTerminalId(terminal.id)}
-              className={`flex items-center space-x-2 px-3 py-1.5 rounded-md text-sm font-medium whitespace-nowrap transition-colors ${
+              className={`flex items-center space-x-1 px-2 py-1.5 rounded-md text-sm font-medium whitespace-nowrap transition-colors ${
                 activeTerminalId === terminal.id
                   ? "bg-theme-card text-theme-primary border border-theme"
                   : "text-theme-secondary hover:text-theme-primary hover:bg-theme-button"
@@ -74,9 +73,7 @@ export function TerminalManager() {
                 terminalId={terminal.id}
                 containerId={terminal.containerId}
                 containerName={terminal.containerName}
-                onClose={() => closeTerminal(terminal.id)}
                 websocket={websocket}
-                isEmbedded={true}
               />
             ) : (
               <div className="flex items-center justify-center h-full text-theme-secondary">
