@@ -1,11 +1,6 @@
 import { useCallback } from "react";
 
-import {
-  ContainerTable,
-  ContainerGrid,
-  EmptyState,
-  TerminalManager,
-} from "./components";
+import { ContainerGrid, EmptyState, TerminalManager } from "./components";
 
 import { useApp } from "./hooks/useApp";
 import { AppProvider } from "./contexts/AppContext";
@@ -19,7 +14,7 @@ function AppContent() {
     dockerMessage,
     loading,
     error,
-    viewMode,
+    containerListStatus,
     showTerminals,
     requestContainers,
     handleContainerToggle,
@@ -37,10 +32,6 @@ function AppContent() {
     <div className="min-h-screen bg-theme-primary transition-colors flex">
       <Sidebar />
       <div className="flex-grow shrink-0 overflow-hidden">
-        {/* <div className="border border-amber-300">
-          <Header />
-        </div> */}
-
         <div
           className={`flex flex-col ${
             showTerminals && "h-1/2"
@@ -49,19 +40,11 @@ function AppContent() {
           <div className={`grid gap-6 grid-cols-1 transition-all duration-300`}>
             <main className="space-y-6">
               {containers.length > 0 ? (
-                viewMode === "table" ? (
-                  <ContainerTable
-                    containers={containers}
-                    onContainerToggle={handleContainerToggle}
-                    onOpenTerminal={handleOpenTerminal}
-                  />
-                ) : (
-                  <ContainerGrid
-                    containers={containers}
-                    onContainerToggle={handleContainerToggle}
-                    onOpenTerminal={handleOpenTerminal}
-                  />
-                )
+                <ContainerGrid
+                  containers={containers}
+                  onContainerToggle={handleContainerToggle}
+                  onOpenTerminal={handleOpenTerminal}
+                />
               ) : (
                 <EmptyState
                   dockerAvailable={dockerAvailable}
@@ -75,7 +58,7 @@ function AppContent() {
         </div>
 
         {showTerminals && (
-          <div className="h-1/2 px-3">
+          <div className="h-1/2">
             <TerminalManager />
           </div>
         )}
