@@ -15,7 +15,7 @@ function CardActionButton({
   return (
     <button
       className={`cursor-pointer w-18 p-1 text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 flex flex-col items-center
-        disabled:opacity-50 disabled:cursor-not-allowed  
+        disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:text-gray-600 disabled:dark:hover:text-gray-400
       `}
       {...rest}
     >
@@ -27,6 +27,7 @@ function CardActionButton({
 interface ContainerCardProps {
   container: ContainerWithStats;
   onToggle: (containerId: string, currentState: string) => void;
+  onRestart?: (containerId: string) => void;
   onOpenTerminal?: (containerId: string, containerName: string) => void;
   isToggling?: boolean;
 }
@@ -34,10 +35,12 @@ interface ContainerCardProps {
 export function ContainerCard({
   container,
   onToggle,
+  onRestart,
   onOpenTerminal,
   isToggling = false,
 }: ContainerCardProps) {
   const [localToggling, setLocalToggling] = useState(false);
+  const [isRestarting, setIsRestarting] = useState(false);
   const isRunning = container.state === "running";
 
   const handleToggle = async () => {
@@ -46,6 +49,17 @@ export function ContainerCard({
       await onToggle(container.id, container.state);
     } finally {
       setTimeout(() => setLocalToggling(false), 1000);
+    }
+  };
+
+  const handleRestart = async () => {
+    if (!onRestart) return;
+
+    setIsRestarting(true);
+    try {
+      await onRestart(container.id);
+    } finally {
+      setTimeout(() => setIsRestarting(false), 2000);
     }
   };
 
@@ -103,7 +117,7 @@ export function ContainerCard({
             <CardActionButton
               title="Open terminal"
               aria-label="Open terminal"
-              onClick={() => onOpenTerminal(container.id, container.name)}
+              onClick={() => onOpenTerminal?.(container.id, container.name)}
               disabled={!isRunning || !onOpenTerminal}
             >
               <BsFillTerminalFill className="w-5 h-5" />
@@ -121,13 +135,27 @@ export function ContainerCard({
             </CardActionButton>
 
             <CardActionButton
-              title="Reload container"
-              aria-label="Reload container"
-              onClick={() => console.log("Reload container")}
-              disabled={!isRunning || !onOpenTerminal}
+              title={
+                isRestarting ? "Restarting container..." : "Reload container"
+              }
+              aria-label={
+                isRestarting ? "Restarting container..." : "Reload container"
+              }
+              onClick={handleRestart}
+              disabled={!isRunning || !onRestart || isRestarting}
             >
-              <IoReloadCircle className="w-6 h-6" />
-              <p className="text-xs text-theme-primary pt-1">Reload</p>
+              <IoReloadCircle
+                className={`w-6 h-6 transition-transform ${
+                  isRestarting ? "animate-spin text-blue-500" : ""
+                }`}
+              />
+              <p
+                className={`text-xs pt-1 ${
+                  isRestarting ? "text-blue-500" : "text-theme-primary"
+                }`}
+              >
+                {isRestarting ? "Restarting..." : "Restart"}
+              </p>
             </CardActionButton>
 
             <CardActionButton
