@@ -2,6 +2,7 @@ export { Header } from "./Header";
 export { StatusIndicator } from "./StatusIndicator";
 export { ContainerCard } from "./ContainerCard";
 export { ContainerGrid } from "./ContainerGrid";
+export { ContainerFilters } from "./ContainerFilters";
 export { EmptyState } from "./EmptyState";
 export { DockerInfo } from "./DockerInfo";
 export { ThemeToggle } from "./ThemeToggle";
