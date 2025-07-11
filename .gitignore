@@ -2,3 +2,4 @@ node_modules
 dist
 build
 packages/server/public
+.DS_Store
