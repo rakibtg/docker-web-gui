@@ -9,6 +9,7 @@ interface TerminalProps {
   containerId: string;
   containerName: string;
   websocket: WebSocket;
+  sessionType: "terminal" | "logs";
 }
 
 export function Terminal({
@@ -16,6 +17,7 @@ export function Terminal({
   containerId,
   containerName,
   websocket,
+  sessionType,
 }: TerminalProps) {
   const terminalRef = useRef<HTMLDivElement>(null);
   const xtermRef = useRef<XTerm | null>(null);
@@ -26,13 +28,17 @@ export function Terminal({
     if (!terminalRef.current) return;
 
     const terminal = new XTerm({
-      cursorBlink: true,
+      cursorBlink: sessionType === "terminal", // Only blink cursor for interactive terminals
       fontSize: 14,
       fontFamily: 'Monaco, Menlo, "Ubuntu Mono", monospace',
+      allowTransparency: true,
+      allowProposedApi: true,
+      convertEol: true, // Convert \n to \r\n automatically
+      disableStdin: sessionType === "logs", // Disable input for logs sessions
       theme: {
-        background: "#181e2d",
+        background: sessionType === "logs" ? "#1a1e2e" : "#181e2d", // Slightly different background for logs
         foreground: "#d4d4d4",
-        cursor: "#d4d4d4",
+        cursor: sessionType === "logs" ? "transparent" : "#d4d4d4", // Hide cursor for logs
         selectionBackground: "#264f78",
         black: "#000000",
         red: "#cd3131",
@@ -68,28 +74,50 @@ export function Terminal({
     xtermRef.current = terminal;
     fitAddonRef.current = fitAddon;
 
-    // Handle terminal input
-    terminal.onData((data) => {
-      if (websocket.readyState === WebSocket.OPEN) {
-        websocket.send(
-          JSON.stringify({
-            type: "terminal-input",
-            terminalId,
-            containerId,
-            data,
-          })
-        );
-      }
-    });
+    // Handle terminal input (only for terminal sessions, not logs)
+    if (sessionType === "terminal") {
+      terminal.onData((data) => {
+        if (websocket.readyState === WebSocket.OPEN) {
+          websocket.send(
+            JSON.stringify({
+              type: "terminal-input",
+              terminalId,
+              containerId,
+              data,
+            })
+          );
+        }
+      });
+    }
 
     if (
       websocket.readyState === WebSocket.OPEN &&
       !connectionRequestedRef.current
     ) {
       connectionRequestedRef.current = true;
+      const connectionType =
+        sessionType === "logs" ? "logs-connect" : "terminal-connect";
+
+      // Show connection message immediately
+      if (xtermRef.current) {
+        const sessionName = sessionType === "logs" ? "logs" : "terminal";
+        if (sessionType === "logs") {
+          xtermRef.current.write(
+            `\x1b[36m=== Container Logs: ${containerName} ===\x1b[0m\r\n`
+          );
+          xtermRef.current.write(
+            `\x1b[90mShowing recent logs and following new output...\x1b[0m\r\n\r\n`
+          );
+        } else {
+          xtermRef.current.write(
+            `\x1b[36mConnecting to ${sessionName} for ${containerName}...\x1b[0m\r\n`
+          );
+        }
+      }
+
       websocket.send(
         JSON.stringify({
-          type: "terminal-connect",
+          type: connectionType,
           terminalId,
           containerId,
         })
@@ -117,7 +145,7 @@ export function Terminal({
       window.removeEventListener("resize", handleResize);
       terminal.dispose();
     };
-  }, [terminalId, containerId, websocket]);
+  }, [terminalId, containerId, websocket, sessionType, containerName]);
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
@@ -125,23 +153,26 @@ export function Terminal({
         const message = JSON.parse(event.data);
 
         if (
-          message.type === "terminal-data" &&
+          (message.type === "terminal-data" || message.type === "logs-data") &&
           message.terminalId === terminalId
         ) {
           if (xtermRef.current) {
             xtermRef.current.write(message.data);
           }
         } else if (
-          message.type === "terminal-disconnected" &&
+          (message.type === "terminal-disconnected" ||
+            message.type === "logs-disconnected") &&
           message.terminalId === terminalId
         ) {
           if (xtermRef.current) {
+            const sessionName = sessionType === "logs" ? "Logs" : "Terminal";
             xtermRef.current.write(
-              "\r\n\x1b[31mTerminal disconnected\x1b[0m\r\n"
+              `\r\n\x1b[31m${sessionName} disconnected\x1b[0m\r\n`
             );
           }
         } else if (
-          message.type === "terminal-error" &&
+          (message.type === "terminal-error" ||
+            message.type === "logs-error") &&
           message.terminalId === terminalId
         ) {
           if (xtermRef.current) {
@@ -160,7 +191,7 @@ export function Terminal({
     return () => {
       websocket.removeEventListener("message", handleMessage);
     };
-  }, [terminalId, containerId, containerName, websocket]);
+  }, [terminalId, containerId, containerName, websocket, sessionType]);
 
   return (
     <div className="flex flex-col h-[calc(100vh-54vh)]">
