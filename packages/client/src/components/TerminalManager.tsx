@@ -1,5 +1,6 @@
 import { Terminal } from "./Terminal";
 import { FiX, FiTerminal } from "react-icons/fi";
+import { IoNewspaper } from "react-icons/io5";
 import { useApp } from "../hooks/useApp";
 
 export function TerminalManager() {
@@ -39,9 +40,15 @@ export function TerminalManager() {
                   : "text-theme-secondary hover:text-theme-primary hover:bg-theme-button"
               }`}
             >
-              <FiTerminal className="w-4 h-4" />
+              {terminal.type === "logs" ? (
+                <IoNewspaper className="w-4 h-4" />
+              ) : (
+                <FiTerminal className="w-4 h-4" />
+              )}
               <span className="max-w-34 truncate">
-                {terminal.containerName}
+                {terminal.type === "logs"
+                  ? `Logs: ${terminal.containerName}`
+                  : terminal.containerName}
               </span>
               <button
                 onClick={(e) => {
@@ -74,6 +81,7 @@ export function TerminalManager() {
                 containerId={terminal.containerId}
                 containerName={terminal.containerName}
                 websocket={websocket}
+                sessionType={terminal.type}
               />
             ) : (
               <div className="flex items-center justify-center h-full text-theme-secondary">
