@@ -37,8 +37,10 @@ interface AppContextType {
   setError: React.Dispatch<React.SetStateAction<string>>;
   isStatsStreaming: boolean;
   setIsStatsStreaming: React.Dispatch<React.SetStateAction<boolean>>;
-  viewMode: "table" | "grid";
-  setViewMode: React.Dispatch<React.SetStateAction<"table" | "grid">>;
+  containerListStatus: "all" | "active" | "stopped";
+  setContainerListStatus: React.Dispatch<
+    React.SetStateAction<"all" | "active" | "stopped">
+  >;
   showTerminals: boolean;
   setShowTerminals: React.Dispatch<React.SetStateAction<boolean>>;
 
@@ -81,7 +83,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>("");
   const [isStatsStreaming, setIsStatsStreaming] = useState(false);
-  const [viewMode, setViewMode] = useState<"table" | "grid">("grid");
+  const [containerListStatus, setContainerListStatus] = useState<
+    "all" | "active" | "stopped"
+  >("all");
   const [showTerminals, setShowTerminals] = useState(false);
 
   // Terminal state
@@ -582,8 +586,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setError,
       isStatsStreaming,
       setIsStatsStreaming,
-      viewMode,
-      setViewMode,
+      containerListStatus,
+      setContainerListStatus,
       showTerminals,
       setShowTerminals,
 
@@ -616,7 +620,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       loading,
       error,
       isStatsStreaming,
-      viewMode,
+      containerListStatus,
       showTerminals,
       terminals,
       activeTerminalId,
