@@ -1,14 +1,12 @@
-import { useState, useEffect, useRef } from "react";
-import { useDebounce } from "../hooks/useDebounce";
+import { useState, useEffect, useId, useRef, useCallback } from "react";
 
 interface TooltipProps {
   content: string;
   children: React.ReactNode;
   position?: "top" | "bottom" | "left" | "right";
   disabled?: boolean;
-  duration?: number; // in seconds, 0 means no auto-hide
-  debounceDelay?: number; // in milliseconds for hide debounce
   className?: string;
+  delay?: number;
 }
 
 export function Tooltip({
@@ -16,53 +14,79 @@ export function Tooltip({
   children,
   position = "right",
   disabled = false,
-  duration = 0, // 0 means hover behavior (show/hide on mouse enter/leave)
-  debounceDelay = 100, // 100ms debounce for smoother UX
   className = "",
+  delay = 500,
 }: TooltipProps) {
   const [isVisible, setIsVisible] = useState(false);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const tooltipId = useId();
+  const showTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const hideTooltip = () => {
-    setIsVisible(false);
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
+  const clearTimeouts = useCallback(() => {
+    if (showTimeoutRef.current) {
+      clearTimeout(showTimeoutRef.current);
+      showTimeoutRef.current = null;
     }
-  };
-
-  const debouncedHideTooltip = useDebounce(hideTooltip, debounceDelay);
-
-  const showTooltip = () => {
-    debouncedHideTooltip.cancel();
-    setIsVisible(true);
-
-    if (duration > 0) {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-      timeoutRef.current = setTimeout(() => {
-        setIsVisible(false);
-      }, duration * 1000);
+    if (hideTimeoutRef.current) {
+      clearTimeout(hideTimeoutRef.current);
+      hideTimeoutRef.current = null;
     }
-  };
+  }, []);
 
-  const handleMouseEnter = () => {
+  const showTooltip = useCallback(() => {
     if (disabled) return;
-    showTooltip();
-  };
+    clearTimeouts();
+    showTimeoutRef.current = setTimeout(() => {
+      setIsVisible(true);
+    }, delay);
+  }, [disabled, delay, clearTimeouts]);
 
-  const handleMouseLeave = () => {
-    debouncedHideTooltip();
-  };
+  const hideTooltip = useCallback(() => {
+    clearTimeouts();
+    hideTimeoutRef.current = setTimeout(() => {
+      setIsVisible(false);
+    }, 100); // Small delay to prevent flickering
+  }, [clearTimeouts]);
+
+  const handleMouseEnter = useCallback(() => {
+    showTooltip();
+  }, [showTooltip]);
+
+  const handleMouseLeave = useCallback(() => {
+    hideTooltip();
+  }, [hideTooltip]);
+
+  const handleFocus = useCallback(() => {
+    showTooltip();
+  }, [showTooltip]);
+
+  const handleBlur = useCallback(() => {
+    hideTooltip();
+  }, [hideTooltip]);
 
   useEffect(() => {
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        clearTimeouts();
+        setIsVisible(false);
       }
-      debouncedHideTooltip.cancel();
     };
-  }, [debouncedHideTooltip]);
+
+    if (isVisible) {
+      document.addEventListener("keydown", handleKeyDown);
+    }
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isVisible, clearTimeouts]);
+
+  // Cleanup timeouts on unmount
+  useEffect(() => {
+    return () => {
+      clearTimeouts();
+    };
+  }, [clearTimeouts]);
 
   if (!content || disabled) {
     return <>{children}</>;
@@ -101,16 +125,19 @@ export function Tooltip({
       className={`relative inline-block ${className}`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
+      onFocus={handleFocus}
+      onBlur={handleBlur}
+      aria-describedby={isVisible ? tooltipId : undefined}
     >
       {children}
 
       {isVisible && (
         <div
-          className={`absolute z-50 px-2 py-1 text-sm text-white bg-gray-900 dark:bg-gray-100 dark:text-gray-900 rounded-md shadow-lg whitespace-nowrap ${getPositionClasses()}`}
+          id={tooltipId}
+          className={`absolute z-50 px-2 py-1 text-sm text-white bg-gray-900 dark:bg-gray-100 dark:text-gray-900 rounded-md shadow-lg whitespace-nowrap pointer-events-none ${getPositionClasses()}`}
           role="tooltip"
         >
           {content}
-          {/* Arrow */}
           <div className={`absolute w-0 h-0 border-4 ${getArrowClasses()}`} />
         </div>
       )}
