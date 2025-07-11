@@ -20,6 +20,7 @@ function AppContent() {
     handleContainerToggle,
     handleContainerRestart,
     addTerminal,
+    addLogs,
   } = useApp();
 
   const handleOpenTerminal = useCallback(
@@ -27,6 +28,13 @@ function AppContent() {
       addTerminal(containerId, containerName);
     },
     [addTerminal]
+  );
+
+  const handleOpenLogs = useCallback(
+    (containerId: string, containerName: string) => {
+      addLogs(containerId, containerName);
+    },
+    [addLogs]
   );
 
   return (
@@ -46,6 +54,7 @@ function AppContent() {
                   onContainerToggle={handleContainerToggle}
                   onContainerRestart={handleContainerRestart}
                   onOpenTerminal={handleOpenTerminal}
+                  onOpenLogs={handleOpenLogs}
                 />
               ) : (
                 <EmptyState
