@@ -397,6 +397,57 @@ wss.on("connection", function connection(ws) {
           }
           break;
 
+        case "restart-container":
+          try {
+            const { containerId } = parsedMessage;
+            if (!containerId) {
+              throw new Error("Container ID is required");
+            }
+
+            const result = await dockerService.restartContainer(containerId);
+            ws.send(
+              JSON.stringify({
+                type: "container-action-result",
+                action: "restart",
+                containerId,
+                success: result.success,
+                message: result.message,
+                timestamp: new Date().toISOString(),
+              })
+            );
+
+            // Refresh container list after action
+            if (result.success) {
+              setTimeout(async () => {
+                try {
+                  const containers = await dockerService.getDockerContainers();
+                  // Broadcast to all clients
+                  broadcastToAllClients({
+                    type: "containers-list",
+                    data: containers,
+                    timestamp: new Date().toISOString(),
+                  });
+                } catch (error) {
+                  console.error(
+                    "Error refreshing containers after restart:",
+                    error
+                  );
+                }
+              }, 1000);
+            }
+          } catch (error) {
+            ws.send(
+              JSON.stringify({
+                type: "error",
+                message:
+                  error instanceof Error
+                    ? error.message
+                    : "Failed to restart container",
+              })
+            );
+          }
+          break;
+
         case "terminal-connect":
           try {
             const { terminalId, containerId } = parsedMessage;
