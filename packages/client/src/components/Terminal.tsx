@@ -162,9 +162,11 @@ export function Terminal({
     };
   }, [terminalId, containerId, containerName, websocket]);
 
-  <div className="flex flex-col h-[calc(100vh-54vh)]">
-    <div className="flex-1 pl-2 pt-0.5 border border-gray-600 bg-[#181e2d]">
-      <div ref={terminalRef} className="w-full h-full" />
+  return (
+    <div className="flex flex-col h-[calc(100vh-54vh)]">
+      <div className="flex-1 pl-2 pt-0.5 border border-gray-600 bg-[#181e2d]">
+        <div ref={terminalRef} className="w-full h-full" />
+      </div>
     </div>
-  </div>;
+  );
 }
