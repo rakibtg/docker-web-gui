@@ -304,6 +304,35 @@ export class DockerService extends EventEmitter {
     }
   }
 
+  // Restart a Docker container
+  async restartContainer(
+    containerId: string
+  ): Promise<{ success: boolean; message: string }> {
+    try {
+      const { stdout, stderr } = await execAsync(
+        `docker restart ${containerId}`
+      );
+      console.log(`Container ${containerId} restarted:`, stdout);
+
+      // Emit container state change for real-time updates
+      this.emit("container-state-changed", { containerId, action: "restart" });
+
+      return {
+        success: true,
+        message: `Container ${containerId} restarted successfully`,
+      };
+    } catch (error) {
+      console.error(`Error restarting container ${containerId}:`, error);
+      return {
+        success: false,
+        message:
+          error instanceof Error
+            ? error.message
+            : "Failed to restart container",
+      };
+    }
+  }
+
   // Create terminal session for container
   async createTerminalSession(containerId: string): Promise<any> {
     try {
