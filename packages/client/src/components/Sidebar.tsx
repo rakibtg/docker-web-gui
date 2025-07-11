@@ -13,6 +13,7 @@ import {
   HiChevronRight,
 } from "react-icons/hi";
 import { Tooltip } from "./Tooltip";
+import logo from "../assets/docker-web-gui-logo.png";
 
 interface SidebarItem {
   id: string;
@@ -83,31 +84,28 @@ export default function Sidebar() {
 
   const SidebarContent = () => (
     <>
-      {/* Header */}
       <div className={`flex items-center p-4 ${isCollapsed ? "px-2" : ""}`}>
         <div
           className={`flex items-center transition-all duration-300 ${
             isCollapsed ? "justify-center w-full" : "flex-1"
           }`}
         >
-          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-300 hover:bg-blue-700">
-            <HiViewList className="w-5 h-5 text-white" />
+          <div className="w-12 h-12 flex-shrink-0 transition-all duration-300 pt-2">
+            <img src={logo} alt="Docker GUI Logo" />
           </div>
           {!isCollapsed && (
-            <div className="ml-3 flex-1 transition-all duration-300">
-              <h1 className="text-lg font-bold text-theme-primary">
-                Docker GUI
+            <div className="ml-5 flex-1 transition-all duration-300">
+              <h1 className="text-sm font-bold text-theme-primary">
+                Docker Web GUI
               </h1>
-              <p className="text-xs text-theme-secondary">Management Panel</p>
             </div>
           )}
         </div>
 
-        {/* Toggle Button - Separated from logo area */}
         {!isCollapsed && (
           <button
             onClick={toggleCollapse}
-            className="hidden lg:flex p-2 rounded-lg hover:bg-theme-tertiary transition-all duration-200 text-theme-secondary hover:text-theme-primary ml-2 flex-shrink-0"
+            className="hidden hover:bg-amber-400 lg:flex p-2 rounded-lg transition-all duration-200 text-theme-secondary ml-2 flex-shrink-0"
             aria-label="Collapse sidebar"
           >
             <HiChevronLeft className="w-4 h-4" />
