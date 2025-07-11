@@ -1,7 +1,6 @@
 import { useCallback } from "react";
 
 import {
-  Header,
   ContainerTable,
   ContainerGrid,
   EmptyState,
@@ -10,6 +9,7 @@ import {
 
 import { useApp } from "./hooks/useApp";
 import { AppProvider } from "./contexts/AppContext";
+import Sidebar from "./components/Sidebar";
 
 function AppContent() {
   const {
@@ -34,16 +34,17 @@ function AppContent() {
   );
 
   return (
-    <div className="min-h-screen bg-theme-primary p-4 transition-colors">
-      <div className="max-w-5/6 mx-auto">
-        <div>
+    <div className="min-h-screen bg-theme-primary transition-colors flex">
+      <Sidebar />
+      <div className="flex-grow shrink-0 overflow-hidden">
+        {/* <div className="border border-amber-300">
           <Header />
-        </div>
+        </div> */}
 
         <div
           className={`flex flex-col ${
-            showTerminals && "h-[calc(100vh-56.5vh)]"
-          } overflow-auto mb-3`}
+            showTerminals && "h-1/2"
+          } overflow-auto mb-3 p-6 lg:p-6 pt-16 lg:pt-6`}
         >
           <div className={`grid gap-6 grid-cols-1 transition-all duration-300`}>
             <main className="space-y-6">
@@ -74,7 +75,7 @@ function AppContent() {
         </div>
 
         {showTerminals && (
-          <div className="h-[500px]">
+          <div className="h-1/2 px-3">
             <TerminalManager />
           </div>
         )}
