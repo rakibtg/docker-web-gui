@@ -1,6 +1,5 @@
-export { StatusIndicator } from "./StatusIndicator";
 export { Header } from "./Header";
-export { ContainerTable } from "./ContainerTable";
+export { StatusIndicator } from "./StatusIndicator";
 export { ContainerCard } from "./ContainerCard";
 export { ContainerGrid } from "./ContainerGrid";
 export { EmptyState } from "./EmptyState";
