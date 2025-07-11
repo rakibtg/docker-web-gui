@@ -7,12 +7,14 @@ import { HiViewGrid, HiViewList } from "react-icons/hi";
 interface ContainerGridProps {
   containers: ContainerWithStats[];
   onContainerToggle: (containerId: string, currentState: string) => void;
+  onContainerRestart?: (containerId: string) => void;
   onOpenTerminal?: (containerId: string, containerName: string) => void;
 }
 
 export function ContainerGrid({
   containers,
   onContainerToggle,
+  onContainerRestart,
   onOpenTerminal,
 }: ContainerGridProps) {
   const { requestContainers, containerListStatus, setContainerListStatus } =
@@ -85,6 +87,7 @@ export function ContainerGrid({
             key={container.id}
             container={container}
             onToggle={onContainerToggle}
+            onRestart={onContainerRestart}
             onOpenTerminal={onOpenTerminal}
           />
         ))}
