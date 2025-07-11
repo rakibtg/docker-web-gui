@@ -393,4 +393,88 @@ export class DockerService extends EventEmitter {
       );
     }
   }
+
+  // Create logs session for container
+  async createLogsSession(containerId: string): Promise<any> {
+    try {
+      // Create a logs process using docker logs with follow flag
+      // Added --timestamps for better readability and limited tail to recent logs
+      const logsProcess = spawn(
+        "docker",
+        ["logs", "-f", "--tail", "50", "--timestamps", containerId],
+        {
+          stdio: ["pipe", "pipe", "pipe"],
+          env: {
+            ...process.env,
+            // Ensure proper encoding
+            LANG: "en_US.UTF-8",
+            LC_ALL: "en_US.UTF-8",
+          },
+        }
+      );
+
+      const logsEmitter: any = new EventEmitter();
+
+      let stdoutBuffer = "";
+      let stderrBuffer = "";
+
+      logsProcess.stdout.on("data", (data: Buffer) => {
+        stdoutBuffer += data.toString("utf8");
+        const lines = stdoutBuffer.split("\n");
+        stdoutBuffer = lines.pop() || "";
+
+        for (const line of lines) {
+          if (line.trim()) {
+            logsEmitter.emit("data", line + "\r\n");
+          }
+        }
+      });
+
+      logsProcess.stderr.on("data", (data: Buffer) => {
+        stderrBuffer += data.toString("utf8");
+        const lines = stderrBuffer.split("\n");
+        stderrBuffer = lines.pop() || "";
+
+        for (const line of lines) {
+          if (line.trim()) {
+            logsEmitter.emit("data", "\x1b[91m" + line + "\x1b[0m\r\n");
+          }
+        }
+      });
+
+      logsProcess.on("exit", (code: number, signal: string) => {
+        if (stdoutBuffer.trim()) {
+          logsEmitter.emit("data", stdoutBuffer + "\r\n");
+        }
+        if (stderrBuffer.trim()) {
+          logsEmitter.emit("data", "\x1b[91m" + stderrBuffer + "\x1b[0m\r\n");
+        }
+        logsEmitter.emit("exit", code, signal);
+      });
+
+      logsProcess.on("error", (error: Error) => {
+        logsEmitter.emit("error", error);
+      });
+
+      logsEmitter.kill = () => {
+        logsProcess.kill("SIGTERM");
+      };
+
+      logsEmitter.resize = () => {
+        // SKip (no-op for logs)
+      };
+
+      return logsEmitter;
+    } catch (error) {
+      console.error(
+        `Error creating logs session for container ${containerId}:`,
+        error
+      );
+      throw new Error(
+        `Failed to create logs session: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
+    }
+  }
 }
