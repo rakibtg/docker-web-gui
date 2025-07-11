@@ -13,6 +13,7 @@ interface TerminalSession {
   containerId: string;
   containerName: string;
   isActive: boolean;
+  type: "terminal" | "logs"; // Session type
 }
 
 interface AppContextType {
@@ -62,6 +63,7 @@ interface AppContextType {
   handleContainerToggle: (containerId: string, currentState: string) => void;
   handleContainerRestart: (containerId: string) => void;
   addTerminal: (containerId: string, containerName: string) => void;
+  addLogs: (containerId: string, containerName: string) => void;
   removeTerminal: (terminalId: string) => void;
   closeTerminal: (terminalId: string) => void;
 }
@@ -200,12 +202,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // Terminal management functions
   const addTerminal = useCallback(
     (containerId: string, containerName: string) => {
-      const id = `${containerId}-${Date.now()}`;
+      const id = `terminal-${containerId}-${Date.now()}`;
       const newTerminal: TerminalSession = {
         id,
         containerId,
         containerName,
         isActive: true,
+        type: "terminal",
       };
 
       setTerminals((prev) => [...prev, newTerminal]);
@@ -214,6 +217,21 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     },
     []
   );
+
+  const addLogs = useCallback((containerId: string, containerName: string) => {
+    const id = `logs-${containerId}-${Date.now()}`;
+    const newLogsSession: TerminalSession = {
+      id,
+      containerId,
+      containerName,
+      isActive: true,
+      type: "logs",
+    };
+
+    setTerminals((prev) => [...prev, newLogsSession]);
+    setActiveTerminalId(id);
+    setShowTerminals(true);
+  }, []);
 
   const removeTerminal = useCallback(
     (terminalId: string) => {
@@ -236,9 +254,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     (terminalId: string) => {
       const terminal = terminals.find((t) => t.id === terminalId);
       if (terminal && websocket?.readyState === WebSocket.OPEN) {
+        const disconnectType =
+          terminal.type === "logs" ? "logs-disconnect" : "terminal-disconnect";
         websocket.send(
           JSON.stringify({
-            type: "terminal-disconnect",
+            type: disconnectType,
             terminalId: terminal.id, // Use terminalId instead of containerId
             containerId: terminal.containerId,
           })
@@ -624,6 +644,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       handleContainerToggle,
       handleContainerRestart,
       addTerminal,
+      addLogs,
       removeTerminal,
       closeTerminal,
     }),
@@ -648,6 +669,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       handleContainerToggle,
       handleContainerRestart,
       addTerminal,
+      addLogs,
       removeTerminal,
       closeTerminal,
     ]
