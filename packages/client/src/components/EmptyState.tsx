@@ -20,7 +20,7 @@ export function EmptyState({
         title: "Docker Not Available",
         description:
           "Docker is not installed or not running on this system. Please install Docker and make sure it's running.",
-        showButton: false,
+        showButton: true,
       };
     }
 
@@ -55,7 +55,9 @@ export function EmptyState({
       </p>
       {content.showButton && (
         <button
-          onClick={onLoadContainers}
+          onClick={() => {
+            window.location.reload();
+          }}
           disabled={!isConnected || loading}
           className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
         >
@@ -65,7 +67,7 @@ export function EmptyState({
               Loading...
             </span>
           ) : (
-            "Load Containers"
+            "Refresh"
           )}
         </button>
       )}
