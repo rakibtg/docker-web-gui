@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { Terminal as XTerm } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import { WebLinksAddon } from "@xterm/addon-web-links";
@@ -8,28 +8,23 @@ interface TerminalProps {
   terminalId: string; // Unique terminal session ID
   containerId: string;
   containerName: string;
-  onClose: () => void;
   websocket: WebSocket;
-  isEmbedded?: boolean;
 }
 
 export function Terminal({
   terminalId,
   containerId,
   containerName,
-  onClose,
   websocket,
-  isEmbedded = false,
 }: TerminalProps) {
   const terminalRef = useRef<HTMLDivElement>(null);
   const xtermRef = useRef<XTerm | null>(null);
   const fitAddonRef = useRef<FitAddon | null>(null);
   const connectionRequestedRef = useRef<boolean>(false);
-  const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
     if (!terminalRef.current) return;
-    // Create terminal instance
+
     const terminal = new XTerm({
       cursorBlink: true,
       fontSize: 14,
@@ -58,7 +53,6 @@ export function Terminal({
       },
     });
 
-    // Create addons
     const fitAddon = new FitAddon();
     const webLinksAddon = new WebLinksAddon();
 
@@ -88,7 +82,6 @@ export function Terminal({
       }
     });
 
-    // Request terminal connection only once
     if (
       websocket.readyState === WebSocket.OPEN &&
       !connectionRequestedRef.current
@@ -101,11 +94,8 @@ export function Terminal({
           containerId,
         })
       );
-      // Set connected state immediately since we don't wait for server confirmation
-      setIsConnected(true);
     }
 
-    // Handle window resize
     const handleResize = () => {
       fitAddon.fit();
       if (websocket.readyState === WebSocket.OPEN) {
@@ -145,7 +135,6 @@ export function Terminal({
           message.type === "terminal-disconnected" &&
           message.terminalId === terminalId
         ) {
-          setIsConnected(false);
           if (xtermRef.current) {
             xtermRef.current.write(
               "\r\n\x1b[31mTerminal disconnected\x1b[0m\r\n"
@@ -173,71 +162,9 @@ export function Terminal({
     };
   }, [terminalId, containerId, containerName, websocket]);
 
-  const handleClose = () => {
-    // Send disconnect signal
-    if (websocket.readyState === WebSocket.OPEN) {
-      websocket.send(
-        JSON.stringify({
-          type: "terminal-disconnect",
-          terminalId,
-          containerId,
-        })
-      );
-    }
-    onClose();
-  };
-
-  return isEmbedded ? (
-    // Embedded mode - no modal overlay
-    <div className="flex flex-col h-full">
-      {/* Terminal */}
-      <div className="flex-1 pl-2 border border-gray-600 bg-[#181e2d]">
-        <div ref={terminalRef} className="w-full h-[calc(100vh-56.5vh)]" />
-      </div>
+  <div className="flex flex-col h-[calc(100vh-54vh)]">
+    <div className="flex-1 pl-2 pt-0.5 border border-gray-600 bg-[#181e2d]">
+      <div ref={terminalRef} className="w-full h-full" />
     </div>
-  ) : (
-    // Modal mode - original layout
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-[90vw] h-[80vh] flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-          <div className="flex items-center space-x-2">
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300 ml-4">
-              Terminal - {containerName}
-            </span>
-            {isConnected && (
-              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                Connected
-              </span>
-            )}
-          </div>
-          <button
-            onClick={handleClose}
-            className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 p-1"
-            title="Close terminal"
-            aria-label="Close terminal"
-          >
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
-        </div>
-
-        {/* Terminal */}
-        <div className="flex-1 p-2 bg-[#181e2d]">
-          <div ref={terminalRef} className="w-full h-full" />
-        </div>
-      </div>
-    </div>
-  );
+  </div>;
 }
