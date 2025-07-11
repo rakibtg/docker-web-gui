@@ -29,6 +29,7 @@ interface ContainerCardProps {
   onToggle: (containerId: string, currentState: string) => void;
   onRestart?: (containerId: string) => void;
   onOpenTerminal?: (containerId: string, containerName: string) => void;
+  onOpenLogs?: (containerId: string, containerName: string) => void;
   isToggling?: boolean;
 }
 
@@ -37,6 +38,7 @@ export function ContainerCard({
   onToggle,
   onRestart,
   onOpenTerminal,
+  onOpenLogs,
   isToggling = false,
 }: ContainerCardProps) {
   const [localToggling, setLocalToggling] = useState(false);
@@ -127,8 +129,8 @@ export function ContainerCard({
             <CardActionButton
               title="Open logs"
               aria-label="Open logs"
-              onClick={() => console.log("Open logs")}
-              disabled={!isRunning || !onOpenTerminal}
+              onClick={() => onOpenLogs?.(container.id, container.name)}
+              disabled={!isRunning || !onOpenLogs}
             >
               <IoNewspaper className="w-5 h-5" />
               <p className="text-xs text-theme-primary pt-1">Logs</p>
