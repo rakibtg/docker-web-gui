@@ -15,7 +15,8 @@ export function ContainerGrid({
   onContainerToggle,
   onOpenTerminal,
 }: ContainerGridProps) {
-  const { requestContainers, viewMode, setViewMode } = useApp();
+  const { requestContainers, containerListStatus, setContainerListStatus } =
+    useApp();
 
   if (containers.length === 0) {
     return null;
@@ -41,9 +42,9 @@ export function ContainerGrid({
         </div>
         <div className="flex items-center bg-theme-card rounded-lg border-theme border p-0.5">
           <button
-            onClick={() => setViewMode("table")}
+            onClick={() => setContainerListStatus("all")}
             className={`flex items-center px-3 py-0.5 rounded-md text-sm font-medium transition-colors ${
-              viewMode === "table"
+              containerListStatus === "all"
                 ? "bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300"
                 : "text-theme-muted hover:text-theme-primary"
             }`}
@@ -53,9 +54,9 @@ export function ContainerGrid({
           </button>
 
           <button
-            onClick={() => setViewMode("grid")}
+            onClick={() => setContainerListStatus("active")}
             className={`flex items-center px-3 py-0.5 rounded-md text-sm font-medium transition-colors ${
-              viewMode === "grid"
+              containerListStatus === "active"
                 ? "bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300"
                 : "text-theme-muted hover:text-theme-primary"
             }`}
@@ -65,9 +66,9 @@ export function ContainerGrid({
           </button>
 
           <button
-            onClick={() => setViewMode("grid")}
+            onClick={() => setContainerListStatus("stopped")}
             className={`flex items-center px-3 py-0.5 rounded-md text-sm font-medium transition-colors ${
-              viewMode === "inactive"
+              containerListStatus === "stopped"
                 ? "bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300"
                 : "text-theme-muted hover:text-theme-primary"
             }`}
