@@ -10,4 +10,3 @@ export { ToggleSwitch } from "./ToggleSwitch";
 export { UptimeDisplay } from "./UptimeDisplay";
 export { Terminal } from "./Terminal";
 export { TerminalManager } from "./TerminalManager";
-export { Tooltip } from "./Tooltip";
