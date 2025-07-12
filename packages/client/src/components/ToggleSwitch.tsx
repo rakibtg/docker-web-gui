@@ -1,3 +1,5 @@
+import { memo } from "react";
+
 interface ToggleSwitchProps {
   isOn: boolean;
   onToggle: () => void;
@@ -8,7 +10,7 @@ interface ToggleSwitchProps {
   className?: string;
 }
 
-export function ToggleSwitch({
+const ToggleSwitch = memo(function ToggleSwitch({
   isOn,
   onToggle,
   disabled = false,
@@ -84,4 +86,6 @@ export function ToggleSwitch({
       </button>
     </div>
   );
-}
+});
+
+export { ToggleSwitch };

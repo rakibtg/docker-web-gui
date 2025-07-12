@@ -4,7 +4,7 @@ import { ContainerFilters } from "./ContainerFilters";
 import type { ContainerWithStats } from "../types";
 import { MdRefresh } from "react-icons/md";
 import { filterContainers } from "../helpers/filterContainers";
-import { useMemo } from "react";
+import { useMemo, useCallback, memo } from "react";
 
 interface ContainerGridProps {
   containers: ContainerWithStats[];
@@ -14,7 +14,7 @@ interface ContainerGridProps {
   onOpenLogs?: (containerId: string, containerName: string) => void;
 }
 
-export function ContainerGrid({
+const ContainerGrid = memo(function ContainerGrid({
   containers,
   onContainerToggle,
   onContainerRestart,
@@ -28,6 +28,35 @@ export function ContainerGrid({
   const filteredContainers = useMemo(() => {
     return filterContainers(containers, containerListStatus);
   }, [containers, containerListStatus]);
+
+  // Memoize callbacks to prevent unnecessary re-renders
+  const handleContainerToggle = useCallback(
+    (containerId: string, currentState: string) => {
+      onContainerToggle(containerId, currentState);
+    },
+    [onContainerToggle]
+  );
+
+  const handleContainerRestart = useCallback(
+    (containerId: string) => {
+      onContainerRestart?.(containerId);
+    },
+    [onContainerRestart]
+  );
+
+  const handleOpenTerminal = useCallback(
+    (containerId: string, containerName: string) => {
+      onOpenTerminal?.(containerId, containerName);
+    },
+    [onOpenTerminal]
+  );
+
+  const handleOpenLogs = useCallback(
+    (containerId: string, containerName: string) => {
+      onOpenLogs?.(containerId, containerName);
+    },
+    [onOpenLogs]
+  );
 
   if (containers.length === 0) {
     return null;
@@ -72,14 +101,16 @@ export function ContainerGrid({
             <ContainerCard
               key={container.id}
               container={container}
-              onToggle={onContainerToggle}
-              onRestart={onContainerRestart}
-              onOpenTerminal={onOpenTerminal}
-              onOpenLogs={onOpenLogs}
+              onToggle={handleContainerToggle}
+              onRestart={handleContainerRestart}
+              onOpenTerminal={handleOpenTerminal}
+              onOpenLogs={handleOpenLogs}
             />
           ))}
         </div>
       )}
     </div>
   );
-}
+});
+
+export { ContainerGrid };

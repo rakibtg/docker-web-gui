@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, memo, useCallback } from "react";
 import { ToggleSwitch } from "./ToggleSwitch";
 import { UptimeDisplay } from "./UptimeDisplay";
 import type { ContainerWithStats } from "../types";
@@ -33,7 +33,7 @@ interface ContainerCardProps {
   isToggling?: boolean;
 }
 
-export function ContainerCard({
+const ContainerCard = memo(function ContainerCard({
   container,
   onToggle,
   onRestart,
@@ -45,16 +45,16 @@ export function ContainerCard({
   const [isRestarting, setIsRestarting] = useState(false);
   const isRunning = container.state === "running";
 
-  const handleToggle = async () => {
+  const handleToggle = useCallback(async () => {
     setLocalToggling(true);
     try {
       await onToggle(container.id, container.state);
     } finally {
       setTimeout(() => setLocalToggling(false), 1000);
     }
-  };
+  }, [onToggle, container.id, container.state]);
 
-  const handleRestart = async () => {
+  const handleRestart = useCallback(async () => {
     if (!onRestart) return;
 
     setIsRestarting(true);
@@ -63,7 +63,15 @@ export function ContainerCard({
     } finally {
       setTimeout(() => setIsRestarting(false), 2000);
     }
-  };
+  }, [onRestart, container.id]);
+
+  const handleOpenTerminal = useCallback(() => {
+    onOpenTerminal?.(container.id, container.name);
+  }, [onOpenTerminal, container.id, container.name]);
+
+  const handleOpenLogs = useCallback(() => {
+    onOpenLogs?.(container.id, container.name);
+  }, [onOpenLogs, container.id, container.name]);
 
   return (
     <div className="bg-theme-card rounded shadow-md border-theme border p-4 pt-2.5 hover:shadow-lg transition-all duration-200 flex flex-col gap-2">
@@ -119,7 +127,7 @@ export function ContainerCard({
             <CardActionButton
               title="Open terminal"
               aria-label="Open terminal"
-              onClick={() => onOpenTerminal?.(container.id, container.name)}
+              onClick={handleOpenTerminal}
               disabled={!isRunning || !onOpenTerminal}
             >
               <BsFillTerminalFill className="w-5 h-5" />
@@ -129,7 +137,7 @@ export function ContainerCard({
             <CardActionButton
               title="Open logs"
               aria-label="Open logs"
-              onClick={() => onOpenLogs?.(container.id, container.name)}
+              onClick={handleOpenLogs}
               disabled={!isRunning || !onOpenLogs}
             >
               <IoNewspaper className="w-5 h-5" />
@@ -226,4 +234,6 @@ export function ContainerCard({
       )}
     </div>
   );
-}
+});
+
+export { ContainerCard };
