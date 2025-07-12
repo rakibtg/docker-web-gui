@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, memo, useCallback } from "react";
 import {
   HiViewList,
   HiPhotograph,
@@ -12,7 +12,7 @@ import {
   HiChevronLeft,
   HiChevronRight,
 } from "react-icons/hi";
-import { Tooltip } from "./Tooltip";
+import { Tooltip } from "react-tooltip";
 import logo from "../assets/docker-web-gui-logo.png";
 
 interface SidebarItem {
@@ -70,31 +70,31 @@ const bottomItems: SidebarItem[] = [
   },
 ];
 
-export default function Sidebar() {
+function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
-  const toggleCollapse = () => {
+  const toggleCollapse = useCallback(() => {
     setIsCollapsed(!isCollapsed);
-  };
+  }, [isCollapsed]);
 
-  const toggleMobile = () => {
+  const toggleMobile = useCallback(() => {
     setIsMobileOpen(!isMobileOpen);
-  };
+  }, [isMobileOpen]);
 
   const SidebarContent = () => (
     <>
       <div className={`flex items-center p-4 ${isCollapsed ? "px-2" : ""}`}>
         <div
-          className={`flex items-center transition-all duration-300 ${
+          className={`flex items-center transition-[justify-content] duration-300 ${
             isCollapsed ? "justify-center w-full" : "flex-1"
           }`}
         >
-          <div className="w-12 h-12 flex-shrink-0 transition-all duration-300 pt-2">
+          <div className="w-12 h-12 flex-shrink-0 transition-transform duration-300 pt-2">
             <img src={logo} alt="Docker GUI Logo" />
           </div>
           {!isCollapsed && (
-            <div className="ml-5 flex-1 transition-all duration-300">
+            <div className="ml-5 flex-1 transition-opacity duration-300">
               <h1 className="text-sm font-bold text-theme-primary">
                 Docker Web GUI
               </h1>
@@ -105,7 +105,7 @@ export default function Sidebar() {
         {!isCollapsed && (
           <button
             onClick={toggleCollapse}
-            className="hidden hover:bg-amber-400 lg:flex p-2 rounded-lg transition-all duration-200 text-theme-secondary ml-2 flex-shrink-0"
+            className="hidden lg:flex p-2 rounded-lg transition-colors duration-200 text-theme-secondary hover:text-theme-primary hover:bg-theme-tertiary ml-2 flex-shrink-0"
             aria-label="Collapse sidebar"
           >
             <HiChevronLeft className="w-4 h-4" />
@@ -116,15 +116,16 @@ export default function Sidebar() {
       {/* Collapse button when sidebar is collapsed */}
       {isCollapsed && (
         <div className="px-2 pb-2">
-          <Tooltip content="Expand sidebar" position="right" delay={200}>
-            <button
-              onClick={toggleCollapse}
-              className="hidden lg:flex w-full p-2 rounded-lg hover:bg-theme-tertiary transition-all duration-200 text-theme-secondary hover:text-theme-primary justify-center"
-              aria-label="Expand sidebar"
-            >
-              <HiChevronRight className="w-4 h-4" />
-            </button>
-          </Tooltip>
+          <button
+            onClick={toggleCollapse}
+            className="hidden lg:flex w-full p-2 rounded-lg transition-colors duration-200 hover:bg-theme-tertiary text-theme-secondary hover:text-theme-primary justify-center"
+            aria-label="Expand sidebar"
+            data-tooltip-id="expand-tooltip"
+            data-tooltip-content="Expand sidebar"
+            data-tooltip-place="right"
+          >
+            <HiChevronRight className="w-4 h-4" />
+          </button>
         </div>
       )}
 
@@ -133,17 +134,26 @@ export default function Sidebar() {
         <div className="space-y-1">
           {sidebarItems.map((item) => {
             const Icon = item.icon;
-            const buttonContent = (
+            const tooltipProps = isCollapsed
+              ? {
+                  "data-tooltip-id": "sidebar-tooltip",
+                  "data-tooltip-content": item.label,
+                  "data-tooltip-place": "right" as const,
+                }
+              : {};
+
+            return (
               <button
                 key={item.id}
-                className={`w-full flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group ${
+                className={`w-full flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-200 group ${
                   item.active
                     ? "bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 shadow-sm"
                     : "text-theme-secondary hover:text-theme-primary hover:bg-theme-tertiary"
                 } ${isCollapsed ? "justify-center" : ""}`}
+                {...tooltipProps}
               >
                 <Icon
-                  className={`w-5 h-5 flex-shrink-0 ${
+                  className={`w-5 h-5 flex-shrink-0 transition-colors duration-200 ${
                     item.active ? "text-blue-600 dark:text-blue-400" : ""
                   }`}
                 />
@@ -154,19 +164,6 @@ export default function Sidebar() {
                   <div className="ml-auto w-2 h-2 bg-blue-600 dark:bg-blue-400 rounded-full"></div>
                 )}
               </button>
-            );
-
-            return isCollapsed ? (
-              <Tooltip
-                key={item.id}
-                content={item.label}
-                position="right"
-                delay={200}
-              >
-                {buttonContent}
-              </Tooltip>
-            ) : (
-              buttonContent
             );
           })}
         </div>
@@ -180,31 +177,27 @@ export default function Sidebar() {
         <div className="space-y-1">
           {bottomItems.map((item) => {
             const Icon = item.icon;
-            const buttonContent = (
+            const tooltipProps = isCollapsed
+              ? {
+                  "data-tooltip-id": "sidebar-tooltip",
+                  "data-tooltip-content": item.label,
+                  "data-tooltip-place": "right" as const,
+                }
+              : {};
+
+            return (
               <button
                 key={item.id}
-                className={`w-full flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 text-theme-secondary hover:text-theme-primary hover:bg-theme-tertiary ${
+                className={`w-full flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-200 text-theme-secondary hover:text-theme-primary hover:bg-theme-tertiary ${
                   isCollapsed ? "justify-center" : ""
                 }`}
+                {...tooltipProps}
               >
-                <Icon className="w-5 h-5 flex-shrink-0" />
+                <Icon className="w-5 h-5 flex-shrink-0 transition-colors duration-200" />
                 {!isCollapsed && (
                   <span className="ml-3 text-left">{item.label}</span>
                 )}
               </button>
-            );
-
-            return isCollapsed ? (
-              <Tooltip
-                key={item.id}
-                content={item.label}
-                position="right"
-                delay={200}
-              >
-                {buttonContent}
-              </Tooltip>
-            ) : (
-              buttonContent
             );
           })}
         </div>
@@ -217,7 +210,7 @@ export default function Sidebar() {
       {/* Mobile Menu Button */}
       <button
         onClick={toggleMobile}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2.5 rounded-lg bg-theme-card border border-theme-border text-theme-primary shadow-lg hover:shadow-xl transition-all duration-200 hover:bg-theme-tertiary"
+        className="lg:hidden fixed top-4 left-4 z-50 p-2.5 rounded-lg bg-theme-card border border-theme-border text-theme-primary shadow-lg hover:shadow-xl transition-shadow duration-200 hover:bg-theme-tertiary"
         aria-label="Toggle menu"
       >
         {isMobileOpen ? (
@@ -237,7 +230,7 @@ export default function Sidebar() {
 
       {/* Desktop Sidebar */}
       <aside
-        className={`hidden lg:flex flex-col bg-theme-card border-r border-theme-border transition-all duration-300 ${
+        className={`hidden lg:flex flex-col bg-theme-card border-r border-theme-border transition-[width] duration-300 ${
           isCollapsed ? "w-16" : "w-64"
         }`}
       >
@@ -254,6 +247,29 @@ export default function Sidebar() {
           <SidebarContent />
         </div>
       </aside>
+
+      {/* React Tooltip Components */}
+      <Tooltip
+        id="expand-tooltip"
+        style={{
+          backgroundColor: "rgb(17 24 39)",
+          color: "rgb(243 244 246)",
+          fontSize: "0.875rem",
+          zIndex: 9999,
+        }}
+      />
+      <Tooltip
+        id="sidebar-tooltip"
+        style={{
+          backgroundColor: "rgb(17 24 39)",
+          color: "rgb(243 244 246)",
+          fontSize: "0.875rem",
+          zIndex: 9999,
+        }}
+      />
     </>
   );
 }
+
+// Memoize the component to prevent unnecessary re-renders
+export default memo(Sidebar);
