@@ -90,12 +90,12 @@ function Sidebar() {
             isCollapsed ? "justify-center w-full" : "flex-1"
           }`}
         >
-          <div className="w-12 h-12 flex-shrink-0 transition-transform duration-300 pt-2">
+          <div className="w-10 h-10 flex-shrink-0 transition-transform duration-300 pt-1.5">
             <img src={logo} alt="Docker GUI Logo" />
           </div>
           {!isCollapsed && (
-            <div className="ml-5 flex-1 transition-opacity duration-300">
-              <h1 className="text-sm font-bold text-theme-primary">
+            <div className="ml-3 flex-1 transition-opacity duration-300">
+              <h1 className="text-sm font-bold text-theme-primary truncate ">
                 Docker Web GUI
               </h1>
             </div>
