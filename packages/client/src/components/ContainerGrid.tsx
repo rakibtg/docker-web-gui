@@ -1,6 +1,7 @@
 import { useApp } from "../hooks/useApp";
 import { ContainerCard } from "./ContainerCard";
 import { ContainerFilters } from "./ContainerFilters";
+import { useContainerFilterStatus } from "../hooks/useRouter";
 import type { ContainerWithStats } from "../types";
 import { MdRefresh } from "react-icons/md";
 import { filterContainers } from "../helpers/filterContainers";
@@ -21,8 +22,9 @@ const ContainerGrid = memo(function ContainerGrid({
   onOpenTerminal,
   onOpenLogs,
 }: ContainerGridProps) {
-  const { requestContainers, containerListStatus, setContainerListStatus } =
-    useApp();
+  const { requestContainers } = useApp();
+  const [containerListStatus, setContainerListStatus] =
+    useContainerFilterStatus();
 
   // Filter containers based on the current filter status
   const filteredContainers = useMemo(() => {
