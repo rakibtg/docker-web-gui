@@ -13,13 +13,13 @@ import {
   HiChevronRight,
 } from "react-icons/hi";
 import { Tooltip } from "react-tooltip";
+import { useRouter } from "../hooks/useRouter";
 import logo from "../assets/docker-web-gui-logo.png";
 
 interface SidebarItem {
   id: string;
   label: string;
   icon: React.ComponentType<{ className?: string }>;
-  active?: boolean;
 }
 
 const sidebarItems: SidebarItem[] = [
@@ -27,31 +27,26 @@ const sidebarItems: SidebarItem[] = [
     id: "dashboard",
     label: "Dashboard",
     icon: HiChartPie,
-    active: false,
   },
   {
     id: "containers",
     label: "Containers",
     icon: HiViewList,
-    active: true,
   },
   {
     id: "images",
     label: "Images",
     icon: HiPhotograph,
-    active: false,
   },
   {
     id: "networks",
     label: "Networks",
     icon: HiGlobeAlt,
-    active: false,
   },
   {
     id: "volumes",
     label: "Volumes",
     icon: HiDatabase,
-    active: false,
   },
 ];
 
@@ -60,19 +55,21 @@ const bottomItems: SidebarItem[] = [
     id: "settings",
     label: "Settings",
     icon: HiCog,
-    active: false,
   },
   {
     id: "about",
     label: "About",
     icon: HiInformationCircle,
-    active: false,
   },
 ];
 
 function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const { getParam, updateParam } = useRouter();
+
+  // Get current page from router
+  const currentPage = getParam("page") || "containers"; // Default to containers
 
   const toggleCollapse = useCallback(() => {
     setIsCollapsed(!isCollapsed);
@@ -81,6 +78,15 @@ function Sidebar() {
   const toggleMobile = useCallback(() => {
     setIsMobileOpen(!isMobileOpen);
   }, [isMobileOpen]);
+
+  // Handle navigation
+  const handleNavigation = useCallback(
+    (pageId: string) => {
+      updateParam("page", pageId);
+      setIsMobileOpen(false); // Close mobile menu when navigating
+    },
+    [updateParam]
+  );
 
   const SidebarContent = () => (
     <>
@@ -134,6 +140,7 @@ function Sidebar() {
         <div className="space-y-1">
           {sidebarItems.map((item) => {
             const Icon = item.icon;
+            const isActive = currentPage === item.id;
             const tooltipProps = isCollapsed
               ? {
                   "data-tooltip-id": "sidebar-tooltip",
@@ -145,8 +152,9 @@ function Sidebar() {
             return (
               <button
                 key={item.id}
-                className={`w-full flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-200 group ${
-                  item.active
+                onClick={() => handleNavigation(item.id)}
+                className={`w-full flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-200 group cursor-pointer ${
+                  isActive
                     ? "bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 shadow-sm"
                     : "text-theme-secondary hover:text-theme-primary hover:bg-theme-tertiary"
                 } ${isCollapsed ? "justify-center" : ""}`}
@@ -154,13 +162,13 @@ function Sidebar() {
               >
                 <Icon
                   className={`w-5 h-5 flex-shrink-0 transition-colors duration-200 ${
-                    item.active ? "text-blue-600 dark:text-blue-400" : ""
+                    isActive ? "text-blue-600 dark:text-blue-400" : ""
                   }`}
                 />
                 {!isCollapsed && (
                   <span className="ml-3 text-left">{item.label}</span>
                 )}
-                {item.active && !isCollapsed && (
+                {isActive && !isCollapsed && (
                   <div className="ml-auto w-2 h-2 bg-blue-600 dark:bg-blue-400 rounded-full"></div>
                 )}
               </button>
@@ -177,6 +185,7 @@ function Sidebar() {
         <div className="space-y-1">
           {bottomItems.map((item) => {
             const Icon = item.icon;
+            const isActive = currentPage === item.id;
             const tooltipProps = isCollapsed
               ? {
                   "data-tooltip-id": "sidebar-tooltip",
@@ -188,14 +197,24 @@ function Sidebar() {
             return (
               <button
                 key={item.id}
-                className={`w-full flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-200 text-theme-secondary hover:text-theme-primary hover:bg-theme-tertiary ${
-                  isCollapsed ? "justify-center" : ""
-                }`}
+                onClick={() => handleNavigation(item.id)}
+                className={`w-full flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-200 cursor-pointer ${
+                  isActive
+                    ? "bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 shadow-sm"
+                    : "text-theme-secondary hover:text-theme-primary hover:bg-theme-tertiary"
+                } ${isCollapsed ? "justify-center" : ""}`}
                 {...tooltipProps}
               >
-                <Icon className="w-5 h-5 flex-shrink-0 transition-colors duration-200" />
+                <Icon
+                  className={`w-5 h-5 flex-shrink-0 transition-colors duration-200 ${
+                    isActive ? "text-blue-600 dark:text-blue-400" : ""
+                  }`}
+                />
                 {!isCollapsed && (
                   <span className="ml-3 text-left">{item.label}</span>
+                )}
+                {isActive && !isCollapsed && (
+                  <div className="ml-auto w-2 h-2 bg-blue-600 dark:bg-blue-400 rounded-full"></div>
                 )}
               </button>
             );
