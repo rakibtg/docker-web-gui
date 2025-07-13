@@ -7,6 +7,7 @@ export interface RouteParams {
   containerId?: string;
   view?: string;
   filter?: string;
+  byStatus?: string;
   [key: string]: string | undefined;
 }
 
