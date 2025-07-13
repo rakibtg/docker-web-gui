@@ -14,7 +14,6 @@ function AppContent() {
     dockerMessage,
     loading,
     error,
-    containerListStatus,
     showTerminals,
     requestContainers,
     handleContainerToggle,
