@@ -1,77 +1,47 @@
-import { useCallback } from "react";
+import {
+  Dashboard,
+  ContainersPage,
+  Images,
+  Networks,
+  Volumes,
+  Settings,
+  About,
+} from "./pages";
 
-import { ContainerGrid, EmptyState, TerminalManager } from "./components";
-
-import { useApp } from "./hooks/useApp";
+import { useRouter } from "./hooks/useRouter";
 import { AppProvider } from "./contexts/AppContext";
 import Sidebar from "./components/Sidebar";
 
 function AppContent() {
-  const {
-    containers,
-    isConnected,
-    dockerAvailable,
-    dockerMessage,
-    loading,
-    error,
-    showTerminals,
-    requestContainers,
-    handleContainerToggle,
-    handleContainerRestart,
-    addTerminal,
-    addLogs,
-  } = useApp();
+  const { getParam } = useRouter();
+  const currentPage = getParam("page") || "containers";
 
-  const handleOpenTerminal = useCallback(
-    (containerId: string, containerName: string) => {
-      addTerminal(containerId, containerName);
-    },
-    [addTerminal]
-  );
-
-  const handleOpenLogs = useCallback(
-    (containerId: string, containerName: string) => {
-      addLogs(containerId, containerName);
-    },
-    [addLogs]
-  );
+  const renderCurrentPage = () => {
+    switch (currentPage) {
+      case "dashboard":
+        return <Dashboard />;
+      case "containers":
+        return <ContainersPage />;
+      case "images":
+        return <Images />;
+      case "networks":
+        return <Networks />;
+      case "volumes":
+        return <Volumes />;
+      case "settings":
+        return <Settings />;
+      case "about":
+        return <About />;
+      default:
+        return <ContainersPage />;
+    }
+  };
 
   return (
     <div className="min-h-screen bg-theme-primary transition-colors flex">
       <Sidebar />
       <div className="flex-grow shrink-0 overflow-hidden">
-        <div
-          className={`flex flex-col ${
-            showTerminals && "h-1/2"
-          } overflow-auto mb-3 p-6 lg:p-6 pt-16 lg:pt-6`}
-        >
-          <div className={`grid gap-6 grid-cols-1 transition-all duration-300`}>
-            <main className="space-y-6">
-              {containers.length > 0 ? (
-                <ContainerGrid
-                  containers={containers}
-                  onContainerToggle={handleContainerToggle}
-                  onContainerRestart={handleContainerRestart}
-                  onOpenTerminal={handleOpenTerminal}
-                  onOpenLogs={handleOpenLogs}
-                />
-              ) : (
-                <EmptyState
-                  dockerAvailable={dockerAvailable}
-                  isConnected={isConnected}
-                  loading={loading}
-                  onLoadContainers={requestContainers}
-                />
-              )}
-            </main>
-          </div>
-        </div>
-
-        {showTerminals && (
-          <div className="h-1/2">
-            <TerminalManager />
-          </div>
-        )}
+        <main className="h-full">{renderCurrentPage()}</main>
       </div>
     </div>
   );
