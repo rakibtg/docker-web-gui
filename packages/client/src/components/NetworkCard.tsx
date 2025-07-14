@@ -10,8 +10,29 @@ import {
   FaGlobe,
   FaShieldAlt,
   FaExchangeAlt,
+  FaHdd,
+  FaClock,
 } from "react-icons/fa";
+import { IoReloadCircle } from "react-icons/io5";
 import { BsCircleFill } from "react-icons/bs";
+
+function CardActionButton({
+  children,
+  disabled = false,
+  ...rest
+}: React.ButtonHTMLAttributes<HTMLButtonElement>) {
+  return (
+    <button
+      className={`cursor-pointer px-2 py-1 text-white hover:bg-red-700/30 dark:hover:bg-red-700/40 transition-colors rounded text-xs font-medium flex items-center gap-1 shadow-sm
+        disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-red-600
+      `}
+      disabled={disabled}
+      {...rest}
+    >
+      {children}
+    </button>
+  );
+}
 
 interface NetworkCardProps {
   network: DockerNetwork;
@@ -30,10 +51,18 @@ const NetworkCard = memo(function NetworkCard({
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showConnectModal, setShowConnectModal] = useState(false);
   const [selectedContainer, setSelectedContainer] = useState<string>("");
+  const [isRemoving, setIsRemoving] = useState(false);
 
-  const handleDelete = useCallback(() => {
-    handleNetworkRemove(network.id, network.name);
+  const handleDelete = useCallback(async () => {
+    setIsRemoving(true);
     setShowDeleteModal(false);
+    try {
+      await handleNetworkRemove(network.id, network.name);
+    } finally {
+      setTimeout(() => {
+        setIsRemoving(false);
+      }, 1000);
+    }
   }, [handleNetworkRemove, network.id, network.name]);
 
   const handleConnect = useCallback(() => {
@@ -69,19 +98,39 @@ const NetworkCard = memo(function NetworkCard({
   );
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString();
+    if (!dateString) return "Unknown";
+
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return dateString;
+      }
+
+      const options: Intl.DateTimeFormatOptions = {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      };
+
+      return date.toLocaleDateString("en-US", options);
+    } catch {
+      return dateString;
+    }
   };
 
   const getDriverIcon = (driver: string) => {
     switch (driver) {
       case "bridge":
-        return <FaExchangeAlt className="text-blue-500" />;
+        return <FaExchangeAlt className="text-blue-400" size={10} />;
       case "host":
-        return <FaGlobe className="text-green-500" />;
+        return <FaGlobe className="text-green-400" size={10} />;
       case "overlay":
-        return <FaNetworkWired className="text-purple-500" />;
+        return <FaNetworkWired className="text-purple-400" size={10} />;
       default:
-        return <FaNetworkWired className="text-gray-500" />;
+        return <FaNetworkWired className="text-gray-400" size={10} />;
     }
   };
 
@@ -91,150 +140,126 @@ const NetworkCard = memo(function NetworkCard({
       !(network.containers || []).some((nc) => nc.id === container.id)
   );
 
+  const connectedCount = network.containers?.length || 0;
+  const subnet = network.ipam?.config?.[0]?.subnet;
+
   return (
     <>
-      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg transition-shadow">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center space-x-3">
-            {getDriverIcon(network.driver)}
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center space-x-2">
-                <span>{network.name}</span>
-                {network.internal && (
-                  <FaShieldAlt
-                    className="text-orange-500 text-sm"
-                    title="Internal Network"
-                  />
-                )}
-              </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                {network.driver} • {network.scope}
-              </p>
-            </div>
+      <div className="bg-theme-card rounded border-theme border p-3 hover:shadow-md transition-all duration-200">
+        {/* Header with network name, driver, and action buttons */}
+        <div className="flex items-center justify-between mb-2 relative">
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <h3 className="text-base font-medium text-theme-primary truncate">
+              {network.name}
+            </h3>
+            <span className="inline-flex text-xs px-1.5 py-0.5 rounded border border-blue-400/30 text-blue-100 bg-blue-500/20 shrink-0">
+              {network.driver}
+            </span>
+            {network.internal && (
+              <FaShieldAlt
+                className="text-orange-400 text-xs shrink-0"
+                title="Internal Network"
+              />
+            )}
           </div>
 
-          <div className="flex items-center space-x-2">
+          <div className="absolute right-0 top-0 flex items-center gap-1">
             {!isBuiltInNetwork && (
               <>
-                <button
+                <CardActionButton
                   onClick={() => setShowConnectModal(true)}
-                  className="p-2 text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-md transition-colors"
-                  title="Connect Container"
+                  title="Connect container"
+                  disabled={isRemoving}
                 >
-                  <FaPlug className="w-4 h-4" />
-                </button>
-                <button
+                  <div className="flex flex-col items-center gap-1 p-1">
+                    <FaPlug size={12} />
+                    <span className="text-xs">Connect</span>
+                  </div>
+                </CardActionButton>
+                <CardActionButton
                   onClick={() => setShowDeleteModal(true)}
-                  className="p-2 text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
-                  title="Remove Network"
+                  title="Remove network"
+                  disabled={isRemoving}
                 >
-                  <FaTrash className="w-4 h-4" />
-                </button>
+                  <div className="flex flex-col items-center gap-1 p-1">
+                    {isRemoving ? (
+                      <IoReloadCircle size={12} className="animate-spin" />
+                    ) : (
+                      <FaTrash size={12} />
+                    )}
+                    <span className="text-xs">Remove</span>
+                  </div>
+                </CardActionButton>
               </>
             )}
           </div>
         </div>
 
-        {/* Network Details */}
-        <div className="space-y-3">
-          {/* IPAM Configuration */}
-          {network.ipam?.config?.length > 0 && (
-            <div>
-              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                IP Configuration
-              </h4>
-              <div className="space-y-1">
-                {network.ipam.config.map((config, index) => (
-                  <div
-                    key={index}
-                    className="text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 px-3 py-2 rounded-md"
-                  >
-                    {config.subnet && <div>Subnet: {config.subnet}</div>}
-                    {config.gateway && <div>Gateway: {config.gateway}</div>}
-                  </div>
-                ))}
-              </div>
+        {/* Network details in compact format */}
+        <div className="flex gap-3 text-xs text-theme-muted flex-wrap">
+          <div
+            className="flex items-center gap-1"
+            title={`Network ID: ${network.id}`}
+          >
+            {getDriverIcon(network.driver)}
+            {network.id?.substring(0, 12) || "N/A"}
+          </div>
+
+          <div className="flex items-center gap-1">
+            <BsCircleFill className="text-blue-400" size={8} />
+            <span>Containers: {connectedCount}</span>
+          </div>
+
+          {subnet && (
+            <div className="flex items-center gap-1">
+              <FaHdd className="text-blue-400" size={10} />
+              <span>Subnet: {subnet}</span>
             </div>
           )}
 
-          {/* Connected Containers */}
-          <div>
-            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
-              Connected Containers
-              <span className="ml-2 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs px-2 py-1 rounded-full">
-                {network.containers?.length || 0}
-              </span>
-            </h4>
-            {(network.containers?.length || 0) > 0 ? (
-              <div className="space-y-2">
-                {network.containers?.map((container) => (
-                  <div
-                    key={container.id}
-                    className="flex items-center justify-between bg-gray-50 dark:bg-gray-700 px-3 py-2 rounded-md"
-                  >
-                    <div className="flex items-center space-x-3">
-                      <BsCircleFill className="w-2 h-2 text-green-500" />
-                      <div>
-                        <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                          {container.name}
-                        </div>
-                        {container.ipv4Address && (
-                          <div className="text-xs text-gray-600 dark:text-gray-400">
-                            IPv4: {container.ipv4Address}
-                          </div>
-                        )}
-                        {container.ipv6Address && (
-                          <div className="text-xs text-gray-600 dark:text-gray-400">
-                            IPv6: {container.ipv6Address}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    {!isBuiltInNetwork && (
-                      <button
-                        onClick={() =>
-                          handleDisconnect(container.id, container.name)
-                        }
-                        className="p-1 text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
-                        title="Disconnect Container"
-                      >
-                        <FaUnlink className="w-3 h-3" />
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-sm text-gray-500 dark:text-gray-400 italic">
-                No containers connected
-              </div>
-            )}
-          </div>
-
-          {/* Network Properties */}
-          <div className="grid grid-cols-2 gap-4 pt-3 border-t border-gray-200 dark:border-gray-600">
-            <div className="text-sm">
-              <span className="text-gray-600 dark:text-gray-400">Created:</span>
-              <div className="font-medium text-gray-900 dark:text-gray-100">
-                {formatDate(network.created)}
-              </div>
-            </div>
-            <div className="text-sm">
-              <span className="text-gray-600 dark:text-gray-400">
-                IPAM Driver:
-              </span>
-              <div className="font-medium text-gray-900 dark:text-gray-100">
-                {network.ipam?.driver || "default"}
-              </div>
-            </div>
-          </div>
-
-          {/* Network ID */}
-          <div className="text-xs text-gray-500 dark:text-gray-400 font-mono bg-gray-50 dark:bg-gray-700 px-2 py-1 rounded">
-            ID: {network.id?.substring(0, 12) || "N/A"}...
+          <div className="flex items-center gap-1">
+            <FaClock className="text-blue-400" size={10} />
+            <span title={formatDate(network.created)}>
+              Created: {formatDate(network.created)}
+            </span>
           </div>
         </div>
+
+        {/* Connected containers - only show if any are connected */}
+        {connectedCount > 0 && (
+          <div className="mt-2 pt-2 border-t border-theme-muted/20">
+            <div className="text-xs text-theme-muted mb-1">
+              Connected containers:
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {network.containers?.slice(0, 3).map((container) => (
+                <div
+                  key={container.id}
+                  className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded border border-green-400/30 text-green-100 bg-green-500/20"
+                >
+                  <BsCircleFill className="w-1.5 h-1.5 text-green-400" />
+                  <span className="truncate max-w-20">{container.name}</span>
+                  {!isBuiltInNetwork && (
+                    <button
+                      onClick={() =>
+                        handleDisconnect(container.id, container.name)
+                      }
+                      className="ml-1 hover:text-red-300 transition-colors"
+                      title="Disconnect container"
+                    >
+                      <FaUnlink size={8} />
+                    </button>
+                  )}
+                </div>
+              ))}
+              {connectedCount > 3 && (
+                <span className="text-xs text-theme-muted">
+                  +{connectedCount - 3} more
+                </span>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Delete Confirmation Modal */}
@@ -245,6 +270,7 @@ const NetworkCard = memo(function NetworkCard({
         title="Remove Network"
         message={`Are you sure you want to remove the network "${network.name}"? This action cannot be undone.`}
         confirmText="Remove"
+        type="danger"
       />
 
       {/* Connect Container Modal */}
