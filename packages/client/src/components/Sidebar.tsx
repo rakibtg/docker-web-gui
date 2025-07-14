@@ -1,7 +1,6 @@
 import { useState, memo, useCallback } from "react";
 import {
   HiViewList,
-  HiPhotograph,
   HiGlobeAlt,
   HiDatabase,
   HiChartPie,
@@ -13,6 +12,7 @@ import {
   HiChevronRight,
 } from "react-icons/hi";
 import { Tooltip } from "react-tooltip";
+import { LuLayers3 } from "react-icons/lu";
 import { useRouter } from "../hooks/useRouter";
 import logo from "../assets/docker-web-gui-logo.png";
 
@@ -36,7 +36,7 @@ const sidebarItems: SidebarItem[] = [
   {
     id: "images",
     label: "Images",
-    icon: HiPhotograph,
+    icon: LuLayers3,
   },
   {
     id: "networks",
