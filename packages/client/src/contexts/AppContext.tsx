@@ -6,7 +6,8 @@ import React, {
   useRef,
   useMemo,
 } from "react";
-import type { ContainerWithStats } from "../types";
+import type { ContainerWithStats, DockerImage } from "../types";
+import type { ImageHistoryLayer } from "../components/ImageHistoryModal";
 
 interface TerminalSession {
   id: string; // Unique terminal session ID
@@ -16,10 +17,28 @@ interface TerminalSession {
   type: "terminal" | "logs"; // Session type
 }
 
+interface ImageHistoryState {
+  imageId: string;
+  imageName: string;
+  layers: ImageHistoryLayer[];
+  loading: boolean;
+  isOpen: boolean;
+}
+
 interface AppContextType {
   // Container state
   containers: ContainerWithStats[];
   setContainers: React.Dispatch<React.SetStateAction<ContainerWithStats[]>>;
+
+  // Image state
+  images: DockerImage[];
+  setImages: React.Dispatch<React.SetStateAction<DockerImage[]>>;
+  imagesLoading: boolean;
+  setImagesLoading: React.Dispatch<React.SetStateAction<boolean>>;
+
+  // Image history state
+  imageHistory: ImageHistoryState;
+  setImageHistory: React.Dispatch<React.SetStateAction<ImageHistoryState>>;
 
   // Connection state
   isConnected: boolean;
@@ -54,6 +73,10 @@ interface AppContextType {
   // Functions
   sendMessage: (message: object) => boolean;
   requestContainers: () => void;
+  requestImages: () => void;
+  handleImageRemove: (imageId: string, force?: boolean) => void;
+  getImageHistory: (imageId: string, imageName: string) => void;
+  closeImageHistory: () => void;
   startStatsStreaming: () => void;
   stopStatsStreaming: () => void;
   handleContainerToggle: (containerId: string, currentState: string) => void;
@@ -71,6 +94,19 @@ export type { AppContextType };
 export function AppProvider({ children }: { children: React.ReactNode }) {
   // Container state
   const [containers, setContainers] = useState<ContainerWithStats[]>([]);
+
+  // Image state
+  const [images, setImages] = useState<DockerImage[]>([]);
+  const [imagesLoading, setImagesLoading] = useState(false);
+
+  // Image history state
+  const [imageHistory, setImageHistory] = useState<ImageHistoryState>({
+    imageId: "",
+    imageName: "",
+    layers: [],
+    loading: false,
+    isOpen: false,
+  });
 
   // Connection state
   const [isConnected, setIsConnected] = useState(false);
@@ -142,6 +178,57 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setError("Cannot send request - not connected to server");
     }
   }, [sendMessage]);
+
+  // Function to request images list
+  const requestImages = useCallback(() => {
+    setImagesLoading(true);
+    setError("");
+    const sent = sendMessage({ type: "get-images" });
+    if (!sent) {
+      setImagesLoading(false);
+      setError("Cannot send request - not connected to server");
+    }
+  }, [sendMessage]);
+
+  // Function to remove an image
+  const handleImageRemove = useCallback(
+    (imageId: string, force: boolean = false) => {
+      sendMessage({
+        type: "remove-image",
+        imageId: imageId,
+        force: force,
+      });
+    },
+    [sendMessage]
+  );
+
+  // Function to get image history
+  const getImageHistory = useCallback(
+    (imageId: string, imageName: string) => {
+      setImageHistory((prev) => ({
+        ...prev,
+        imageId,
+        imageName,
+        loading: true,
+        isOpen: true,
+        layers: [],
+      }));
+
+      sendMessage({
+        type: "get-image-history",
+        imageId: imageId,
+      });
+    },
+    [sendMessage]
+  );
+
+  // Function to close image history modal
+  const closeImageHistory = useCallback(() => {
+    setImageHistory((prev) => ({
+      ...prev,
+      isOpen: false,
+    }));
+  }, []);
 
   // Function to start stats streaming
   const startStatsStreaming = useCallback(() => {
@@ -334,6 +421,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
               setLoading(false);
               break;
 
+            case "images-list":
+              if (Array.isArray(message.data)) {
+                setImages(message.data);
+                setLastUpdate(message.timestamp || new Date().toISOString());
+              }
+              setImagesLoading(false);
+              break;
+
             case "container-stats": {
               // Update specific container stats in real-time with throttling
               const containerWithStats = message.data;
@@ -439,6 +534,67 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                 console.error(
                   `Failed to ${action} container ${containerId}:`,
                   actionMessage
+                );
+              }
+              break;
+            }
+
+            case "image-action-result": {
+              const actionResult = message;
+              const {
+                action,
+                imageId,
+                imageName,
+                success,
+                message: actionMessage,
+              } = actionResult;
+              console.log(`Image ${action} result:`, {
+                imageId: imageId || imageName,
+                success,
+                message: actionMessage,
+              });
+
+              if (success) {
+                const actionPastTense =
+                  action === "pull"
+                    ? "pulled"
+                    : action === "remove"
+                    ? "removed"
+                    : "pruned";
+                console.log(
+                  `Image ${
+                    imageId || imageName || "operation"
+                  } ${actionPastTense} successfully`
+                );
+                // Image list will be refreshed automatically by the server
+              } else {
+                setError(actionMessage || `Failed to ${action} image`);
+                console.error(
+                  `Failed to ${action} image ${imageId || imageName}:`,
+                  actionMessage
+                );
+              }
+              break;
+            }
+
+            case "image-history-result": {
+              const historyResult = message;
+              console.log("Image history result:", historyResult);
+
+              if (historyResult.success && historyResult.data) {
+                setImageHistory((prev) => ({
+                  ...prev,
+                  layers: historyResult.data || [],
+                  loading: false,
+                }));
+              } else {
+                setImageHistory((prev) => ({
+                  ...prev,
+                  layers: [],
+                  loading: false,
+                }));
+                setError(
+                  historyResult.message || "Failed to get image history"
                 );
               }
               break;
@@ -597,6 +753,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       containers,
       setContainers,
 
+      // Image state
+      images,
+      setImages,
+      imagesLoading,
+      setImagesLoading,
+
+      // Image history state
+      imageHistory,
+      setImageHistory,
+
       // Connection state
       isConnected,
       setIsConnected,
@@ -630,6 +796,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       // Functions
       sendMessage,
       requestContainers,
+      requestImages,
+      handleImageRemove,
+      getImageHistory,
+      closeImageHistory,
       startStatsStreaming,
       stopStatsStreaming,
       handleContainerToggle,
@@ -641,11 +811,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }),
     [
       containers,
+      images,
+      imageHistory,
       isConnected,
       dockerAvailable,
       dockerMessage,
       lastUpdate,
       loading,
+      imagesLoading,
       error,
       isStatsStreaming,
       showTerminals,
@@ -654,6 +827,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       websocket,
       sendMessage,
       requestContainers,
+      requestImages,
+      handleImageRemove,
+      getImageHistory,
+      closeImageHistory,
       startStatsStreaming,
       stopStatsStreaming,
       handleContainerToggle,
