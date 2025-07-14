@@ -770,6 +770,154 @@ wss.on("connection", function connection(ws) {
           }
           break;
 
+        case "get-networks":
+          try {
+            const networks = await dockerService.getDockerNetworks();
+            ws.send(
+              JSON.stringify({
+                type: "networks-result",
+                data: networks,
+                timestamp: new Date().toISOString(),
+              })
+            );
+          } catch (error) {
+            ws.send(
+              JSON.stringify({
+                type: "error",
+                message:
+                  error instanceof Error
+                    ? error.message
+                    : "Failed to get Docker networks",
+              })
+            );
+          }
+          break;
+
+        case "remove-network":
+          try {
+            const { networkId, networkName } = parsedMessage;
+            if (!networkId) {
+              throw new Error("Network ID is required");
+            }
+
+            await dockerService.removeDockerNetwork(networkId);
+
+            // Broadcast success to all clients
+            broadcastToAllClients({
+              type: "network-removed",
+              data: { networkId, networkName },
+              timestamp: new Date().toISOString(),
+            });
+
+            ws.send(
+              JSON.stringify({
+                type: "network-remove-result",
+                success: true,
+                message: `Network "${
+                  networkName || networkId
+                }" removed successfully`,
+                timestamp: new Date().toISOString(),
+              })
+            );
+          } catch (error) {
+            ws.send(
+              JSON.stringify({
+                type: "error",
+                message:
+                  error instanceof Error
+                    ? error.message
+                    : "Failed to remove network",
+              })
+            );
+          }
+          break;
+
+        case "connect-container-to-network":
+          try {
+            const { networkId, containerId, containerName, networkName } =
+              parsedMessage;
+            if (!networkId || !containerId) {
+              throw new Error("Network ID and Container ID are required");
+            }
+
+            await dockerService.connectContainerToNetwork(
+              networkId,
+              containerId
+            );
+
+            // Broadcast success to all clients
+            broadcastToAllClients({
+              type: "container-connected-to-network",
+              data: { networkId, containerId, containerName, networkName },
+              timestamp: new Date().toISOString(),
+            });
+
+            ws.send(
+              JSON.stringify({
+                type: "container-network-connect-result",
+                success: true,
+                message: `Container "${
+                  containerName || containerId
+                }" connected to network "${networkName || networkId}"`,
+                timestamp: new Date().toISOString(),
+              })
+            );
+          } catch (error) {
+            ws.send(
+              JSON.stringify({
+                type: "error",
+                message:
+                  error instanceof Error
+                    ? error.message
+                    : "Failed to connect container to network",
+              })
+            );
+          }
+          break;
+
+        case "disconnect-container-from-network":
+          try {
+            const { networkId, containerId, containerName, networkName } =
+              parsedMessage;
+            if (!networkId || !containerId) {
+              throw new Error("Network ID and Container ID are required");
+            }
+
+            await dockerService.disconnectContainerFromNetwork(
+              networkId,
+              containerId
+            );
+
+            // Broadcast success to all clients
+            broadcastToAllClients({
+              type: "container-disconnected-from-network",
+              data: { networkId, containerId, containerName, networkName },
+              timestamp: new Date().toISOString(),
+            });
+
+            ws.send(
+              JSON.stringify({
+                type: "container-network-disconnect-result",
+                success: true,
+                message: `Container "${
+                  containerName || containerId
+                }" disconnected from network "${networkName || networkId}"`,
+                timestamp: new Date().toISOString(),
+              })
+            );
+          } catch (error) {
+            ws.send(
+              JSON.stringify({
+                type: "error",
+                message:
+                  error instanceof Error
+                    ? error.message
+                    : "Failed to disconnect container from network",
+              })
+            );
+          }
+          break;
+
         default:
           ws.send(
             JSON.stringify({
