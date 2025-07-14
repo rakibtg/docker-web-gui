@@ -669,6 +669,107 @@ wss.on("connection", function connection(ws) {
           }
           break;
 
+        case "get-images":
+          try {
+            const images = await dockerService.getDockerImages();
+            ws.send(
+              JSON.stringify({
+                type: "images-list",
+                data: images,
+                timestamp: new Date().toISOString(),
+              })
+            );
+          } catch (error) {
+            ws.send(
+              JSON.stringify({
+                type: "error",
+                message:
+                  error instanceof Error
+                    ? error.message
+                    : "Failed to get images",
+              })
+            );
+          }
+          break;
+
+        case "remove-image":
+          try {
+            const { imageId, force } = parsedMessage;
+            if (!imageId) {
+              throw new Error("Image ID is required");
+            }
+
+            const result = await dockerService.removeImage(imageId, force);
+            ws.send(
+              JSON.stringify({
+                type: "image-action-result",
+                action: "remove",
+                imageId,
+                success: result.success,
+                message: result.message,
+                timestamp: new Date().toISOString(),
+              })
+            );
+
+            // Refresh images list after action
+            if (result.success) {
+              setTimeout(async () => {
+                try {
+                  const images = await dockerService.getDockerImages();
+                  broadcastToAllClients({
+                    type: "images-list",
+                    data: images,
+                    timestamp: new Date().toISOString(),
+                  });
+                } catch (error) {
+                  console.error("Error refreshing images after remove:", error);
+                }
+              }, 1000);
+            }
+          } catch (error) {
+            ws.send(
+              JSON.stringify({
+                type: "error",
+                message:
+                  error instanceof Error
+                    ? error.message
+                    : "Failed to remove image",
+              })
+            );
+          }
+          break;
+
+        case "get-image-history":
+          try {
+            const { imageId } = parsedMessage;
+            if (!imageId) {
+              throw new Error("Image ID is required");
+            }
+
+            const result = await dockerService.getImageHistory(imageId);
+            ws.send(
+              JSON.stringify({
+                type: "image-history-result",
+                imageId,
+                success: result.success,
+                data: result.data,
+                message: result.message,
+                timestamp: new Date().toISOString(),
+              })
+            );
+          } catch (error) {
+            ws.send(
+              JSON.stringify({
+                type: "error",
+                message:
+                  error instanceof Error
+                    ? error.message
+                    : "Failed to get image history",
+              })
+            );
+          }
+          break;
+
         default:
           ws.send(
             JSON.stringify({
