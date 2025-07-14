@@ -8,6 +8,15 @@ export interface DockerContainer {
   created: string;
 }
 
+export interface DockerImage {
+  id: string;
+  repository: string;
+  tag: string;
+  size: string;
+  created: string;
+  imageId: string;
+}
+
 export interface DockerStats {
   id: string;
   name: string;
