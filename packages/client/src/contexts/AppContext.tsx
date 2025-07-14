@@ -6,8 +6,15 @@ import React, {
   useRef,
   useMemo,
 } from "react";
-import type { ContainerWithStats, DockerImage } from "../types";
-import type { ImageHistoryLayer } from "../components/ImageHistoryModal";
+import type { ContainerWithStats, DockerImage, DockerNetwork } from "../types";
+
+interface ImageHistoryLayer {
+  id: string;
+  created: string;
+  createdBy: string;
+  size: number;
+  comment?: string;
+}
 
 interface TerminalSession {
   id: string; // Unique terminal session ID
@@ -35,6 +42,12 @@ interface AppContextType {
   setImages: React.Dispatch<React.SetStateAction<DockerImage[]>>;
   imagesLoading: boolean;
   setImagesLoading: React.Dispatch<React.SetStateAction<boolean>>;
+
+  // Network state
+  networks: DockerNetwork[];
+  setNetworks: React.Dispatch<React.SetStateAction<DockerNetwork[]>>;
+  networksLoading: boolean;
+  setNetworksLoading: React.Dispatch<React.SetStateAction<boolean>>;
 
   // Image history state
   imageHistory: ImageHistoryState;
@@ -74,7 +87,21 @@ interface AppContextType {
   sendMessage: (message: object) => boolean;
   requestContainers: () => void;
   requestImages: () => void;
+  requestNetworks: () => void;
   handleImageRemove: (imageId: string, force?: boolean) => void;
+  handleNetworkRemove: (networkId: string, networkName?: string) => void;
+  handleContainerNetworkConnect: (
+    networkId: string,
+    containerId: string,
+    networkName?: string,
+    containerName?: string
+  ) => void;
+  handleContainerNetworkDisconnect: (
+    networkId: string,
+    containerId: string,
+    networkName?: string,
+    containerName?: string
+  ) => void;
   getImageHistory: (imageId: string, imageName: string) => void;
   closeImageHistory: () => void;
   startStatsStreaming: () => void;
@@ -98,6 +125,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // Image state
   const [images, setImages] = useState<DockerImage[]>([]);
   const [imagesLoading, setImagesLoading] = useState(false);
+
+  // Network state
+  const [networks, setNetworks] = useState<DockerNetwork[]>([]);
+  const [networksLoading, setNetworksLoading] = useState(false);
 
   // Image history state
   const [imageHistory, setImageHistory] = useState<ImageHistoryState>({
@@ -190,6 +221,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   }, [sendMessage]);
 
+  // Function to request networks list
+  const requestNetworks = useCallback(() => {
+    setNetworksLoading(true);
+    setError("");
+    const sent = sendMessage({ type: "get-networks" });
+    if (!sent) {
+      setNetworksLoading(false);
+      setError("Cannot send request - not connected to server");
+    }
+  }, [sendMessage]);
+
   // Function to remove an image
   const handleImageRemove = useCallback(
     (imageId: string, force: boolean = false) => {
@@ -197,6 +239,56 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         type: "remove-image",
         imageId: imageId,
         force: force,
+      });
+    },
+    [sendMessage]
+  );
+
+  // Function to remove a network
+  const handleNetworkRemove = useCallback(
+    (networkId: string, networkName?: string) => {
+      sendMessage({
+        type: "remove-network",
+        networkId: networkId,
+        networkName: networkName,
+      });
+    },
+    [sendMessage]
+  );
+
+  // Function to connect container to network
+  const handleContainerNetworkConnect = useCallback(
+    (
+      networkId: string,
+      containerId: string,
+      networkName?: string,
+      containerName?: string
+    ) => {
+      sendMessage({
+        type: "connect-container-to-network",
+        networkId,
+        containerId,
+        networkName,
+        containerName,
+      });
+    },
+    [sendMessage]
+  );
+
+  // Function to disconnect container from network
+  const handleContainerNetworkDisconnect = useCallback(
+    (
+      networkId: string,
+      containerId: string,
+      networkName?: string,
+      containerName?: string
+    ) => {
+      sendMessage({
+        type: "disconnect-container-from-network",
+        networkId,
+        containerId,
+        networkName,
+        containerName,
       });
     },
     [sendMessage]
@@ -600,6 +692,56 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
               break;
             }
 
+            case "networks-result":
+              if (Array.isArray(message.data)) {
+                setNetworks(message.data);
+                setLastUpdate(message.timestamp || new Date().toISOString());
+              }
+              setNetworksLoading(false);
+              break;
+
+            case "network-create-result":
+              console.log("Network create result:", message);
+              if (message.success && ws.readyState === WebSocket.OPEN) {
+                // Refresh networks list
+                ws.send(JSON.stringify({ type: "get-networks" }));
+              }
+              break;
+
+            case "network-remove-result":
+              console.log("Network remove result:", message);
+              if (message.success && ws.readyState === WebSocket.OPEN) {
+                // Refresh networks list
+                ws.send(JSON.stringify({ type: "get-networks" }));
+              }
+              break;
+
+            case "container-network-connect-result":
+              console.log("Container network connect result:", message);
+              if (message.success && ws.readyState === WebSocket.OPEN) {
+                // Refresh networks list to update container connections
+                ws.send(JSON.stringify({ type: "get-networks" }));
+              }
+              break;
+
+            case "container-network-disconnect-result":
+              console.log("Container network disconnect result:", message);
+              if (message.success && ws.readyState === WebSocket.OPEN) {
+                // Refresh networks list to update container connections
+                ws.send(JSON.stringify({ type: "get-networks" }));
+              }
+              break;
+
+            case "network-created":
+            case "network-removed":
+            case "container-connected-to-network":
+            case "container-disconnected-from-network":
+              // Auto-refresh networks when other clients make changes
+              if (ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ type: "get-networks" }));
+              }
+              break;
+
             default:
               console.log("Unknown message type:", message.type);
           }
@@ -759,6 +901,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       imagesLoading,
       setImagesLoading,
 
+      // Network state
+      networks,
+      setNetworks,
+      networksLoading,
+      setNetworksLoading,
+
       // Image history state
       imageHistory,
       setImageHistory,
@@ -797,7 +945,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       sendMessage,
       requestContainers,
       requestImages,
+      requestNetworks,
       handleImageRemove,
+      handleNetworkRemove,
+      handleContainerNetworkConnect,
+      handleContainerNetworkDisconnect,
       getImageHistory,
       closeImageHistory,
       startStatsStreaming,
@@ -812,6 +964,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     [
       containers,
       images,
+      networks,
       imageHistory,
       isConnected,
       dockerAvailable,
@@ -819,6 +972,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       lastUpdate,
       loading,
       imagesLoading,
+      networksLoading,
       error,
       isStatsStreaming,
       showTerminals,
@@ -828,7 +982,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       sendMessage,
       requestContainers,
       requestImages,
+      requestNetworks,
       handleImageRemove,
+      handleNetworkRemove,
+      handleContainerNetworkConnect,
+      handleContainerNetworkDisconnect,
       getImageHistory,
       closeImageHistory,
       startStatsStreaming,
