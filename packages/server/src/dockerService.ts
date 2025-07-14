@@ -15,6 +15,15 @@ export interface DockerContainer {
   created: string;
 }
 
+export interface DockerImage {
+  id: string;
+  repository: string;
+  tag: string;
+  size: string;
+  created: string;
+  imageId: string;
+}
+
 export interface DockerStats {
   id: string;
   name: string;
@@ -250,6 +259,99 @@ export class DockerService extends EventEmitter {
       return {
         available: false,
         message: "Docker is not installed or not in PATH.",
+      };
+    }
+  }
+
+  // Function to get Docker images
+  async getDockerImages(): Promise<DockerImage[]> {
+    try {
+      const { stdout } = await execAsync(
+        'docker images --format "{{.ID}}|{{.Repository}}|{{.Tag}}|{{.Size}}|{{.CreatedAt}}"'
+      );
+
+      const images: DockerImage[] = stdout
+        .trim()
+        .split("\n")
+        .filter((line) => line.trim() !== "")
+        .map((line) => {
+          const [id, repository, tag, size, created] = line.split("|");
+          return {
+            id: `${repository}:${tag}`,
+            repository: repository || "",
+            tag: tag || "",
+            size: size || "",
+            created: created || "",
+            imageId: id || "",
+          };
+        });
+
+      return images;
+    } catch (error) {
+      console.error("Error getting Docker images:", error);
+      throw new Error(
+        `Failed to get Docker images: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
+    }
+  }
+
+  // Remove a Docker image
+  async removeImage(
+    imageId: string,
+    force: boolean = false
+  ): Promise<{ success: boolean; message: string }> {
+    try {
+      const command = force
+        ? `docker rmi -f ${imageId}`
+        : `docker rmi ${imageId}`;
+      const { stdout, stderr } = await execAsync(command);
+      console.log(`Image ${imageId} removed:`, stdout);
+
+      return {
+        success: true,
+        message: `Image ${imageId} removed successfully`,
+      };
+    } catch (error) {
+      console.error(`Error removing image ${imageId}:`, error);
+      return {
+        success: false,
+        message:
+          error instanceof Error ? error.message : "Failed to remove image",
+      };
+    }
+  }
+
+  // Get image history
+  async getImageHistory(
+    imageId: string
+  ): Promise<{ success: boolean; data?: any[]; message: string }> {
+    try {
+      const { stdout } = await execAsync(
+        `docker history ${imageId} --format "table {{.ID}}\\t{{.CreatedBy}}\\t{{.Size}}\\t{{.CreatedSince}}" --no-trunc`
+      );
+
+      const lines = stdout.trim().split("\n");
+      const headers = lines[0];
+      const data = lines.slice(1).map((line) => {
+        const [id, createdBy, size, createdSince] = line.split("\t");
+        return { id, createdBy, size, createdSince };
+      });
+
+      return {
+        success: true,
+        data,
+        message: `Image history for ${imageId} retrieved successfully`,
+      };
+    } catch (error) {
+      console.error(`Error getting image history for ${imageId}:`, error);
+      return {
+        success: false,
+        message:
+          error instanceof Error
+            ? error.message
+            : "Failed to get image history",
       };
     }
   }
