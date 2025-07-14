@@ -12,7 +12,7 @@ const NetworkGrid = memo(function NetworkGrid({
   containers,
 }: NetworkGridProps) {
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+    <div className="space-y-2">
       {networks.map((network) => (
         <NetworkCard
           key={network.id}
