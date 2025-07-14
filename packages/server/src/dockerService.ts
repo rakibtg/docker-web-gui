@@ -24,6 +24,35 @@ export interface DockerImage {
   imageId: string;
 }
 
+export interface DockerNetwork {
+  id: string;
+  name: string;
+  driver: string;
+  scope: string;
+  created: string;
+  ipam: {
+    driver: string;
+    config: Array<{
+      subnet?: string;
+      gateway?: string;
+    }>;
+  };
+  containers: Array<{
+    name: string;
+    id: string;
+    ipv4Address?: string;
+    ipv6Address?: string;
+  }>;
+  options: Record<string, string>;
+  labels: Record<string, string>;
+  internal: boolean;
+  attachable: boolean;
+  ingress: boolean;
+  configFrom?: {
+    network: string;
+  };
+}
+
 export interface DockerStats {
   id: string;
   name: string;
@@ -574,6 +603,154 @@ export class DockerService extends EventEmitter {
       );
       throw new Error(
         `Failed to create logs session: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
+    }
+  }
+
+  // Function to get Docker networks
+  async getDockerNetworks(): Promise<any[]> {
+    try {
+      const { stdout } = await execAsync(
+        'docker network ls --format "{{json .}}"'
+      );
+
+      const networks = stdout
+        .trim()
+        .split("\n")
+        .filter((line) => line.trim() !== "")
+        .map((line) => JSON.parse(line));
+
+      // Get detailed information for each network
+      const detailedNetworks = await Promise.all(
+        networks.map(async (network) => {
+          try {
+            const { stdout: inspectOutput } = await execAsync(
+              `docker network inspect ${network.ID}`
+            );
+            const [inspectData] = JSON.parse(inspectOutput);
+
+            return {
+              id: inspectData.Id,
+              name: inspectData.Name,
+              driver: inspectData.Driver,
+              scope: inspectData.Scope,
+              created: inspectData.Created,
+              ipam: inspectData.IPAM || { driver: "", config: [] },
+              containers: Object.entries(inspectData.Containers || {}).map(
+                ([id, info]: [string, any]) => ({
+                  id,
+                  name: info.Name,
+                  ipv4Address: info.IPv4Address,
+                  ipv6Address: info.IPv6Address,
+                })
+              ),
+              options: inspectData.Options || {},
+              labels: inspectData.Labels || {},
+              internal: inspectData.Internal || false,
+              attachable: inspectData.Attachable || false,
+              ingress: inspectData.Ingress || false,
+              configFrom: inspectData.ConfigFrom,
+            };
+          } catch (error) {
+            console.error(`Error inspecting network ${network.ID}:`, error);
+            return {
+              id: network.ID,
+              name: network.Name,
+              driver: network.Driver,
+              scope: network.Scope,
+              created: network.CreatedAt || "",
+              ipam: { driver: "", config: [] },
+              containers: [],
+              options: {},
+              labels: {},
+              internal: false,
+              attachable: false,
+              ingress: false,
+            };
+          }
+        })
+      );
+
+      return detailedNetworks;
+    } catch (error) {
+      console.error("Error getting Docker networks:", error);
+
+      if (
+        error instanceof Error &&
+        error.message.includes("permission denied")
+      ) {
+        throw new Error(
+          "Docker permission denied. Please ensure the current user is in the docker group."
+        );
+      }
+
+      if (
+        error instanceof Error &&
+        error.message.includes("Cannot connect to the Docker daemon")
+      ) {
+        throw new Error(
+          "Docker daemon is not running. Please start Docker service."
+        );
+      }
+
+      throw new Error(
+        `Failed to get Docker networks: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
+    }
+  }
+
+  // Function to remove a Docker network
+  async removeDockerNetwork(networkId: string): Promise<void> {
+    try {
+      await execAsync(`docker network rm ${networkId}`);
+    } catch (error) {
+      console.error(`Error removing Docker network ${networkId}:`, error);
+      throw new Error(
+        `Failed to remove network: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
+    }
+  }
+
+  // Function to connect container to network
+  async connectContainerToNetwork(
+    networkId: string,
+    containerId: string
+  ): Promise<void> {
+    try {
+      await execAsync(`docker network connect ${networkId} ${containerId}`);
+    } catch (error) {
+      console.error(
+        `Error connecting container ${containerId} to network ${networkId}:`,
+        error
+      );
+      throw new Error(
+        `Failed to connect container to network: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
+    }
+  }
+
+  // Function to disconnect container from network
+  async disconnectContainerFromNetwork(
+    networkId: string,
+    containerId: string
+  ): Promise<void> {
+    try {
+      await execAsync(`docker network disconnect ${networkId} ${containerId}`);
+    } catch (error) {
+      console.error(
+        `Error disconnecting container ${containerId} from network ${networkId}:`,
+        error
+      );
+      throw new Error(
+        `Failed to disconnect container from network: ${
           error instanceof Error ? error.message : "Unknown error"
         }`
       );
