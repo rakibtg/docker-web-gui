@@ -17,6 +17,35 @@ export interface DockerImage {
   imageId: string;
 }
 
+export interface DockerNetwork {
+  id: string;
+  name: string;
+  driver: string;
+  scope: string;
+  created: string;
+  ipam: {
+    driver: string;
+    config: Array<{
+      subnet?: string;
+      gateway?: string;
+    }>;
+  };
+  containers: Array<{
+    name: string;
+    id: string;
+    ipv4Address?: string;
+    ipv6Address?: string;
+  }>;
+  options: Record<string, string>;
+  labels: Record<string, string>;
+  internal: boolean;
+  attachable: boolean;
+  ingress: boolean;
+  configFrom?: {
+    network: string;
+  };
+}
+
 export interface DockerStats {
   id: string;
   name: string;
