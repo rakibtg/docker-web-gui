@@ -50,7 +50,12 @@ const NetworkCard = memo(function NetworkCard({
   } = useApp();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showConnectModal, setShowConnectModal] = useState(false);
+  const [showDisconnectModal, setShowDisconnectModal] = useState(false);
   const [selectedContainer, setSelectedContainer] = useState<string>("");
+  const [containerToDisconnect, setContainerToDisconnect] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
   const [isRemoving, setIsRemoving] = useState(false);
 
   const handleDelete = useCallback(async () => {
@@ -87,15 +92,29 @@ const NetworkCard = memo(function NetworkCard({
 
   const handleDisconnect = useCallback(
     (containerId: string, containerName: string) => {
+      setContainerToDisconnect({ id: containerId, name: containerName });
+      setShowDisconnectModal(true);
+    },
+    []
+  );
+
+  const confirmDisconnect = useCallback(() => {
+    if (containerToDisconnect) {
       handleContainerNetworkDisconnect(
         network.id,
-        containerId,
+        containerToDisconnect.id,
         network.name,
-        containerName
+        containerToDisconnect.name
       );
-    },
-    [handleContainerNetworkDisconnect, network.id, network.name]
-  );
+      setShowDisconnectModal(false);
+      setContainerToDisconnect(null);
+    }
+  }, [
+    handleContainerNetworkDisconnect,
+    network.id,
+    network.name,
+    containerToDisconnect,
+  ]);
 
   const formatDate = (dateString: string) => {
     if (!dateString) return "Unknown";
@@ -238,7 +257,7 @@ const NetworkCard = memo(function NetworkCard({
                   className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded border border-green-400/30 text-green-100 bg-green-500/20"
                 >
                   <BsCircleFill className="w-1.5 h-1.5 text-green-400" />
-                  <span className="truncate max-w-20">{container.name}</span>
+                  <span className="truncate max-w-36">{container.name}</span>
                   {!isBuiltInNetwork && (
                     <button
                       onClick={() =>
@@ -271,6 +290,20 @@ const NetworkCard = memo(function NetworkCard({
         message={`Are you sure you want to remove the network "${network.name}"? This action cannot be undone.`}
         confirmText="Remove"
         type="danger"
+      />
+
+      {/* Disconnect Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showDisconnectModal}
+        onClose={() => {
+          setShowDisconnectModal(false);
+          setContainerToDisconnect(null);
+        }}
+        onConfirm={confirmDisconnect}
+        title="Disconnect Container"
+        message={`Are you sure you want to disconnect "${containerToDisconnect?.name}" from the network "${network.name}"?`}
+        confirmText="Disconnect"
+        type="warning"
       />
 
       {/* Connect Container Modal */}
