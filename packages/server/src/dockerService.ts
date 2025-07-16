@@ -53,6 +53,22 @@ export interface DockerNetwork {
   };
 }
 
+export interface DockerVolume {
+  name: string;
+  driver: string;
+  mountpoint: string;
+  created: string;
+  labels: Record<string, string>;
+  options: Record<string, string>;
+  scope: string;
+  size?: string;
+  usedBy?: Array<{
+    containerId: string;
+    containerName: string;
+    mountPath: string;
+  }>;
+}
+
 export interface DockerStats {
   id: string;
   name: string;
@@ -719,8 +735,8 @@ export class DockerService extends EventEmitter {
 
   // Function to connect container to network
   async connectContainerToNetwork(
-    networkId: string,
-    containerId: string
+    containerId: string,
+    networkId: string
   ): Promise<void> {
     try {
       await execAsync(`docker network connect ${networkId} ${containerId}`);
@@ -739,21 +755,195 @@ export class DockerService extends EventEmitter {
 
   // Function to disconnect container from network
   async disconnectContainerFromNetwork(
-    networkId: string,
-    containerId: string
+    containerId: string,
+    networkId: string
   ): Promise<void> {
     try {
-      await execAsync(`docker network disconnect ${networkId} ${containerId}`);
-    } catch (error) {
-      console.error(
-        `Error disconnecting container ${containerId} from network ${networkId}:`,
-        error
+      const { stderr } = await execAsync(
+        `docker network disconnect ${networkId} ${containerId}`
       );
+
+      if (stderr) {
+        console.error("Docker network disconnect stderr:", stderr);
+        throw new Error(stderr);
+      }
+
+      console.log(
+        `Container ${containerId} disconnected from network ${networkId}`
+      );
+    } catch (error: any) {
+      console.error("Error disconnecting container from network:", error);
       throw new Error(
-        `Failed to disconnect container from network: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`
+        `Failed to disconnect container from network: ${error.message}`
       );
+    }
+  }
+
+  // Function to get Docker volumes
+  async getDockerVolumes(): Promise<any[]> {
+    try {
+      // Get volume list with basic info
+      const { stdout: volumeList } = await execAsync(
+        'docker volume ls --format "{{.Name}}|{{.Driver}}|{{.Scope}}"'
+      );
+
+      if (!volumeList.trim()) {
+        return [];
+      }
+
+      const volumes = [];
+      const volumeLines = volumeList.trim().split("\n");
+
+      for (const line of volumeLines) {
+        const [name, driver, scope] = line.split("|");
+
+        try {
+          // Get detailed volume info
+          const { stdout: volumeInfo } = await execAsync(
+            `docker volume inspect ${name}`
+          );
+
+          const volumeDetails = JSON.parse(volumeInfo)[0];
+
+          // Get containers using this volume
+          const { stdout: containerList } = await execAsync(
+            `docker ps -a --format "{{.ID}}|{{.Names}}" --filter volume=${name}`
+          );
+
+          const usedBy = [];
+          if (containerList.trim()) {
+            const containerLines = containerList.trim().split("\n");
+            for (const containerLine of containerLines) {
+              const [containerId, containerName] = containerLine.split("|");
+
+              // Get mount information for this container
+              try {
+                const { stdout: mountInfo } = await execAsync(
+                  `docker inspect ${containerId} --format "{{json .Mounts}}"`
+                );
+
+                const mounts = JSON.parse(mountInfo);
+                const volumeMounts = mounts.filter(
+                  (mount: any) => mount.Name === name
+                );
+
+                for (const mount of volumeMounts) {
+                  usedBy.push({
+                    containerId,
+                    containerName,
+                    mountPath: mount.Destination || "",
+                  });
+                }
+              } catch (err) {
+                console.warn(
+                  `Could not get mount info for container ${containerId}:`,
+                  err
+                );
+              }
+            }
+          }
+
+          // Get volume size (approximate)
+          let size = "Unknown";
+          try {
+            const { stdout: sizeInfo } = await execAsync(
+              `du -sh "${volumeDetails.Mountpoint}" 2>/dev/null || echo "Unknown"`
+            );
+            size = sizeInfo.trim().split("\t")[0] || "Unknown";
+          } catch (err) {
+            // Size calculation might fail due to permissions
+          }
+
+          volumes.push({
+            name: volumeDetails.Name,
+            driver: volumeDetails.Driver,
+            mountpoint: volumeDetails.Mountpoint,
+            created: volumeDetails.CreatedAt,
+            labels: volumeDetails.Labels || {},
+            options: volumeDetails.Options || {},
+            scope: volumeDetails.Scope || scope,
+            size,
+            usedBy,
+          });
+        } catch (err) {
+          console.warn(`Could not get details for volume ${name}:`, err);
+          // Add basic volume info even if detailed inspection fails
+          volumes.push({
+            name,
+            driver,
+            mountpoint: "",
+            created: "",
+            labels: {},
+            options: {},
+            scope,
+            size: "Unknown",
+            usedBy: [],
+          });
+        }
+      }
+
+      return volumes;
+    } catch (error: any) {
+      console.error("Error getting Docker volumes:", error);
+      throw new Error(`Failed to get Docker volumes: ${error.message}`);
+    }
+  }
+
+  // Function to remove Docker volume
+  async removeDockerVolume(volumeName: string): Promise<void> {
+    try {
+      const { stderr } = await execAsync(`docker volume rm ${volumeName}`);
+
+      if (stderr) {
+        console.error("Docker volume remove stderr:", stderr);
+        throw new Error(stderr);
+      }
+
+      console.log(`Volume ${volumeName} removed successfully`);
+    } catch (error: any) {
+      console.error("Error removing Docker volume:", error);
+      throw new Error(`Failed to remove volume: ${error.message}`);
+    }
+  }
+
+  // Function to prune unused volumes
+  async pruneDockerVolumes(): Promise<{
+    deletedVolumes: string[];
+    reclaimedSpace: string;
+  }> {
+    try {
+      const { stdout, stderr } = await execAsync(`docker volume prune -f`);
+
+      if (stderr && !stderr.includes("WARNING")) {
+        console.error("Docker volume prune stderr:", stderr);
+        throw new Error(stderr);
+      }
+
+      // Parse the output to extract deleted volumes and reclaimed space
+      const lines = stdout.split("\n");
+      const deletedVolumes: string[] = [];
+      let reclaimedSpace = "0B";
+
+      for (const line of lines) {
+        if (line.includes("deleted:")) {
+          const volumeName = line.split("deleted: ")[1]?.trim();
+          if (volumeName) {
+            deletedVolumes.push(volumeName);
+          }
+        }
+        if (line.includes("Total reclaimed space:")) {
+          reclaimedSpace =
+            line.split("Total reclaimed space: ")[1]?.trim() || "0B";
+        }
+      }
+
+      console.log(
+        `Pruned ${deletedVolumes.length} volumes, reclaimed ${reclaimedSpace}`
+      );
+      return { deletedVolumes, reclaimedSpace };
+    } catch (error: any) {
+      console.error("Error pruning Docker volumes:", error);
+      throw new Error(`Failed to prune volumes: ${error.message}`);
     }
   }
 }
