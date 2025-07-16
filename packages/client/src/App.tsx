@@ -4,6 +4,7 @@ import {
   Images,
   Networks,
   Volumes,
+  VolumeDetails,
   Settings,
   About,
 } from "./pages";
@@ -28,6 +29,8 @@ function AppContent() {
         return <Networks />;
       case "volumes":
         return <Volumes />;
+      case "volume-details":
+        return <VolumeDetails />;
       case "settings":
         return <Settings />;
       case "about":
