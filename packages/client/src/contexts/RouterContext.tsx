@@ -5,6 +5,7 @@ export interface RouteParams {
   page?: string;
   tab?: string;
   containerId?: string;
+  volumeId?: string;
   view?: string;
   filter?: string;
   byStatus?: string;
