@@ -6,7 +6,12 @@ import React, {
   useRef,
   useMemo,
 } from "react";
-import type { ContainerWithStats, DockerImage, DockerNetwork } from "../types";
+import type {
+  ContainerWithStats,
+  DockerImage,
+  DockerNetwork,
+  DockerVolume,
+} from "../types";
 
 interface ImageHistoryLayer {
   id: string;
@@ -49,6 +54,12 @@ interface AppContextType {
   networksLoading: boolean;
   setNetworksLoading: React.Dispatch<React.SetStateAction<boolean>>;
 
+  // Volume state
+  volumes: DockerVolume[];
+  setVolumes: React.Dispatch<React.SetStateAction<DockerVolume[]>>;
+  volumesLoading: boolean;
+  setVolumesLoading: React.Dispatch<React.SetStateAction<boolean>>;
+
   // Image history state
   imageHistory: ImageHistoryState;
   setImageHistory: React.Dispatch<React.SetStateAction<ImageHistoryState>>;
@@ -88,8 +99,11 @@ interface AppContextType {
   requestContainers: () => void;
   requestImages: () => void;
   requestNetworks: () => void;
+  requestVolumes: () => void;
   handleImageRemove: (imageId: string, force?: boolean) => void;
   handleNetworkRemove: (networkId: string, networkName?: string) => void;
+  handleVolumeRemove: (volumeName: string) => void;
+  handleVolumesPrune: () => void;
   handleContainerNetworkConnect: (
     networkId: string,
     containerId: string,
@@ -129,6 +143,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // Network state
   const [networks, setNetworks] = useState<DockerNetwork[]>([]);
   const [networksLoading, setNetworksLoading] = useState(false);
+
+  // Volume state
+  const [volumes, setVolumes] = useState<DockerVolume[]>([]);
+  const [volumesLoading, setVolumesLoading] = useState(false);
 
   // Image history state
   const [imageHistory, setImageHistory] = useState<ImageHistoryState>({
@@ -232,6 +250,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   }, [sendMessage]);
 
+  // Function to request volumes list
+  const requestVolumes = useCallback(() => {
+    setVolumesLoading(true);
+    setError("");
+    const sent = sendMessage({ type: "get-volumes" });
+    if (!sent) {
+      setVolumesLoading(false);
+      setError("Cannot send request - not connected to server");
+    }
+  }, [sendMessage]);
+
   // Function to remove an image
   const handleImageRemove = useCallback(
     (imageId: string, force: boolean = false) => {
@@ -255,6 +284,24 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     },
     [sendMessage]
   );
+
+  // Function to remove a volume
+  const handleVolumeRemove = useCallback(
+    (volumeName: string) => {
+      sendMessage({
+        type: "remove-volume",
+        volumeName: volumeName,
+      });
+    },
+    [sendMessage]
+  );
+
+  // Function to prune unused volumes
+  const handleVolumesPrune = useCallback(() => {
+    sendMessage({
+      type: "prune-volumes",
+    });
+  }, [sendMessage]);
 
   // Function to connect container to network
   const handleContainerNetworkConnect = useCallback(
@@ -700,19 +747,27 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
               setNetworksLoading(false);
               break;
 
-            case "network-create-result":
-              console.log("Network create result:", message);
+            case "volumes-result":
+              if (Array.isArray(message.data)) {
+                setVolumes(message.data);
+                setLastUpdate(message.timestamp || new Date().toISOString());
+              }
+              setVolumesLoading(false);
+              break;
+
+            case "volume-remove-result":
+              console.log("Volume remove result:", message);
               if (message.success && ws.readyState === WebSocket.OPEN) {
-                // Refresh networks list
-                ws.send(JSON.stringify({ type: "get-networks" }));
+                // Refresh volumes list
+                ws.send(JSON.stringify({ type: "get-volumes" }));
               }
               break;
 
-            case "network-remove-result":
-              console.log("Network remove result:", message);
+            case "volumes-prune-result":
+              console.log("Volumes prune result:", message);
               if (message.success && ws.readyState === WebSocket.OPEN) {
-                // Refresh networks list
-                ws.send(JSON.stringify({ type: "get-networks" }));
+                // Refresh volumes list
+                ws.send(JSON.stringify({ type: "get-volumes" }));
               }
               break;
 
@@ -907,6 +962,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       networksLoading,
       setNetworksLoading,
 
+      // Volume state
+      volumes,
+      setVolumes,
+      volumesLoading,
+      setVolumesLoading,
+
       // Image history state
       imageHistory,
       setImageHistory,
@@ -946,8 +1007,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       requestContainers,
       requestImages,
       requestNetworks,
+      requestVolumes,
       handleImageRemove,
       handleNetworkRemove,
+      handleVolumeRemove,
+      handleVolumesPrune,
       handleContainerNetworkConnect,
       handleContainerNetworkDisconnect,
       getImageHistory,
@@ -965,6 +1029,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       containers,
       images,
       networks,
+      volumes,
       imageHistory,
       isConnected,
       dockerAvailable,
@@ -973,6 +1038,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       loading,
       imagesLoading,
       networksLoading,
+      volumesLoading,
       error,
       isStatsStreaming,
       showTerminals,
@@ -983,8 +1049,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       requestContainers,
       requestImages,
       requestNetworks,
+      requestVolumes,
       handleImageRemove,
       handleNetworkRemove,
+      handleVolumeRemove,
+      handleVolumesPrune,
       handleContainerNetworkConnect,
       handleContainerNetworkDisconnect,
       getImageHistory,
