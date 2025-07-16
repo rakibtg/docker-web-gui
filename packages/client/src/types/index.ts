@@ -46,6 +46,22 @@ export interface DockerNetwork {
   };
 }
 
+export interface DockerVolume {
+  name: string;
+  driver: string;
+  mountpoint: string;
+  created: string;
+  labels: Record<string, string>;
+  options: Record<string, string>;
+  scope: string;
+  size?: string;
+  usedBy?: Array<{
+    containerId: string;
+    containerName: string;
+    mountPath: string;
+  }>;
+}
+
 export interface DockerStats {
   id: string;
   name: string;
