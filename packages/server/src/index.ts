@@ -793,29 +793,13 @@ wss.on("connection", function connection(ws) {
           }
           break;
 
-        case "remove-network":
+        case "get-volumes":
           try {
-            const { networkId, networkName } = parsedMessage;
-            if (!networkId) {
-              throw new Error("Network ID is required");
-            }
-
-            await dockerService.removeDockerNetwork(networkId);
-
-            // Broadcast success to all clients
-            broadcastToAllClients({
-              type: "network-removed",
-              data: { networkId, networkName },
-              timestamp: new Date().toISOString(),
-            });
-
+            const volumes = await dockerService.getDockerVolumes();
             ws.send(
               JSON.stringify({
-                type: "network-remove-result",
-                success: true,
-                message: `Network "${
-                  networkName || networkId
-                }" removed successfully`,
+                type: "volumes-result",
+                data: volumes,
                 timestamp: new Date().toISOString(),
               })
             );
@@ -826,39 +810,33 @@ wss.on("connection", function connection(ws) {
                 message:
                   error instanceof Error
                     ? error.message
-                    : "Failed to remove network",
+                    : "Failed to get Docker volumes",
               })
             );
           }
           break;
 
-        case "connect-container-to-network":
+        case "remove-volume":
           try {
-            const { networkId, containerId, containerName, networkName } =
-              parsedMessage;
-            if (!networkId || !containerId) {
-              throw new Error("Network ID and Container ID are required");
+            const { volumeName } = parsedMessage;
+            if (!volumeName) {
+              throw new Error("Volume name is required");
             }
 
-            await dockerService.connectContainerToNetwork(
-              networkId,
-              containerId
-            );
+            await dockerService.removeDockerVolume(volumeName);
 
             // Broadcast success to all clients
             broadcastToAllClients({
-              type: "container-connected-to-network",
-              data: { networkId, containerId, containerName, networkName },
+              type: "volume-removed",
+              data: { volumeName },
               timestamp: new Date().toISOString(),
             });
 
             ws.send(
               JSON.stringify({
-                type: "container-network-connect-result",
+                type: "volume-remove-result",
                 success: true,
-                message: `Container "${
-                  containerName || containerId
-                }" connected to network "${networkName || networkId}"`,
+                message: `Volume "${volumeName}" removed successfully`,
                 timestamp: new Date().toISOString(),
               })
             );
@@ -869,39 +847,29 @@ wss.on("connection", function connection(ws) {
                 message:
                   error instanceof Error
                     ? error.message
-                    : "Failed to connect container to network",
+                    : "Failed to remove volume",
               })
             );
           }
           break;
 
-        case "disconnect-container-from-network":
+        case "prune-volumes":
           try {
-            const { networkId, containerId, containerName, networkName } =
-              parsedMessage;
-            if (!networkId || !containerId) {
-              throw new Error("Network ID and Container ID are required");
-            }
-
-            await dockerService.disconnectContainerFromNetwork(
-              networkId,
-              containerId
-            );
+            const result = await dockerService.pruneDockerVolumes();
 
             // Broadcast success to all clients
             broadcastToAllClients({
-              type: "container-disconnected-from-network",
-              data: { networkId, containerId, containerName, networkName },
+              type: "volumes-pruned",
+              data: result,
               timestamp: new Date().toISOString(),
             });
 
             ws.send(
               JSON.stringify({
-                type: "container-network-disconnect-result",
+                type: "volumes-prune-result",
                 success: true,
-                message: `Container "${
-                  containerName || containerId
-                }" disconnected from network "${networkName || networkId}"`,
+                data: result,
+                message: `Pruned ${result.deletedVolumes.length} volumes, reclaimed ${result.reclaimedSpace}`,
                 timestamp: new Date().toISOString(),
               })
             );
@@ -912,7 +880,7 @@ wss.on("connection", function connection(ws) {
                 message:
                   error instanceof Error
                     ? error.message
-                    : "Failed to disconnect container from network",
+                    : "Failed to prune volumes",
               })
             );
           }
