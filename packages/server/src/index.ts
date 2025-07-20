@@ -816,6 +816,36 @@ wss.on("connection", function connection(ws) {
           }
           break;
 
+        case "get-volume-details":
+          try {
+            const { volumeName } = parsedMessage;
+            if (!volumeName) {
+              throw new Error("Volume name is required");
+            }
+
+            const volumeDetails = await dockerService.getDockerVolumeDetails(
+              volumeName
+            );
+            ws.send(
+              JSON.stringify({
+                type: "volume-details-result",
+                data: volumeDetails,
+                timestamp: new Date().toISOString(),
+              })
+            );
+          } catch (error) {
+            ws.send(
+              JSON.stringify({
+                type: "error",
+                message:
+                  error instanceof Error
+                    ? error.message
+                    : "Failed to get Docker volume details",
+              })
+            );
+          }
+          break;
+
         case "remove-volume":
           try {
             const { volumeName } = parsedMessage;
