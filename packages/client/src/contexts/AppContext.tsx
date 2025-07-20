@@ -100,6 +100,7 @@ interface AppContextType {
   requestImages: () => void;
   requestNetworks: () => void;
   requestVolumes: () => void;
+  requestVolumeDetails: (volumeName: string) => void;
   handleImageRemove: (imageId: string, force?: boolean) => void;
   handleNetworkRemove: (networkId: string, networkName?: string) => void;
   handleVolumeRemove: (volumeName: string) => void;
@@ -260,6 +261,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setError("Cannot send request - not connected to server");
     }
   }, [sendMessage]);
+
+  // Function to request specific volume details
+  const requestVolumeDetails = useCallback(
+    (volumeName: string) => {
+      setVolumesLoading(true);
+      setError("");
+      const sent = sendMessage({ type: "get-volume-details", volumeName });
+      if (!sent) {
+        setVolumesLoading(false);
+        setError("Cannot send request - not connected to server");
+      }
+    },
+    [sendMessage]
+  );
 
   // Function to remove an image
   const handleImageRemove = useCallback(
@@ -755,6 +770,28 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
               setVolumesLoading(false);
               break;
 
+            case "volume-details-result":
+              if (message.data) {
+                // Update the single volume in the volumes array
+                setVolumes((currentVolumes) => {
+                  const volumeIndex = currentVolumes.findIndex(
+                    (v) => v.name === message.data.name
+                  );
+                  if (volumeIndex >= 0) {
+                    // Update existing volume
+                    const newVolumes = [...currentVolumes];
+                    newVolumes[volumeIndex] = message.data;
+                    return newVolumes;
+                  } else {
+                    // Add new volume if it doesn't exist
+                    return [...currentVolumes, message.data];
+                  }
+                });
+                setLastUpdate(message.timestamp || new Date().toISOString());
+              }
+              setVolumesLoading(false);
+              break;
+
             case "volume-remove-result":
               console.log("Volume remove result:", message);
               if (message.success && ws.readyState === WebSocket.OPEN) {
@@ -1008,6 +1045,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       requestImages,
       requestNetworks,
       requestVolumes,
+      requestVolumeDetails,
       handleImageRemove,
       handleNetworkRemove,
       handleVolumeRemove,
@@ -1050,6 +1088,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       requestImages,
       requestNetworks,
       requestVolumes,
+      requestVolumeDetails,
       handleImageRemove,
       handleNetworkRemove,
       handleVolumeRemove,
