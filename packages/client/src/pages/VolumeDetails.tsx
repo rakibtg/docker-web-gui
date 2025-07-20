@@ -19,24 +19,64 @@ import { ConfirmationModal } from "../components/ConfirmationModal";
 
 const VolumeDetails = memo(function VolumeDetails() {
   const { getParam, navigate } = useRouter();
-  const { volumes, handleVolumeRemove, requestVolumes } = useApp();
+  const {
+    volumes,
+    volumesLoading,
+    handleVolumeRemove,
+    requestVolumeDetails,
+    isConnected,
+  } = useApp();
   const [volume, setVolume] = useState<DockerVolume | null>(null);
   const [showRemoveModal, setShowRemoveModal] = useState(false);
   const [isRemoving, setIsRemoving] = useState(false);
+  const [isLoadingVolumeDetails, setIsLoadingVolumeDetails] = useState(false);
+  const [volumeNotFound, setVolumeNotFound] = useState(false);
 
   const volumeId = getParam("volumeId");
 
   useEffect(() => {
     if (volumeId) {
       const foundVolume = volumes.find((v) => v.name === volumeId);
-      setVolume(foundVolume || null);
-
-      // If volume not found in current list, refresh volumes
-      if (!foundVolume && volumes.length === 0) {
-        requestVolumes();
+      if (foundVolume) {
+        setVolume(foundVolume);
+        setVolumeNotFound(false);
+        setIsLoadingVolumeDetails(false);
+      } else if (!isLoadingVolumeDetails && !volumesLoading) {
+        // Only set not found if we're not currently loading
+        setVolumeNotFound(true);
       }
     }
-  }, [volumeId, volumes, requestVolumes]);
+  }, [volumeId, volumes, isLoadingVolumeDetails, volumesLoading]);
+
+  // Initial load effect - request volume details when component mounts or volumeId changes
+  useEffect(() => {
+    if (volumeId && !volume && isConnected) {
+      setIsLoadingVolumeDetails(true);
+      setVolumeNotFound(false);
+      requestVolumeDetails(volumeId);
+    }
+  }, [volumeId, requestVolumeDetails, volume, isConnected]);
+
+  // Handle timeout for loading
+  useEffect(() => {
+    if (isLoadingVolumeDetails) {
+      const timeout = setTimeout(() => {
+        setIsLoadingVolumeDetails(false);
+        if (!volume) {
+          setVolumeNotFound(true);
+        }
+      }, 10000); // 10 second timeout
+
+      return () => clearTimeout(timeout);
+    }
+  }, [isLoadingVolumeDetails, volume]);
+
+  // Reset loading state when volumesLoading changes
+  useEffect(() => {
+    if (!volumesLoading && isLoadingVolumeDetails) {
+      setIsLoadingVolumeDetails(false);
+    }
+  }, [volumesLoading, isLoadingVolumeDetails]);
 
   const handleBackClick = () => {
     navigate({ page: "volumes" });
@@ -116,7 +156,7 @@ const VolumeDetails = memo(function VolumeDetails() {
     );
   }
 
-  if (!volume) {
+  if (!volume && (volumesLoading || isLoadingVolumeDetails || !isConnected)) {
     return (
       <div className="space-y-4 lg:space-y-6 p-3 sm:p-4 lg:p-6">
         <div className="border-b border-gray-200 dark:border-gray-700 pb-4">
@@ -124,17 +164,55 @@ const VolumeDetails = memo(function VolumeDetails() {
             Loading Volume
           </h1>
           <p className="mt-2 text-gray-600 dark:text-gray-400 text-sm lg:text-base">
-            Please wait while we load the volume details...
+            {!isConnected
+              ? "Connecting to server..."
+              : "Please wait while we load the volume details..."}
           </p>
         </div>
         <div className="text-center py-8 lg:py-16">
           <div className="animate-spin rounded-full h-8 w-8 lg:h-12 lg:w-12 border-b-2 border-blue-600 mb-4 mx-auto"></div>
           <p className="text-gray-600 dark:text-gray-400 text-sm lg:text-base">
-            Loading volume details...
+            {!isConnected
+              ? "Establishing connection..."
+              : "Loading volume details..."}
           </p>
         </div>
       </div>
     );
+  }
+
+  if (!volume && volumeNotFound) {
+    return (
+      <div className="space-y-4 lg:space-y-6 p-3 sm:p-4 lg:p-6">
+        <div className="flex items-center mb-4 lg:mb-6">
+          <button
+            onClick={handleBackClick}
+            className="flex items-center text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors mr-4"
+          >
+            <FaArrowLeft className="w-4 h-4 mr-2" />
+            Back to Volumes
+          </button>
+        </div>
+        <div className="text-center py-8 lg:py-16">
+          <h1 className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+            Volume Not Found
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 text-sm lg:text-base">
+            The requested volume "{volumeId}" could not be found.
+          </p>
+          <button
+            onClick={handleBackClick}
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+          >
+            Back to Volumes
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!volume) {
+    return null; // This should not happen based on the logic above, but keeps TypeScript happy
   }
 
   const isInUse = volume.usedBy && volume.usedBy.length > 0;
@@ -142,257 +220,242 @@ const VolumeDetails = memo(function VolumeDetails() {
 
   return (
     <>
-      <div className="space-y-4 lg:space-y-6 p-3 sm:p-4 lg:p-6">
-        {/* Header */}
-        <div className="border-b border-gray-200 dark:border-gray-700 pb-4">
-          <div className="flex flex-col gap-4">
-            {/* Top row with back button and title */}
-            <div className="flex items-start gap-3">
-              <button
-                onClick={handleBackClick}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors flex-shrink-0 mt-1"
-                title="Back to volumes"
-              >
-                <FaArrowLeft className="w-4 h-4" />
-              </button>
-              <div className="flex-1 min-w-0">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
-                  <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                    <FaCircle
-                      className={`${
-                        isInUse ? "text-green-400" : "text-gray-400"
-                      } flex-shrink-0`}
-                      size={10}
-                    />
-                    <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 dark:text-gray-100 truncate">
-                      {volume.name}
-                    </h1>
-                  </div>
-                  <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-xs sm:text-sm rounded self-start flex-shrink-0">
-                    {isInUse ? "In Use" : "Unused"}
-                  </span>
-                </div>
-                <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
-                  Docker volume details and configuration
-                </p>
+      <div className="p-3 sm:p-4 md:p-6 max-w-7xl mx-auto">
+        {/* Compact Header */}
+        <div className="mb-4 sm:mb-6">
+          <div className="flex items-center gap-3 mb-3">
+            <button
+              onClick={handleBackClick}
+              className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
+              title="Back to volumes"
+            >
+              <FaArrowLeft className="w-4 h-4" />
+            </button>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <FaCircle
+                  className={`${isInUse ? "text-green-400" : "text-gray-400"}`}
+                  size={8}
+                />
+                <h1 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 truncate">
+                  {volume.name}
+                </h1>
+                <span
+                  className={`px-2 py-0.5 text-xs rounded-full ${
+                    isInUse
+                      ? "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200"
+                      : "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
+                  }`}
+                >
+                  {isInUse ? "In Use" : "Unused"}
+                </span>
+                {!isInUse && (
+                  <button
+                    onClick={handleRemoveClick}
+                    disabled={isRemoving}
+                    className="ml-auto px-2 py-1 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white rounded text-xs transition-colors flex items-center gap-1"
+                  >
+                    <FaTrash className="w-3 h-3" />
+                    <span className="hidden sm:inline">
+                      {isRemoving ? "Removing..." : "Remove"}
+                    </span>
+                  </button>
+                )}
               </div>
             </div>
-
-            {/* Action button row */}
-            {!isInUse && (
-              <div className="flex justify-start pl-14 sm:pl-0">
-                <button
-                  onClick={handleRemoveClick}
-                  disabled={isRemoving}
-                  className="px-3 py-2 sm:px-4 sm:py-2 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white rounded-lg transition-colors flex items-center gap-2 text-sm"
-                >
-                  <FaTrash className="w-3 h-3 sm:w-4 sm:h-4" />
-                  <span className="sm:hidden">
-                    {isRemoving ? "Removing..." : "Remove"}
-                  </span>
-                  <span className="hidden sm:inline">
-                    {isRemoving ? "Removing..." : "Remove Volume"}
-                  </span>
-                </button>
-              </div>
-            )}
           </div>
         </div>
 
-        {/* Volume Information */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
-          {/* Basic Information */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 lg:p-6">
-            <h2 className="text-base lg:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
-              <FaServer className="text-blue-500 flex-shrink-0" size={16} />
-              <span>Basic Information</span>
-            </h2>
-            <div className="space-y-4">
-              {" "}
-              <div className="grid grid-cols-1 gap-4">
+        {/* Compact Information Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-6">
+          {/* Basic Info Card */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-3 sm:p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <FaServer className="text-blue-500" size={14} />
+              <h3 className="font-medium text-gray-900 dark:text-gray-100 text-sm">
+                Basic Info
+              </h3>
+            </div>
+            <div className="space-y-2">
+              <div className="grid grid-cols-2 gap-2 text-xs">
                 <div>
-                  <label className="block text-xs lg:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Volume Name
-                  </label>
-                  <p className="text-sm text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-700 px-3 py-2 rounded break-all">
-                    {volume.name}
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs lg:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Driver
-                    </label>
-                    <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-700 px-3 py-2 rounded">
-                      {getDriverIcon(volume.driver)}
-                      <span className="text-sm text-gray-900 dark:text-gray-100">
-                        {volume.driver}
-                      </span>
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-xs lg:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Scope
-                    </label>
-                    <p className="text-sm text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-700 px-3 py-2 rounded">
-                      {volume.scope}
-                    </p>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs lg:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Size
-                  </label>
-                  <p className="text-sm text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-700 px-3 py-2 rounded">
-                    {volume.size || "Unknown"}
-                  </p>
-                </div>
-
-                <div>
-                  <label className="block text-xs lg:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Created
-                  </label>
-                  <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-700 px-3 py-2 rounded">
-                    <FaClock
-                      className="text-blue-400 flex-shrink-0"
-                      size={14}
-                    />
-                    <span className="text-sm text-gray-900 dark:text-gray-100 break-all">
-                      {formatDate(volume.created)}
+                  <span className="text-gray-600 dark:text-gray-400 block">
+                    Driver
+                  </span>
+                  <div className="flex items-center gap-1 mt-0.5">
+                    {getDriverIcon(volume.driver)}
+                    <span className="text-gray-900 dark:text-gray-100">
+                      {volume.driver}
                     </span>
                   </div>
                 </div>
+                <div>
+                  <span className="text-gray-600 dark:text-gray-400 block">
+                    Scope
+                  </span>
+                  <span className="text-gray-900 dark:text-gray-100 block mt-0.5">
+                    {volume.scope}
+                  </span>
+                </div>
+              </div>
+              <div className="text-xs">
+                <span className="text-gray-600 dark:text-gray-400 block">
+                  Size
+                </span>
+                <span className="text-gray-900 dark:text-gray-100 block mt-0.5">
+                  {volume.size || "Unknown"}
+                </span>
               </div>
             </div>
           </div>
 
-          {/* Mount Information */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 lg:p-6">
-            <h2 className="text-base lg:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
-              <FaFolder className="text-green-500 flex-shrink-0" size={16} />
-              <span>Mount Information</span>
-            </h2>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-xs lg:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          {/* Mount Info Card */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-3 sm:p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <FaFolder className="text-green-500" size={14} />
+              <h3 className="font-medium text-gray-900 dark:text-gray-100 text-sm">
+                Mount Info
+              </h3>
+            </div>
+            <div className="space-y-2">
+              <div className="text-xs">
+                <span className="text-gray-600 dark:text-gray-400 block">
                   Mount Point
-                </label>
-                <p className="text-sm text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-700 px-3 py-2 rounded font-mono break-all">
+                </span>
+                <span className="text-gray-900 dark:text-gray-100 font-mono text-xs block mt-0.5 break-all">
                   {volume.mountpoint || "Unknown"}
-                </p>
+                </span>
               </div>
-              <div>
-                <label className="block text-xs lg:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Usage Status
-                </label>
-                <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-700 px-3 py-2 rounded">
+              <div className="text-xs">
+                <span className="text-gray-600 dark:text-gray-400 block">
+                  Status
+                </span>
+                <div className="flex items-center gap-1 mt-0.5">
                   <BsCircleFill
                     className={`${
                       isInUse ? "text-green-400" : "text-gray-400"
-                    } flex-shrink-0`}
-                    size={8}
+                    }`}
+                    size={6}
                   />
-                  <span className="text-sm text-gray-900 dark:text-gray-100">
-                    {isInUse
-                      ? `Used by ${usedByCount} container(s)`
-                      : "Not in use"}
+                  <span className="text-gray-900 dark:text-gray-100">
+                    {isInUse ? `${usedByCount} container(s)` : "Not in use"}
                   </span>
                 </div>
               </div>
             </div>
           </div>
+
+          {/* Created Info Card */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-3 sm:p-4 md:col-span-2 xl:col-span-1">
+            <div className="flex items-center gap-2 mb-3">
+              <FaClock className="text-blue-400" size={14} />
+              <h3 className="font-medium text-gray-900 dark:text-gray-100 text-sm">
+                Created
+              </h3>
+            </div>
+            <div className="text-xs">
+              <span className="text-gray-900 dark:text-gray-100 block">
+                {formatDate(volume.created)}
+              </span>
+            </div>
+          </div>
         </div>
 
-        {/* Driver Options */}
-        {Object.keys(volume.options || {}).length > 0 && (
-          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 lg:p-6">
-            <h2 className="text-base lg:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
-              <FaServer className="text-purple-500 flex-shrink-0" size={16} />
-              <span>Driver Options</span>
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 lg:gap-4">
-              {Object.entries(volume.options || {}).map(([key, value]) => (
-                <div
-                  key={key}
-                  className="bg-gray-50 dark:bg-gray-700 p-3 rounded"
-                >
-                  <label className="block text-xs lg:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    {key}
-                  </label>
-                  <p className="text-sm text-gray-900 dark:text-gray-100 break-all">
-                    {value}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Labels */}
-        {Object.keys(volume.labels || {}).length > 0 && (
-          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 lg:p-6">
-            <h2 className="text-base lg:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
-              <FaTag className="text-orange-500 flex-shrink-0" size={16} />
-              <span>Labels</span>
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 lg:gap-4">
-              {Object.entries(volume.labels || {}).map(([key, value]) => (
-                <div
-                  key={key}
-                  className="bg-gray-50 dark:bg-gray-700 p-3 rounded"
-                >
-                  <label className="block text-xs lg:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    {key}
-                  </label>
-                  <p className="text-sm text-gray-900 dark:text-gray-100 break-all">
-                    {value}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Connected Containers */}
-        {isInUse && (
-          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 lg:p-6">
-            <h2 className="text-base lg:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
-              <FaDocker className="text-blue-500 flex-shrink-0" size={16} />
-              <span>Connected Containers ({usedByCount})</span>
-            </h2>
-            <div className="space-y-3 lg:space-y-4">
-              {volume.usedBy?.map((usage, index) => (
-                <div
-                  key={index}
-                  className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 p-3 lg:p-4 rounded-lg"
-                >
-                  <div className="flex flex-col gap-3">
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-blue-900 dark:text-blue-200 break-all text-sm lg:text-base">
-                        {usage.containerName}
-                      </h3>
-                      <p className="text-xs lg:text-sm text-blue-700 dark:text-blue-300 break-all mt-1">
-                        Container ID: {usage.containerId}
-                      </p>
-                    </div>
-                    {usage.mountPath && (
-                      <div className="border-t border-blue-200 dark:border-blue-700 pt-3">
-                        <label className="block text-xs font-medium text-blue-700 dark:text-blue-300 mb-1">
-                          Mount Path
-                        </label>
-                        <p className="text-xs lg:text-sm text-blue-900 dark:text-blue-200 font-mono bg-blue-100 dark:bg-blue-800 px-2 py-1 rounded break-all">
-                          {usage.mountPath}
-                        </p>
-                      </div>
-                    )}
+        {/* Additional Sections - Only show if they have content */}
+        <div className="space-y-3 sm:space-y-4">
+          {/* Driver Options */}
+          {Object.keys(volume.options || {}).length > 0 && (
+            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-3 sm:p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <FaServer className="text-purple-500" size={14} />
+                <h3 className="font-medium text-gray-900 dark:text-gray-100 text-sm">
+                  Driver Options
+                </h3>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
+                {Object.entries(volume.options || {}).map(([key, value]) => (
+                  <div
+                    key={key}
+                    className="bg-gray-50 dark:bg-gray-700 p-2 rounded text-xs"
+                  >
+                    <span className="text-gray-600 dark:text-gray-400 block font-medium">
+                      {key}
+                    </span>
+                    <span className="text-gray-900 dark:text-gray-100 block mt-0.5 break-all">
+                      {value}
+                    </span>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
-        )}
+          )}
+
+          {/* Labels */}
+          {Object.keys(volume.labels || {}).length > 0 && (
+            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-3 sm:p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <FaTag className="text-orange-500" size={14} />
+                <h3 className="font-medium text-gray-900 dark:text-gray-100 text-sm">
+                  Labels
+                </h3>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
+                {Object.entries(volume.labels || {}).map(([key, value]) => (
+                  <div
+                    key={key}
+                    className="bg-gray-50 dark:bg-gray-700 p-2 rounded text-xs"
+                  >
+                    <span className="text-gray-600 dark:text-gray-400 block font-medium">
+                      {key}
+                    </span>
+                    <span className="text-gray-900 dark:text-gray-100 block mt-0.5 break-all">
+                      {value}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Connected Containers */}
+          {isInUse && (
+            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-3 sm:p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <FaDocker className="text-blue-500" size={14} />
+                <h3 className="font-medium text-gray-900 dark:text-gray-100 text-sm">
+                  Connected Containers ({usedByCount})
+                </h3>
+              </div>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
+                {volume.usedBy?.map((usage, index) => (
+                  <div
+                    key={index}
+                    className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 p-3 rounded"
+                  >
+                    <div className="text-sm">
+                      <div className="font-medium text-blue-900 dark:text-blue-200 break-all">
+                        {usage.containerName}
+                      </div>
+                      <div className="text-xs text-blue-700 dark:text-blue-300 break-all mt-1">
+                        ID: {usage.containerId}
+                      </div>
+                      {usage.mountPath && (
+                        <div className="mt-2 pt-2 border-t border-blue-200 dark:border-blue-700">
+                          <span className="text-xs text-blue-700 dark:text-blue-300 block">
+                            Mount Path
+                          </span>
+                          <span className="text-xs text-blue-900 dark:text-blue-200 font-mono bg-blue-100 dark:bg-blue-800 px-1 py-0.5 rounded break-all block mt-0.5">
+                            {usage.mountPath}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       <ConfirmationModal
