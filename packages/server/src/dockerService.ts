@@ -946,4 +946,92 @@ export class DockerService extends EventEmitter {
       throw new Error(`Failed to prune volumes: ${error.message}`);
     }
   }
+
+  // Function to get specific Docker volume details
+  async getDockerVolumeDetails(volumeName: string): Promise<any> {
+    try {
+      // First check if volume exists
+      const { stdout: volumeExists } = await execAsync(
+        `docker volume ls --format "{{.Name}}" --filter name=${volumeName}`
+      );
+
+      if (!volumeExists.trim()) {
+        throw new Error(`Volume "${volumeName}" not found`);
+      }
+
+      // Get detailed volume info
+      const { stdout: volumeInfo } = await execAsync(
+        `docker volume inspect ${volumeName}`
+      );
+
+      const volumeDetails = JSON.parse(volumeInfo)[0];
+
+      // Get containers using this volume
+      const { stdout: containerList } = await execAsync(
+        `docker ps -a --format "{{.ID}}|{{.Names}}" --filter volume=${volumeName}`
+      );
+
+      const usedBy = [];
+      if (containerList.trim()) {
+        const containerLines = containerList.trim().split("\n");
+        for (const containerLine of containerLines) {
+          const [containerId, containerName] = containerLine.split("|");
+
+          // Get mount information for this container
+          try {
+            const { stdout: mountInfo } = await execAsync(
+              `docker inspect ${containerId} --format "{{json .Mounts}}"`
+            );
+
+            const mounts = JSON.parse(mountInfo);
+            const volumeMounts = mounts.filter(
+              (mount: any) => mount.Name === volumeName
+            );
+
+            for (const mount of volumeMounts) {
+              usedBy.push({
+                containerId,
+                containerName,
+                mountPath: mount.Destination || "",
+              });
+            }
+          } catch (err) {
+            console.warn(
+              `Could not get mount info for container ${containerId}:`,
+              err
+            );
+          }
+        }
+      }
+
+      // Get volume size (approximate)
+      let size = "Unknown";
+      try {
+        const { stdout: sizeInfo } = await execAsync(
+          `du -sh "${volumeDetails.Mountpoint}" 2>/dev/null || echo "Unknown"`
+        );
+        size = sizeInfo.trim().split("\t")[0] || "Unknown";
+      } catch (err) {
+        // Size calculation might fail due to permissions
+      }
+
+      return {
+        name: volumeDetails.Name,
+        driver: volumeDetails.Driver,
+        mountpoint: volumeDetails.Mountpoint,
+        created: volumeDetails.CreatedAt,
+        labels: volumeDetails.Labels || {},
+        options: volumeDetails.Options || {},
+        scope: volumeDetails.Scope,
+        size,
+        usedBy,
+      };
+    } catch (error: any) {
+      console.error(
+        `Error getting Docker volume details for ${volumeName}:`,
+        error
+      );
+      throw new Error(`Failed to get volume details: ${error.message}`);
+    }
+  }
 }
