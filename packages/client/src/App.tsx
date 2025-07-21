@@ -10,7 +10,7 @@ import {
 } from "./pages";
 
 import { useRouter } from "./hooks/useRouter";
-import { AppProvider } from "./contexts/AppContext";
+import { AppProvider } from "./contexts";
 import Sidebar from "./components/Sidebar";
 
 function AppContent() {
