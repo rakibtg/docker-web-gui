@@ -41,26 +41,54 @@ const VolumeDetails = memo(function VolumeDetails() {
         setVolume(foundVolume);
         setVolumeNotFound(false);
         setIsLoadingVolumeDetails(false);
-      } else if (!isLoadingVolumeDetails && !volumesLoading) {
-        // Only set not found if we're not currently loading
+      } else if (!isLoadingVolumeDetails && !volumesLoading && isConnected) {
+        // Only set not found if we're not currently loading AND we're connected
+        // This prevents showing "not found" when we haven't tried to load yet
         setVolumeNotFound(true);
       }
     }
-  }, [volumeId, volumes, isLoadingVolumeDetails, volumesLoading]);
+  }, [volumeId, volumes, isLoadingVolumeDetails, volumesLoading, isConnected]);
+
+  // Reset states when volumeId changes
+  useEffect(() => {
+    if (volumeId) {
+      setVolumeNotFound(false);
+      setIsLoadingVolumeDetails(false);
+      setVolume(null);
+    }
+  }, [volumeId]);
 
   // Initial load effect - request volume details when component mounts or volumeId changes
   useEffect(() => {
-    if (volumeId && !volume && isConnected) {
+    if (volumeId && !volume && isConnected && !isLoadingVolumeDetails) {
       setIsLoadingVolumeDetails(true);
       setVolumeNotFound(false);
+      console.log(`Requesting volume details for: ${volumeId}`);
       requestVolumeDetails(volumeId);
     }
-  }, [volumeId, requestVolumeDetails, volume, isConnected]);
+  }, [volumeId, requestVolumeDetails, volume, isConnected, isLoadingVolumeDetails]);
+
+  // Additional effect to handle connection changes - request volume details when connected
+  useEffect(() => {
+    if (
+      volumeId &&
+      isConnected &&
+      !volume &&
+      !isLoadingVolumeDetails &&
+      !volumesLoading
+    ) {
+      setIsLoadingVolumeDetails(true);
+      setVolumeNotFound(false);
+      console.log(`Requesting volume details on connection for: ${volumeId}`);
+      requestVolumeDetails(volumeId);
+    }
+  }, [isConnected, volumeId, volume, requestVolumeDetails, isLoadingVolumeDetails, volumesLoading]);
 
   // Handle timeout for loading
   useEffect(() => {
     if (isLoadingVolumeDetails) {
       const timeout = setTimeout(() => {
+        console.log(`Volume details request timed out for: ${volumeId}`);
         setIsLoadingVolumeDetails(false);
         if (!volume) {
           setVolumeNotFound(true);
@@ -69,7 +97,7 @@ const VolumeDetails = memo(function VolumeDetails() {
 
       return () => clearTimeout(timeout);
     }
-  }, [isLoadingVolumeDetails, volume]);
+  }, [isLoadingVolumeDetails, volume, volumeId]);
 
   // Reset loading state when volumesLoading changes
   useEffect(() => {
