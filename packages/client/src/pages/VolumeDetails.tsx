@@ -1,5 +1,5 @@
 import { memo, useEffect, useState } from "react";
-import { useRouter } from "../hooks/useRouter";
+import { useParams, useNavigate } from "react-router-dom";
 import { useApp } from "../hooks/useApp";
 import type { DockerVolume } from "../types";
 import {
@@ -18,7 +18,8 @@ import { BsCircleFill } from "react-icons/bs";
 import { ConfirmationModal } from "../components/ConfirmationModal";
 
 const VolumeDetails = memo(function VolumeDetails() {
-  const { getParam, navigate } = useRouter();
+  const { volumeId } = useParams<{ volumeId: string }>();
+  const navigate = useNavigate();
   const {
     volumes,
     volumesLoading,
@@ -31,8 +32,6 @@ const VolumeDetails = memo(function VolumeDetails() {
   const [isRemoving, setIsRemoving] = useState(false);
   const [isLoadingVolumeDetails, setIsLoadingVolumeDetails] = useState(false);
   const [volumeNotFound, setVolumeNotFound] = useState(false);
-
-  const volumeId = getParam("volumeId");
 
   useEffect(() => {
     if (volumeId) {
@@ -107,7 +106,7 @@ const VolumeDetails = memo(function VolumeDetails() {
   }, [volumesLoading, isLoadingVolumeDetails]);
 
   const handleBackClick = () => {
-    navigate({ page: "volumes" });
+    navigate("/volumes");
   };
 
   const handleRemoveClick = () => {
@@ -121,7 +120,7 @@ const VolumeDetails = memo(function VolumeDetails() {
       setShowRemoveModal(false);
       // Navigate back to volumes page after removal
       setTimeout(() => {
-        navigate({ page: "volumes" });
+        navigate("/volumes");
       }, 1000);
     }
   };
