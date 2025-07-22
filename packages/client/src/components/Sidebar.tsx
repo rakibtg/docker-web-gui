@@ -1,4 +1,5 @@
 import { useState, memo, useCallback } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   HiGlobeAlt,
   HiDatabase,
@@ -14,7 +15,6 @@ import { Tooltip } from "react-tooltip";
 import { LuLayers3 } from "react-icons/lu";
 import { FiBox } from "react-icons/fi";
 
-import { useRouter } from "../hooks/useRouter";
 import logo from "../assets/docker-web-gui-logo.png";
 
 interface SidebarItem {
@@ -67,10 +67,11 @@ const bottomItems: SidebarItem[] = [
 function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const { getParam, updateParam } = useRouter();
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  // Get current page from router
-  const currentPage = getParam("page") || "containers"; // Default to containers
+  // Get current page from location pathname
+  const currentPage = location.pathname.slice(1) || "containers"; // Remove leading slash
 
   const toggleCollapse = useCallback(() => {
     setIsCollapsed(!isCollapsed);
@@ -83,10 +84,10 @@ function Sidebar() {
   // Handle navigation
   const handleNavigation = useCallback(
     (pageId: string) => {
-      updateParam("page", pageId);
+      navigate(`/${pageId}`);
       setIsMobileOpen(false); // Close mobile menu when navigating
     },
-    [updateParam]
+    [navigate]
   );
 
   const SidebarContent = () => (
