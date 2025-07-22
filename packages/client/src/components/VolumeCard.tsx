@@ -1,8 +1,8 @@
 import { memo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import type { DockerVolume } from "../types";
 import { ConfirmationModal } from "./ConfirmationModal";
 import { useApp } from "../hooks/useApp";
-import { useRouter } from "../hooks/useRouter";
 import {
   FaTrash,
   FaHdd,
@@ -40,7 +40,7 @@ interface VolumeCardProps {
 
 const VolumeCard = memo(function VolumeCard({ volume }: VolumeCardProps) {
   const { handleVolumeRemove } = useApp();
-  const { navigate } = useRouter();
+  const navigate = useNavigate();
   const [showRemoveModal, setShowRemoveModal] = useState(false);
   const [isRemoving, setIsRemoving] = useState(false);
 
@@ -57,7 +57,7 @@ const VolumeCard = memo(function VolumeCard({ volume }: VolumeCardProps) {
   };
 
   const handleViewMore = () => {
-    navigate({ page: "volume-details", volumeId: volume.name });
+    navigate(`/volumes/${volume.name}`);
   };
 
   const getDriverIcon = (driver: string) => {
