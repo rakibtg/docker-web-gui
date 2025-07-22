@@ -1,3 +1,4 @@
+import { Routes, Route, Navigate } from "react-router-dom";
 import {
   Dashboard,
   ContainersPage,
@@ -9,42 +10,29 @@ import {
   About,
 } from "./pages";
 
-import { useRouter } from "./hooks/useRouter";
 import { AppProvider } from "./contexts";
 import Sidebar from "./components/Sidebar";
 
 function AppContent() {
-  const { getParam } = useRouter();
-  const currentPage = getParam("page") || "containers";
-
-  const renderCurrentPage = () => {
-    switch (currentPage) {
-      case "dashboard":
-        return <Dashboard />;
-      case "containers":
-        return <ContainersPage />;
-      case "images":
-        return <Images />;
-      case "networks":
-        return <Networks />;
-      case "volumes":
-        return <Volumes />;
-      case "volume-details":
-        return <VolumeDetails />;
-      case "settings":
-        return <Settings />;
-      case "about":
-        return <About />;
-      default:
-        return <ContainersPage />;
-    }
-  };
-
   return (
     <div className="min-h-screen bg-theme-primary transition-colors flex">
       <Sidebar />
       <div className="flex-grow shrink-0 overflow-hidden">
-        <main className="h-full">{renderCurrentPage()}</main>
+        <main className="h-full">
+          <Routes>
+            <Route path="/" element={<Navigate to="/containers" replace />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/containers" element={<ContainersPage />} />
+            <Route path="/images" element={<Images />} />
+            <Route path="/networks" element={<Networks />} />
+            <Route path="/volumes" element={<Volumes />} />
+            <Route path="/volumes/:volumeId" element={<VolumeDetails />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/about" element={<About />} />
+            {/* Fallback to containers for any unknown routes */}
+            <Route path="*" element={<Navigate to="/containers" replace />} />
+          </Routes>
+        </main>
       </div>
     </div>
   );
