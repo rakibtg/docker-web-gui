@@ -1,7 +1,7 @@
 import { useApp } from "../hooks/useApp";
 import { ContainerCard } from "./ContainerCard";
 import { ContainerFilters } from "./ContainerFilters";
-import { useContainerFilterStatus } from "../hooks/useRouter";
+import { useContainerFilterStatus } from "../hooks/useContainerFilters";
 import type { ContainerWithStats } from "../types";
 import { MdRefresh } from "react-icons/md";
 import { filterContainers } from "../helpers/filterContainers";
