@@ -119,4 +119,5 @@ export interface AppContextType {
   addLogs: (containerId: string, containerName: string) => void;
   removeTerminal: (terminalId: string) => void;
   closeTerminal: (terminalId: string) => void;
+  closeAllTerminals: () => void;
 }

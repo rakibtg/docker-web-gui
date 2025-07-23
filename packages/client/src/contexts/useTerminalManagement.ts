@@ -103,10 +103,39 @@ export function useTerminalManagement({
     ]
   );
 
+  const closeAllTerminals = useCallback(() => {
+    // Close all terminals with proper websocket disconnection
+    terminals.forEach((terminal) => {
+      if (websocket?.readyState === WebSocket.OPEN) {
+        const disconnectType =
+          terminal.type === "logs" ? "logs-disconnect" : "terminal-disconnect";
+        websocket.send(
+          JSON.stringify({
+            type: disconnectType,
+            terminalId: terminal.id,
+            containerId: terminal.containerId,
+          })
+        );
+      }
+    });
+
+    // Clear all terminals from state
+    setTerminals([]);
+    setActiveTerminalId(null);
+    setShowTerminals(false);
+  }, [
+    terminals,
+    websocket,
+    setTerminals,
+    setActiveTerminalId,
+    setShowTerminals,
+  ]);
+
   return {
     addTerminal,
     addLogs,
     removeTerminal,
     closeTerminal,
+    closeAllTerminals,
   };
 }

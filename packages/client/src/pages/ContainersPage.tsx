@@ -1,4 +1,4 @@
-import { memo, useCallback } from "react";
+import { memo, useCallback, useEffect } from "react";
 import { ContainerGrid, EmptyState, TerminalManager } from "../components";
 import { useApp } from "../hooks/useApp";
 
@@ -9,11 +9,14 @@ const ContainersPage = memo(function ContainersPage() {
     dockerAvailable,
     loading,
     showTerminals,
+    terminals,
     requestContainers,
     handleContainerToggle,
     handleContainerRestart,
     addTerminal,
     addLogs,
+    closeTerminal,
+    closeAllTerminals,
   } = useApp();
 
   const handleOpenTerminal = useCallback(
@@ -29,6 +32,27 @@ const ContainersPage = memo(function ContainersPage() {
     },
     [addLogs]
   );
+
+  useEffect(() => {
+    if (containers.length > 0 && terminals.length > 0) {
+      const currentContainerIds = containers.map((container) => container.id);
+
+      const orphanedTerminals = terminals.filter(
+        (terminal) => !currentContainerIds.includes(terminal.containerId)
+      );
+
+      orphanedTerminals.forEach((terminal) => {
+        closeTerminal(terminal.id);
+      });
+    }
+  }, [containers, terminals, closeTerminal]);
+
+  useEffect(() => {
+    return () => {
+      closeAllTerminals();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="flex flex-col h-full">
