@@ -163,12 +163,12 @@ const VolumeDetails = memo(function VolumeDetails() {
   if (!volumeId) {
     return (
       <div className="space-y-4 lg:space-y-6 p-3 sm:p-4 lg:p-6">
-        <div className="border-b border-gray-200 dark:border-gray-700 pb-4">
-          <h1 className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-gray-100">
-            Volume Not Found
+        <div className="border-b border-gray-700 pb-4">
+          <h1 className="text-xl lg:text-2xl font-bold text-gray-100">
+            Volume Details
           </h1>
-          <p className="mt-2 text-gray-600 dark:text-gray-400 text-sm lg:text-base">
-            No volume ID was provided.
+          <p className="mt-2 text-gray-400 text-sm lg:text-base">
+            Detailed information about the selected volume
           </p>
         </div>
         <div className="text-center py-8 lg:py-16">
@@ -186,11 +186,11 @@ const VolumeDetails = memo(function VolumeDetails() {
   if (!volume && (volumesLoading || isLoadingVolumeDetails || !isConnected)) {
     return (
       <div className="space-y-4 lg:space-y-6 p-3 sm:p-4 lg:p-6">
-        <div className="border-b border-gray-200 dark:border-gray-700 pb-4">
-          <h1 className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-gray-100">
+        <div className="border-b border-gray-700 pb-4">
+          <h1 className="text-xl lg:text-2xl font-bold text-gray-100">
             Loading Volume
           </h1>
-          <p className="mt-2 text-gray-600 dark:text-gray-400 text-sm lg:text-base">
+          <p className="mt-2 text-gray-400 text-sm lg:text-base">
             {!isConnected
               ? "Connecting to server..."
               : "Please wait while we load the volume details..."}
@@ -198,7 +198,7 @@ const VolumeDetails = memo(function VolumeDetails() {
         </div>
         <div className="text-center py-8 lg:py-16">
           <div className="animate-spin rounded-full h-8 w-8 lg:h-12 lg:w-12 border-b-2 border-blue-600 mb-4 mx-auto"></div>
-          <p className="text-gray-600 dark:text-gray-400 text-sm lg:text-base">
+          <p className="text-gray-400 text-sm lg:text-base">
             {!isConnected
               ? "Establishing connection..."
               : "Loading volume details..."}
@@ -214,17 +214,17 @@ const VolumeDetails = memo(function VolumeDetails() {
         <div className="flex items-center mb-4 lg:mb-6">
           <button
             onClick={handleBackClick}
-            className="flex items-center text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors mr-4"
+            className="flex items-center text-gray-400 hover:text-blue-400 transition-colors mr-4"
           >
             <FaArrowLeft className="w-4 h-4 mr-2" />
             Back to Volumes
           </button>
         </div>
         <div className="text-center py-8 lg:py-16">
-          <h1 className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+          <h1 className="text-xl lg:text-2xl font-bold text-gray-100 mb-4">
             Volume Not Found
           </h1>
-          <p className="text-gray-600 dark:text-gray-400 text-sm lg:text-base">
+          <p className="text-gray-400 text-sm lg:text-base">
             The requested volume "{volumeId}" could not be found.
           </p>
           <button
@@ -253,7 +253,7 @@ const VolumeDetails = memo(function VolumeDetails() {
           <div className="flex items-center gap-3 mb-3">
             <button
               onClick={handleBackClick}
-              className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
+              className="p-1.5 hover:bg-gray-700 rounded-md transition-colors"
               title="Back to volumes"
             >
               <FaArrowLeft className="w-4 h-4" />
@@ -264,14 +264,14 @@ const VolumeDetails = memo(function VolumeDetails() {
                   className={`${isInUse ? "text-green-400" : "text-gray-400"}`}
                   size={8}
                 />
-                <h1 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 truncate">
+                <h1 className="text-lg sm:text-xl font-bold text-gray-100 truncate">
                   {volume.name}
                 </h1>
                 <span
                   className={`px-2 py-0.5 text-xs rounded-full ${
                     isInUse
-                      ? "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200"
-                      : "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
+                      ? "bg-green-900 text-green-200"
+                      : "bg-gray-700 text-gray-200"
                   }`}
                 >
                   {isInUse ? "In Use" : "Unused"}
@@ -296,40 +296,30 @@ const VolumeDetails = memo(function VolumeDetails() {
         {/* Compact Information Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-6">
           {/* Basic Info Card */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-3 sm:p-4">
+          <div className="bg-gray-800 rounded-lg border border-gray-700 p-3 sm:p-4">
             <div className="flex items-center gap-2 mb-3">
               <FaServer className="text-blue-500" size={14} />
-              <h3 className="font-medium text-gray-900 dark:text-gray-100 text-sm">
-                Basic Info
-              </h3>
+              <h3 className="font-medium text-gray-100 text-sm">Basic Info</h3>
             </div>
             <div className="space-y-2">
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <div>
-                  <span className="text-gray-600 dark:text-gray-400 block">
-                    Driver
-                  </span>
+                  <span className="text-gray-400 block">Driver</span>
                   <div className="flex items-center gap-1 mt-0.5">
                     {getDriverIcon(volume.driver)}
-                    <span className="text-gray-900 dark:text-gray-100">
-                      {volume.driver}
-                    </span>
+                    <span className="text-gray-100">{volume.driver}</span>
                   </div>
                 </div>
                 <div>
-                  <span className="text-gray-600 dark:text-gray-400 block">
-                    Scope
-                  </span>
-                  <span className="text-gray-900 dark:text-gray-100 block mt-0.5">
+                  <span className="text-gray-400 block">Scope</span>
+                  <span className="text-gray-100 block mt-0.5">
                     {volume.scope}
                   </span>
                 </div>
               </div>
               <div className="text-xs">
-                <span className="text-gray-600 dark:text-gray-400 block">
-                  Size
-                </span>
-                <span className="text-gray-900 dark:text-gray-100 block mt-0.5">
+                <span className="text-gray-400 block">Size</span>
+                <span className="text-gray-100 block mt-0.5">
                   {volume.size || "Unknown"}
                 </span>
               </div>
@@ -337,26 +327,20 @@ const VolumeDetails = memo(function VolumeDetails() {
           </div>
 
           {/* Mount Info Card */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-3 sm:p-4">
+          <div className="bg-gray-800 rounded-lg border border-gray-700 p-3 sm:p-4">
             <div className="flex items-center gap-2 mb-3">
               <FaFolder className="text-green-500" size={14} />
-              <h3 className="font-medium text-gray-900 dark:text-gray-100 text-sm">
-                Mount Info
-              </h3>
+              <h3 className="font-medium text-gray-100 text-sm">Mount Info</h3>
             </div>
             <div className="space-y-2">
               <div className="text-xs">
-                <span className="text-gray-600 dark:text-gray-400 block">
-                  Mount Point
-                </span>
-                <span className="text-gray-900 dark:text-gray-100 font-mono text-xs block mt-0.5 break-all">
+                <span className="text-gray-400 block">Mount Point</span>
+                <span className="text-gray-100 font-mono text-xs block mt-0.5 break-all">
                   {volume.mountpoint || "Unknown"}
                 </span>
               </div>
               <div className="text-xs">
-                <span className="text-gray-600 dark:text-gray-400 block">
-                  Status
-                </span>
+                <span className="text-gray-400 block">Status</span>
                 <div className="flex items-center gap-1 mt-0.5">
                   <BsCircleFill
                     className={`${
@@ -364,7 +348,7 @@ const VolumeDetails = memo(function VolumeDetails() {
                     }`}
                     size={6}
                   />
-                  <span className="text-gray-900 dark:text-gray-100">
+                  <span className="text-gray-100">
                     {isInUse ? `${usedByCount} container(s)` : "Not in use"}
                   </span>
                 </div>
@@ -373,15 +357,13 @@ const VolumeDetails = memo(function VolumeDetails() {
           </div>
 
           {/* Created Info Card */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-3 sm:p-4 md:col-span-2 xl:col-span-1">
+          <div className="bg-gray-800 rounded-lg border border-gray-700 p-3 sm:p-4 md:col-span-2 xl:col-span-1">
             <div className="flex items-center gap-2 mb-3">
               <FaClock className="text-blue-400" size={14} />
-              <h3 className="font-medium text-gray-900 dark:text-gray-100 text-sm">
-                Created
-              </h3>
+              <h3 className="font-medium text-gray-100 text-sm">Created</h3>
             </div>
             <div className="text-xs">
-              <span className="text-gray-900 dark:text-gray-100 block">
+              <span className="text-gray-100 block">
                 {formatDate(volume.created)}
               </span>
             </div>
@@ -392,23 +374,20 @@ const VolumeDetails = memo(function VolumeDetails() {
         <div className="space-y-3 sm:space-y-4">
           {/* Driver Options */}
           {Object.keys(volume.options || {}).length > 0 && (
-            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-3 sm:p-4">
+            <div className="bg-gray-800 rounded-lg border border-gray-700 p-3 sm:p-4">
               <div className="flex items-center gap-2 mb-3">
                 <FaServer className="text-purple-500" size={14} />
-                <h3 className="font-medium text-gray-900 dark:text-gray-100 text-sm">
+                <h3 className="font-medium text-gray-100 text-sm">
                   Driver Options
                 </h3>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
                 {Object.entries(volume.options || {}).map(([key, value]) => (
-                  <div
-                    key={key}
-                    className="bg-gray-50 dark:bg-gray-700 p-2 rounded text-xs"
-                  >
-                    <span className="text-gray-600 dark:text-gray-400 block font-medium">
+                  <div key={key} className="bg-gray-700 p-2 rounded text-xs">
+                    <span className="text-gray-400 block font-medium">
                       {key}
                     </span>
-                    <span className="text-gray-900 dark:text-gray-100 block mt-0.5 break-all">
+                    <span className="text-gray-100 block mt-0.5 break-all">
                       {value}
                     </span>
                   </div>
@@ -419,23 +398,18 @@ const VolumeDetails = memo(function VolumeDetails() {
 
           {/* Labels */}
           {Object.keys(volume.labels || {}).length > 0 && (
-            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-3 sm:p-4">
+            <div className="bg-gray-800 rounded-lg border border-gray-700 p-3 sm:p-4">
               <div className="flex items-center gap-2 mb-3">
                 <FaTag className="text-orange-500" size={14} />
-                <h3 className="font-medium text-gray-900 dark:text-gray-100 text-sm">
-                  Labels
-                </h3>
+                <h3 className="font-medium text-gray-100 text-sm">Labels</h3>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
                 {Object.entries(volume.labels || {}).map(([key, value]) => (
-                  <div
-                    key={key}
-                    className="bg-gray-50 dark:bg-gray-700 p-2 rounded text-xs"
-                  >
-                    <span className="text-gray-600 dark:text-gray-400 block font-medium">
+                  <div key={key} className="bg-gray-700 p-2 rounded text-xs">
+                    <span className="text-gray-400 block font-medium">
                       {key}
                     </span>
-                    <span className="text-gray-900 dark:text-gray-100 block mt-0.5 break-all">
+                    <span className="text-gray-100 block mt-0.5 break-all">
                       {value}
                     </span>
                   </div>
@@ -446,10 +420,10 @@ const VolumeDetails = memo(function VolumeDetails() {
 
           {/* Connected Containers */}
           {isInUse && (
-            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-3 sm:p-4">
+            <div className="bg-gray-800 rounded-lg border border-gray-700 p-3 sm:p-4">
               <div className="flex items-center gap-2 mb-3">
                 <FaDocker className="text-blue-500" size={14} />
-                <h3 className="font-medium text-gray-900 dark:text-gray-100 text-sm">
+                <h3 className="font-medium text-gray-100 text-sm">
                   Connected Containers ({usedByCount})
                 </h3>
               </div>
@@ -457,21 +431,21 @@ const VolumeDetails = memo(function VolumeDetails() {
                 {volume.usedBy?.map((usage, index) => (
                   <div
                     key={index}
-                    className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 p-3 rounded"
+                    className="bg-blue-900/20 border border-blue-700 p-3 rounded"
                   >
                     <div className="text-sm">
-                      <div className="font-medium text-blue-900 dark:text-blue-200 break-all">
+                      <div className="font-medium text-blue-200 break-all">
                         {usage.containerName}
                       </div>
-                      <div className="text-xs text-blue-700 dark:text-blue-300 break-all mt-1">
+                      <div className="text-xs text-blue-300 break-all mt-1">
                         ID: {usage.containerId}
                       </div>
                       {usage.mountPath && (
                         <div className="mt-2 pt-2 border-t border-blue-200 dark:border-blue-700">
-                          <span className="text-xs text-blue-700 dark:text-blue-300 block">
+                          <span className="text-xs text-blue-300 block">
                             Mount Path
                           </span>
-                          <span className="text-xs text-blue-900 dark:text-blue-200 font-mono bg-blue-100 dark:bg-blue-800 px-1 py-0.5 rounded break-all block mt-0.5">
+                          <span className="text-xs text-blue-200 font-mono bg-blue-800 px-1 py-0.5 rounded break-all block mt-0.5">
                             {usage.mountPath}
                           </span>
                         </div>

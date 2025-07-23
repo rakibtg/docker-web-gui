@@ -103,7 +103,7 @@ function Sidebar() {
           </div>
           {!isCollapsed && (
             <div className="ml-3 flex-1 transition-opacity duration-300">
-              <h1 className="text-sm font-bold text-theme-primary truncate ">
+              <h1 className="text-sm font-bold text-gray-100 truncate ">
                 Docker Web GUI
               </h1>
             </div>
@@ -113,7 +113,7 @@ function Sidebar() {
         {!isCollapsed && (
           <button
             onClick={toggleCollapse}
-            className="hidden lg:flex p-2 rounded-lg transition-colors duration-200 text-theme-secondary hover:text-theme-primary hover:bg-theme-tertiary ml-2 flex-shrink-0"
+            className="hidden lg:flex p-2 rounded-lg transition-colors duration-200 text-gray-300 hover:text-gray-100 hover:bg-gray-700 ml-2 flex-shrink-0"
             aria-label="Collapse sidebar"
           >
             <HiChevronLeft className="w-4 h-4" />
@@ -126,7 +126,7 @@ function Sidebar() {
         <div className="px-2 pb-2">
           <button
             onClick={toggleCollapse}
-            className="hidden lg:flex w-full p-2 rounded-lg transition-colors duration-200 hover:bg-theme-tertiary text-theme-secondary hover:text-theme-primary justify-center"
+            className="hidden lg:flex w-full p-2 rounded-lg transition-colors duration-200 hover:bg-gray-700 text-gray-300 hover:text-gray-100 justify-center"
             aria-label="Expand sidebar"
             data-tooltip-id="expand-tooltip"
             data-tooltip-content="Expand sidebar"
@@ -157,21 +157,21 @@ function Sidebar() {
                 onClick={() => handleNavigation(item.id)}
                 className={`w-full flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-200 group cursor-pointer ${
                   isActive
-                    ? "bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 shadow-sm"
-                    : "text-theme-secondary hover:text-theme-primary hover:bg-theme-tertiary"
+                    ? "bg-blue-900/50 text-blue-300 shadow-sm"
+                    : "text-gray-300 hover:text-gray-100 hover:bg-gray-700"
                 } ${isCollapsed ? "justify-center" : ""}`}
                 {...tooltipProps}
               >
                 <Icon
                   className={`w-5 h-5 flex-shrink-0 transition-colors duration-200 ${
-                    isActive ? "text-blue-600 dark:text-blue-400" : ""
+                    isActive ? "text-blue-400" : ""
                   }`}
                 />
                 {!isCollapsed && (
                   <span className="ml-3 text-left">{item.label}</span>
                 )}
                 {isActive && !isCollapsed && (
-                  <div className="ml-auto w-2 h-2 bg-blue-600 dark:bg-blue-400 rounded-full"></div>
+                  <div className="ml-auto w-2 h-2 bg-blue-400 rounded-full"></div>
                 )}
               </button>
             );
@@ -180,7 +180,7 @@ function Sidebar() {
 
         {/* Divider */}
         <div className={`my-6 ${isCollapsed ? "mx-2" : "mx-3"}`}>
-          <div className="h-px bg-theme-border"></div>
+          <div className="h-px bg-gray-600"></div>
         </div>
 
         {/* Bottom Items */}
@@ -202,21 +202,21 @@ function Sidebar() {
                 onClick={() => handleNavigation(item.id)}
                 className={`w-full flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-200 cursor-pointer ${
                   isActive
-                    ? "bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 shadow-sm"
-                    : "text-theme-secondary hover:text-theme-primary hover:bg-theme-tertiary"
+                    ? "bg-blue-900/50 text-blue-300 shadow-sm"
+                    : "text-gray-300 hover:text-gray-100 hover:bg-gray-700"
                 } ${isCollapsed ? "justify-center" : ""}`}
                 {...tooltipProps}
               >
                 <Icon
                   className={`w-5 h-5 flex-shrink-0 transition-colors duration-200 ${
-                    isActive ? "text-blue-600 dark:text-blue-400" : ""
+                    isActive ? "text-blue-400" : ""
                   }`}
                 />
                 {!isCollapsed && (
                   <span className="ml-3 text-left">{item.label}</span>
                 )}
                 {isActive && !isCollapsed && (
-                  <div className="ml-auto w-2 h-2 bg-blue-600 dark:bg-blue-400 rounded-full"></div>
+                  <div className="ml-auto w-2 h-2 bg-blue-400 rounded-full"></div>
                 )}
               </button>
             );
@@ -231,7 +231,7 @@ function Sidebar() {
       {/* Mobile Menu Button */}
       <button
         onClick={toggleMobile}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2.5 rounded-lg bg-theme-card border border-theme-border text-theme-primary shadow-lg hover:shadow-xl transition-shadow duration-200 hover:bg-theme-tertiary"
+        className="lg:hidden fixed top-4 left-4 z-50 p-2.5 rounded-lg bg-gray-800 border border-gray-600 text-gray-100 shadow-lg hover:shadow-xl transition-shadow duration-200 hover:bg-gray-700"
         aria-label="Toggle menu"
       >
         {isMobileOpen ? (
@@ -251,7 +251,7 @@ function Sidebar() {
 
       {/* Desktop Sidebar */}
       <aside
-        className={`hidden lg:flex flex-col bg-theme-card border-r border-theme-border transition-[width] duration-300 ${
+        className={`hidden lg:flex flex-col bg-gray-800 border-r border-gray-600 transition-[width] duration-300 ${
           isCollapsed ? "w-16" : "w-64"
         }`}
       >
@@ -260,7 +260,7 @@ function Sidebar() {
 
       {/* Mobile Sidebar */}
       <aside
-        className={`lg:hidden fixed left-0 top-0 bottom-0 z-40 w-64 bg-theme-card border-r border-theme-border transform transition-transform duration-300 ${
+        className={`lg:hidden fixed left-0 top-0 bottom-0 z-40 w-64 bg-gray-800 border-r border-gray-600 transform transition-transform duration-300 ${
           isMobileOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >

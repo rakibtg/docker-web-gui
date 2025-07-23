@@ -15,7 +15,7 @@ import Sidebar from "./components/Sidebar";
 
 function AppContent() {
   return (
-    <div className="min-h-screen bg-theme-primary transition-colors flex">
+    <div className="min-h-screen bg-gray-900 text-gray-100 transition-colors flex">
       <Sidebar />
       <div className="flex-grow shrink-0 overflow-hidden">
         <main className="h-full">

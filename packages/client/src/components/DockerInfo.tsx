@@ -23,12 +23,12 @@ export function DockerInfo({ dockerAvailable, isConnected }: DockerInfoProps) {
 
   return (
     <div>
-      <div className="bg-theme-card rounded-lg shadow-sm border-theme border p-2.5 px-4 transition-colors">
+      <div className="bg-gray-800 rounded-lg shadow-sm border-gray-600 border p-2.5 px-4 transition-colors">
         <div className="flex items-center gap-4">
           <div className="flex-shrink-0">{getDockerIcon()}</div>
 
           <div className="flex-1">
-            <h3 className="text-sm font-medium text-theme-primary transition-colors">
+            <h3 className="text-sm font-medium text-gray-100 transition-colors">
               {dockerAvailable === null
                 ? "Checking system status..."
                 : "System Status"}

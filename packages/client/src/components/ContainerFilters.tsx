@@ -30,7 +30,7 @@ export function ContainerFilters({
   ];
 
   return (
-    <div className="flex items-center bg-theme-card rounded-lg border-theme border p-0.5">
+    <div className="flex items-center bg-gray-800 rounded-lg border-gray-600 border p-0.5">
       {filters.map((filter) => {
         const Icon = filter.icon;
         const isActive = activeFilter === filter.id;
@@ -41,8 +41,8 @@ export function ContainerFilters({
             onClick={() => onFilterChange(filter.id)}
             className={`flex items-center px-4 py-1 rounded-md text-sm font-medium transition-colors cursor-pointer ${
               isActive
-                ? "bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300"
-                : "text-theme-muted hover:text-theme-primary"
+                ? "bg-blue-100 dark:bg-blue-900 text-blue-300"
+                : "text-gray-400 hover:text-gray-100"
             }`}
           >
             <Icon className="h-4 w-4 mr-2" />

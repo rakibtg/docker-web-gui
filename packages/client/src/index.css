@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-:root {
+html {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
@@ -8,186 +8,52 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-
-  /* CSS Custom Properties for theme */
-  --bg-primary: #f3f4f6; /* gray-100 */
-  --bg-secondary: #ffffff; /* white */
-  --bg-tertiary: #f9fafb; /* gray-50 */
-  --bg-card: #ffffff; /* white */
-  --text-primary: #111827; /* gray-900 */
-  --text-secondary: #6b7280; /* gray-500 */
-  --text-muted: #9ca3af; /* gray-400 */
-  --border-color: #d1d5db; /* gray-300 */
-  --border-hover: #9ca3af; /* gray-400 */
-  --button-bg: #ffffff; /* white */
-  --button-hover: #f9fafb; /* gray-50 */
-  --status-running: #10b981; /* emerald-500 */
-  --status-stopped: #ef4444; /* red-500 */
-  --status-paused: #f59e0b; /* amber-500 */
-
-  /* Scrollbar colors */
-  --scrollbar-track: transparent;
-  --scrollbar-thumb: #d1d5db; /* gray-300 */
-  --scrollbar-thumb-hover: #9ca3af; /* gray-400 */
 }
 
-[data-theme="dark"] {
-  --bg-primary: #111827; /* gray-900 */
-  --bg-secondary: #1f2937; /* gray-800 */
-  --bg-tertiary: #374151; /* gray-700 */
-  --bg-card: #1f2937; /* gray-800 */
-  --text-primary: #f9fafb; /* gray-50 */
-  --text-secondary: #d1d5db; /* gray-300 */
-  --text-muted: #9ca3af; /* gray-400 */
-  --border-color: #4b5563; /* gray-600 */
-  --border-hover: #6b7280; /* gray-500 */
-  --button-bg: #374151; /* gray-700 */
-  --button-hover: #4b5563; /* gray-600 */
-  --status-running: #10b981; /* emerald-500 */
-  --status-stopped: #ef4444; /* red-500 */
-  --status-paused: #f59e0b; /* amber-500 */
-
-  /* Dark theme scrollbar colors */
-  --scrollbar-track: transparent;
-  --scrollbar-thumb: #4b5563; /* gray-600 */
-  --scrollbar-thumb-hover: #6b7280; /* gray-500 */
+body {
+  margin: 0;
+  background-color: #111827;
+  color: #f9fafb;
 }
 
-/* Theme-aware utility classes */
-.bg-theme-primary {
-  background-color: var(--bg-primary);
-}
-
-.bg-theme-secondary {
-  background-color: var(--bg-secondary);
-}
-
-.bg-theme-tertiary {
-  background-color: var(--bg-tertiary);
-}
-
-.bg-theme-card {
-  background-color: var(--bg-card);
-}
-
-.text-theme-primary {
-  color: var(--text-primary);
-}
-
-.text-theme-secondary {
-  color: var(--text-secondary);
-}
-
-.text-theme-muted {
-  color: var(--text-muted);
-}
-
-.text-sm-theme {
-  font-size: 15px;
-}
-
-.border-theme {
-  border-color: var(--border-color);
-}
-
-.border-theme-hover:hover {
-  border-color: var(--border-hover);
-}
-
-.border-theme-border {
-  border-color: var(--border-color);
-}
-
-.bg-theme-button {
-  background-color: var(--button-bg);
-}
-
-.bg-theme-button:hover {
-  background-color: var(--button-hover);
-}
-
-/* Status colors */
-.text-status-running {
-  color: var(--status-running);
-}
-
-.text-status-stopped {
-  color: var(--status-stopped);
-}
-
-.text-status-paused {
-  color: var(--status-paused);
-}
-
-.bg-status-running {
-  background-color: var(--status-running);
-}
-
-.bg-status-stopped {
-  background-color: var(--status-stopped);
-}
-
-.bg-status-paused {
-  background-color: var(--status-paused);
-}
-
-/* Custom Scrollbar Styles - Minimalist Design */
-/* Webkit browsers (Chrome, Safari, Edge) */
+/* Custom Scrollbar Styles for dark theme */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--scrollbar-track);
+  background: transparent;
   border-radius: 0;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--scrollbar-thumb);
+  background: #4b5563;
   border-radius: 4px;
   border: none;
   transition: background-color 0.2s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--scrollbar-thumb-hover);
+  background: #6b7280;
 }
 
 ::-webkit-scrollbar-corner {
-  background: var(--scrollbar-track);
+  background: transparent;
 }
 
-/* Firefox */
+/* Firefox scrollbar */
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
-}
-
-/* Custom scrollbar for specific containers that need more visible scrollbars */
-.scrollbar-visible::-webkit-scrollbar {
-  width: 12px;
-  height: 12px;
-}
-
-.scrollbar-visible::-webkit-scrollbar-thumb {
-  background: var(--scrollbar-thumb);
-  border-radius: 6px;
-  border: 2px solid transparent;
-  background-clip: content-box;
-}
-
-.scrollbar-visible::-webkit-scrollbar-thumb:hover {
-  background: var(--scrollbar-thumb-hover);
-  background-clip: content-box;
+  scrollbar-color: #4b5563 transparent;
 }
 
 /* Hide scrollbar but keep functionality */
 .scrollbar-hidden {
-  -ms-overflow-style: none; /* IE and Edge */
-  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 .scrollbar-hidden::-webkit-scrollbar {
-  display: none; /* Chrome, Safari and Opera */
+  display: none;
 }

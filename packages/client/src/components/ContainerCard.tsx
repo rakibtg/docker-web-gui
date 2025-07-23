@@ -74,12 +74,12 @@ const ContainerCard = memo(function ContainerCard({
   }, [onOpenLogs, container.id, container.name]);
 
   return (
-    <div className="bg-theme-card rounded shadow-md border-theme border p-4 pt-2.5 hover:shadow-lg transition-all duration-200 flex flex-col gap-2">
+    <div className="bg-gray-800 rounded shadow-md border-gray-600 border p-4 pt-2.5 hover:shadow-lg transition-all duration-200 flex flex-col gap-2">
       <div className="flex items-center justify-between">
         <div className="flex items-center border-0 border-yellow-500 justify-between">
           <div className="flex-1 min-w-0">
             <div className="flex flex-row items-center gap-2">
-              <h3 className="text-lg font-semibold text-theme-primary truncate transition-colors">
+              <h3 className="text-lg font-semibold text-gray-100 truncate transition-colors">
                 {container.name}
               </h3>
               <UptimeDisplay
@@ -92,7 +92,7 @@ const ContainerCard = memo(function ContainerCard({
               />
             </div>
             <p
-              className="text-sm text-theme-muted font-mono transition-colors flex items-center gap-1"
+              className="text-sm text-gray-400 font-mono transition-colors flex items-center gap-1"
               title={`ID: ${container.id.substring(0, 10)}`}
             >
               <span className="inline-block">
@@ -119,7 +119,7 @@ const ContainerCard = memo(function ContainerCard({
                 disabled={isToggling || localToggling}
                 size="md"
               />
-              <p className="text-xs text-theme-primary cursor-default">
+              <p className="text-xs text-gray-100 cursor-default">
                 {isRunning ? "Stop" : "Start"}
               </p>
             </div>
@@ -131,7 +131,7 @@ const ContainerCard = memo(function ContainerCard({
               disabled={!isRunning || !onOpenTerminal}
             >
               <BsFillTerminalFill className="w-5 h-5" />
-              <p className="text-xs text-theme-primary pt-1">Terminal</p>
+              <p className="text-xs text-gray-100 pt-1">Terminal</p>
             </CardActionButton>
 
             <CardActionButton
@@ -141,7 +141,7 @@ const ContainerCard = memo(function ContainerCard({
               disabled={!isRunning || !onOpenLogs}
             >
               <IoNewspaper className="w-5 h-5" />
-              <p className="text-xs text-theme-primary pt-1">Logs</p>
+              <p className="text-xs text-gray-100 pt-1">Logs</p>
             </CardActionButton>
 
             <CardActionButton
@@ -161,7 +161,7 @@ const ContainerCard = memo(function ContainerCard({
               />
               <p
                 className={`text-xs pt-1 ${
-                  isRestarting ? "text-blue-500" : "text-theme-primary"
+                  isRestarting ? "text-blue-500" : "text-gray-100"
                 }`}
               >
                 {isRestarting ? "Restarting..." : "Restart"}
@@ -175,7 +175,7 @@ const ContainerCard = memo(function ContainerCard({
               disabled={!isRunning || !onOpenTerminal}
             >
               <FaCircleInfo className="w-5 h-5" />
-              <p className="text-xs text-theme-primary pt-1">More info</p>
+              <p className="text-xs text-gray-100 pt-1">More info</p>
             </CardActionButton>
           </div>
         </div>
@@ -184,48 +184,48 @@ const ContainerCard = memo(function ContainerCard({
       {isRunning && container.stats && (
         <div className="transition-colors">
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            <div className="rounded-lg p-2 px-3 border-theme border transition-colors">
+            <div className="rounded-lg p-2 px-3 border-gray-600 border transition-colors">
               <p className="text-xs font-bold uppercase text-blue-600 dark:text-blue-400 transition-colors">
                 CPU
               </p>
-              <p className="text-sm-theme font-mono text-theme-primary transition-colors">
+              <p className="text-sm font-mono text-gray-100 transition-colors">
                 {container.stats.cpuPerc}
               </p>
             </div>
-            <div className="rounded-lg p-2 px-3 border-theme border transition-colors col-span-1 md:col-span-2">
+            <div className="rounded-lg p-2 px-3 border-gray-600 border transition-colors col-span-1 md:col-span-2">
               <p className="text-xs font-bold uppercase text-green-600 dark:text-green-400 transition-colors">
                 Memory
               </p>
               <div className="flex flex-row gap-1">
-                <p className="text-sm-theme font-mono text-theme-primary transition-colors">
+                <p className="text-sm font-mono text-gray-100 transition-colors">
                   {container.stats.memPerc}
                 </p>{" "}
-                <p className="text-sm-theme font-mono text-theme-secondary transition-colors">
+                <p className="text-sm font-mono text-gray-300 transition-colors">
                   ({container.stats.memUsage})
                 </p>
               </div>
             </div>
-            <div className="rounded-lg p-2 px-3 border-theme border transition-colors">
+            <div className="rounded-lg p-2 px-3 border-gray-600 border transition-colors">
               <div className="text-xs font-bold uppercase text-orange-600 dark:text-orange-400 transition-colors">
                 Block I/O
               </div>
-              <div className="text-sm-theme font-mono text-theme-primary transition-colors">
+              <div className="text-sm font-mono text-gray-100 transition-colors">
                 {container.stats.blockIO}
               </div>
             </div>
-            <div className="rounded-lg p-2 px-3 border-theme border transition-colors">
+            <div className="rounded-lg p-2 px-3 border-gray-600 border transition-colors">
               <div className="text-xs font-bold uppercase text-purple-600 dark:text-purple-400 transition-colors">
                 Network I/O
               </div>
-              <div className="text-sm-theme font-mono text-theme-primary transition-colors">
+              <div className="text-sm font-mono text-gray-100 transition-colors">
                 {container.stats.netIO}
               </div>
             </div>
-            <div className="rounded-lg p-2 px-3 border-theme border transition-colors">
+            <div className="rounded-lg p-2 px-3 border-gray-600 border transition-colors">
               <div className="text-xs font-bold uppercase text-yellow-600 dark:text-yellow-400 transition-colors">
                 Port
               </div>
-              <div className="text-sm-theme font-mono text-theme-primary transition-colors">
+              <div className="text-sm font-mono text-gray-100 transition-colors">
                 {formatDockerPort(container.ports)}
               </div>
             </div>

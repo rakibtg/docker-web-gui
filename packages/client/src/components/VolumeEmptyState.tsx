@@ -17,7 +17,7 @@ const VolumeEmptyState = memo(function VolumeEmptyState({
     return (
       <div className="flex flex-col items-center justify-center py-16">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-        <p className="text-gray-600 dark:text-gray-400">Loading volumes...</p>
+        <p className="text-gray-400">Loading volumes...</p>
       </div>
     );
   }
@@ -40,7 +40,7 @@ const VolumeEmptyState = memo(function VolumeEmptyState({
             />
           </svg>
         </div>
-        <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+        <h3 className="text-lg font-medium text-gray-100 mb-2">
           Not Connected
         </h3>
         <p className="text-gray-500 dark:text-gray-400 mb-4">
@@ -74,7 +74,7 @@ const VolumeEmptyState = memo(function VolumeEmptyState({
             />
           </svg>
         </div>
-        <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+        <h3 className="text-lg font-medium text-gray-100 mb-2">
           Docker Not Available
         </h3>
         <p className="text-gray-500 dark:text-gray-400 mb-4">
@@ -106,14 +106,14 @@ const VolumeEmptyState = memo(function VolumeEmptyState({
           />
         </svg>
       </div>
-      <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+      <h3 className="text-lg font-medium text-gray-100 mb-2">
         No Volumes Found
       </h3>
       <p className="text-gray-500 dark:text-gray-400 mb-6">
         There are no Docker volumes on this system.
       </p>
-      <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-6 max-w-lg mx-auto">
-        <h4 className="font-medium text-blue-900 dark:text-blue-200 mb-2">
+      <div className="bg-blue-900/20 border border-blue-700 rounded-lg p-6 max-w-lg mx-auto">
+        <h4 className="font-medium text-blue-200 mb-2">
           About Docker Volumes
         </h4>
         <div className="text-blue-800 dark:text-blue-300 text-sm space-y-2 text-left">
@@ -125,7 +125,7 @@ const VolumeEmptyState = memo(function VolumeEmptyState({
           <p>
             Volumes are created automatically when containers are started with
             volume mounts, or can be created manually using{" "}
-            <code className="bg-blue-100 dark:bg-blue-800 px-1 rounded">
+            <code className="bg-blue-800 px-1 rounded">
               docker volume create
             </code>
             .

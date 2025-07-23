@@ -13,7 +13,7 @@ function CardActionButton({
 }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
     <button
-      className={`cursor-pointer px-2 py-1 text-white hover:bg-red-700/30 dark:hover:bg-red-700/40 transition-colors rounded text-xs font-medium flex items-center gap-1 shadow-sm
+      className={`cursor-pointer px-2 py-1 text-white hover:bg-red-700/40 transition-colors rounded text-xs font-medium flex items-center gap-1 shadow-sm
         disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-red-600
       `}
       disabled={disabled}
@@ -111,11 +111,11 @@ const ImageCard = memo(function ImageCard({
   };
 
   return (
-    <div className="bg-theme-card rounded border-theme border p-3 hover:shadow-md transition-all duration-200">
+    <div className="bg-gray-800 rounded border-gray-600 border p-3 hover:shadow-md transition-all duration-200">
       {/* Header with image name, tag, and action button */}
       <div className="flex items-center justify-between mb-2 relative">
         <div className="flex items-center gap-2 flex-1 min-w-0">
-          <h3 className="text-base font-medium text-theme-primary truncate">
+          <h3 className="text-base font-medium text-gray-100 truncate">
             {image.repository}
           </h3>
           <span className="inline-flex text-xs px-1.5 py-0.5 rounded border border-blue-400/30 text-blue-100 bg-blue-500/20 shrink-0">
@@ -141,7 +141,7 @@ const ImageCard = memo(function ImageCard({
         </div>
       </div>
 
-      <div className="flex gap-3 text-xs text-theme-muted">
+      <div className="flex gap-3 text-xs text-gray-400">
         <div
           className="flex items-center gap-1"
           title={`Image ID: ${image.imageId}`}

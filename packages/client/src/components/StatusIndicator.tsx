@@ -28,7 +28,7 @@ export function StatusIndicator({
   return (
     <div className="flex items-center gap-2" title={title || label}>
       {getStatusIcon()}
-      <span className="text-sm text-theme-secondary transition-colors">
+      <span className="text-sm text-gray-300 transition-colors">
         {label}
       </span>
     </div>

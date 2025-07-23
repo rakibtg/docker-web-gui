@@ -18,7 +18,6 @@ export { VolumeEmptyState } from "./VolumeEmptyState";
 export { EmptyState } from "./EmptyState";
 export { ConfirmationModal } from "./ConfirmationModal";
 export { DockerInfo } from "./DockerInfo";
-export { ThemeToggle } from "./ThemeToggle";
 export { ToggleSwitch } from "./ToggleSwitch";
 export { UptimeDisplay } from "./UptimeDisplay";
 export { Terminal } from "./Terminal";

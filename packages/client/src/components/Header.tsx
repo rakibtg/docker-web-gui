@@ -1,21 +1,20 @@
 import { HiViewList, HiPhotograph, HiTrash } from "react-icons/hi";
-import { ThemeToggle } from "./ThemeToggle";
 import { DockerInfo } from "./DockerInfo";
 
-const page: any = "containers";
+const page: string = "containers";
 
 export function Header() {
   return (
     <header className="mb-4">
       <div className="flex items-center">
         <div className="flex-1 flex justify-start">
-          <div className="flex bg-theme-card rounded-lg border-theme border p-1">
+          <div className="flex bg-gray-800 rounded-lg border border-gray-600 p-1">
             <button
               // onClick={() => onViewModeChange("table")}
               className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                 page === "containers"
-                  ? "bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300"
-                  : "text-theme-muted hover:text-theme-primary"
+                  ? "bg-blue-900 text-blue-300"
+                  : "text-gray-400 hover:text-gray-100"
               }`}
             >
               <HiViewList className="h-4 w-4 mr-2" />
@@ -25,8 +24,8 @@ export function Header() {
               // onClick={() => onViewModeChange("grid")}
               className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                 page === "images"
-                  ? "bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300"
-                  : "text-theme-muted hover:text-theme-primary"
+                  ? "bg-blue-900 text-blue-300"
+                  : "text-gray-400 hover:text-gray-100"
               }`}
             >
               <HiPhotograph className="h-4 w-4 mr-2" />
@@ -36,8 +35,8 @@ export function Header() {
               // onClick={() => onViewModeChange("cleanup")}
               className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                 page === "cleanup"
-                  ? "bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300"
-                  : "text-theme-muted hover:text-theme-primary"
+                  ? "bg-blue-900 text-blue-300"
+                  : "text-gray-400 hover:text-gray-100"
               }`}
             >
               <HiTrash className="h-4 w-4 mr-2" />
@@ -47,7 +46,7 @@ export function Header() {
         </div>
 
         <div className="flex-1 flex justify-center ">
-          <h1 className="text-xl p-2 px-6 font-bold rounded-lg border-theme border text-theme-primary transition-colors">
+          <h1 className="text-xl p-2 px-6 font-bold rounded-lg border border-gray-600 text-gray-100 transition-colors">
             Docker Web GUI
           </h1>
         </div>
@@ -56,7 +55,6 @@ export function Header() {
           <div>
             <DockerInfo dockerAvailable={true} isConnected={true} />
           </div>
-          <ThemeToggle />
         </div>
       </div>
     </header>

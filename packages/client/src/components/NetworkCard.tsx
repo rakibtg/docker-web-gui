@@ -23,7 +23,7 @@ function CardActionButton({
 }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
     <button
-      className={`cursor-pointer px-2 py-1 text-white hover:bg-red-700/30 dark:hover:bg-red-700/40 transition-colors rounded text-xs font-medium flex items-center gap-1 shadow-sm
+      className={`cursor-pointer px-2 py-1 text-white hover:bg-red-700/40 transition-colors rounded text-xs font-medium flex items-center gap-1 shadow-sm
         disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-red-600
       `}
       disabled={disabled}
@@ -164,11 +164,11 @@ const NetworkCard = memo(function NetworkCard({
 
   return (
     <>
-      <div className="bg-theme-card rounded border-theme border p-3 hover:shadow-md transition-all duration-200">
+      <div className="bg-gray-800 rounded border border-gray-600 p-3 hover:shadow-md transition-all duration-200">
         {/* Header with network name, driver, and action buttons */}
         <div className="flex items-center justify-between mb-2 relative">
           <div className="flex items-center gap-2 flex-1 min-w-0">
-            <h3 className="text-base font-medium text-theme-primary truncate">
+            <h3 className="text-base font-medium text-gray-100 truncate">
               {network.name}
             </h3>
             <span className="inline-flex text-xs px-1.5 py-0.5 rounded border border-blue-400/30 text-blue-100 bg-blue-500/20 shrink-0">
@@ -215,7 +215,7 @@ const NetworkCard = memo(function NetworkCard({
         </div>
 
         {/* Network details in compact format */}
-        <div className="flex gap-3 text-xs text-theme-muted flex-wrap">
+        <div className="flex gap-3 text-xs text-gray-400 flex-wrap">
           <div
             className="flex items-center gap-1"
             title={`Network ID: ${network.id}`}
@@ -246,8 +246,8 @@ const NetworkCard = memo(function NetworkCard({
 
         {/* Connected containers - only show if any are connected */}
         {connectedCount > 0 && (
-          <div className="mt-2 pt-2 border-t border-theme-muted/20">
-            <div className="text-xs text-theme-muted mb-1">
+          <div className="mt-2 pt-2 border-t border-gray-400/20">
+            <div className="text-xs text-gray-400 mb-1">
               Connected containers:
             </div>
             <div className="flex flex-wrap gap-1">
@@ -272,7 +272,7 @@ const NetworkCard = memo(function NetworkCard({
                 </div>
               ))}
               {connectedCount > 3 && (
-                <span className="text-xs text-theme-muted">
+                <span className="text-xs text-gray-400">
                   +{connectedCount - 3} more
                 </span>
               )}
@@ -309,22 +309,22 @@ const NetworkCard = memo(function NetworkCard({
       {/* Connect Container Modal */}
       {showConnectModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+          <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md">
+            <h3 className="text-lg font-semibold text-gray-100 mb-4">
               Connect Container to {network.name}
             </h3>
 
             {availableContainers.length > 0 ? (
               <>
                 <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
                     Select Container
                   </label>
                   <select
                     value={selectedContainer}
                     onChange={(e) => setSelectedContainer(e.target.value)}
                     title="Select container to connect"
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="">Choose a container...</option>
                     {availableContainers.map((container) => (
@@ -356,7 +356,7 @@ const NetworkCard = memo(function NetworkCard({
               </>
             ) : (
               <>
-                <p className="text-gray-600 dark:text-gray-400 mb-4">
+                <p className="text-gray-400 mb-4">
                   No containers available to connect to this network.
                 </p>
                 <button

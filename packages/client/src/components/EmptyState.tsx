@@ -45,12 +45,12 @@ export function EmptyState({
   const content = getEmptyStateContent();
 
   return (
-    <div className="bg-theme-card rounded-lg shadow-lg p-12 text-center transition-colors">
+    <div className="bg-gray-800 rounded-lg shadow-lg p-12 text-center transition-colors">
       <div className="mb-6">{content.icon}</div>
-      <h3 className="text-xl font-medium text-theme-primary mb-3 transition-colors">
+      <h3 className="text-xl font-medium text-gray-100 mb-3 transition-colors">
         {content.title}
       </h3>
-      <p className="text-theme-secondary mb-6 max-w-md mx-auto leading-relaxed transition-colors">
+      <p className="text-gray-300 mb-6 max-w-md mx-auto leading-relaxed transition-colors">
         {content.description}
       </p>
       {content.showButton && (

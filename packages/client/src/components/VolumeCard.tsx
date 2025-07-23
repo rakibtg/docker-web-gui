@@ -76,7 +76,7 @@ const VolumeCard = memo(function VolumeCard({ volume }: VolumeCardProps) {
 
   return (
     <>
-      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-4 rounded-lg hover:shadow-md transition-shadow relative">
+      <div className="bg-gray-800 border border-gray-700 p-4 rounded-lg hover:shadow-md transition-shadow relative">
         {/* Header with name and status */}
         <div className="flex items-center justify-between mb-2 relative">
           <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -87,7 +87,7 @@ const VolumeCard = memo(function VolumeCard({ volume }: VolumeCardProps) {
                 } flex-shrink-0`}
                 size={8}
               />
-              <h3 className="text-gray-900 dark:text-gray-100 font-medium text-sm truncate">
+              <h3 className="text-gray-100 font-medium text-sm truncate">
                 {volume.name}
               </h3>
             </div>
@@ -124,7 +124,7 @@ const VolumeCard = memo(function VolumeCard({ volume }: VolumeCardProps) {
         </div>
 
         {/* Volume details in minimal format */}
-        <div className="flex gap-3 text-xs text-gray-600 dark:text-gray-400 flex-wrap">
+        <div className="flex gap-3 text-xs text-gray-400 flex-wrap">
           <div
             className="flex items-center gap-1"
             title={`Driver: ${volume.driver}`}

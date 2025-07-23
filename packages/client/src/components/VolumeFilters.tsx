@@ -46,7 +46,7 @@ const VolumeFilters = memo(function VolumeFilters({
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+    <div className="bg-gray-800 rounded-lg border border-gray-700 p-6">
       <div className="flex flex-col lg:flex-row lg:items-center gap-4">
         {/* Search */}
         <div className="flex-1">
@@ -69,7 +69,7 @@ const VolumeFilters = memo(function VolumeFilters({
               value={searchTerm}
               onChange={(e) => onSearch(e.target.value)}
               placeholder="Search volumes by name, driver, or mount point..."
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
             {searchTerm && (
               <button
@@ -101,7 +101,7 @@ const VolumeFilters = memo(function VolumeFilters({
           <select
             value={selectedDriver}
             onChange={(e) => onDriverFilter(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             title="Filter by driver"
             aria-label="Filter volumes by driver"
           >
@@ -140,7 +140,7 @@ const VolumeFilters = memo(function VolumeFilters({
       </div>
 
       {/* Results summary */}
-      <div className="mt-4 flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
+      <div className="mt-4 flex items-center justify-between text-sm text-gray-400">
         <div>
           Showing {filteredVolumes} of {totalVolumes} volumes
           {selectedDriver && (
