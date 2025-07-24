@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import {
   Dashboard,
   ContainersPage,
+  ContainerDetails,
   Images,
   Networks,
   Volumes,
@@ -23,6 +24,10 @@ function AppContent() {
             <Route path="/" element={<Navigate to="/containers" replace />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/containers" element={<ContainersPage />} />
+            <Route
+              path="/containers/:containerId"
+              element={<ContainerDetails />}
+            />
             <Route path="/images" element={<Images />} />
             <Route path="/networks" element={<Networks />} />
             <Route path="/volumes" element={<Volumes />} />
