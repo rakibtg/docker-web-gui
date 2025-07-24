@@ -448,6 +448,40 @@ wss.on("connection", function connection(ws) {
           }
           break;
 
+        case "get-container-details":
+          try {
+            const { containerId } = parsedMessage;
+            if (!containerId) {
+              throw new Error("Container ID is required");
+            }
+
+            console.log(`Requesting container details for: ${containerId}`);
+            const containerDetails =
+              await dockerService.getDockerContainerDetails(containerId);
+            console.log(
+              `Container details retrieved successfully for: ${containerId}`
+            );
+            ws.send(
+              JSON.stringify({
+                type: "container-details-result",
+                data: containerDetails,
+                timestamp: new Date().toISOString(),
+              })
+            );
+          } catch (error) {
+            console.error(`Error getting container details:`, error);
+            ws.send(
+              JSON.stringify({
+                type: "error",
+                message:
+                  error instanceof Error
+                    ? error.message
+                    : "Failed to get Docker container details",
+              })
+            );
+          }
+          break;
+
         case "terminal-connect":
           try {
             const { terminalId, containerId } = parsedMessage;
