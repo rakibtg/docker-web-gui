@@ -8,6 +8,36 @@ export interface DockerContainer {
   created: string;
 }
 
+export interface DockerContainerDetails extends DockerContainer {
+  command?: string;
+  labels?: Record<string, string>;
+  env?: string[];
+  mounts?: Array<{
+    type: string;
+    source: string;
+    destination: string;
+    mode: string;
+    name?: string;
+  }>;
+  networks?: Array<{
+    name: string;
+    networkId: string;
+    ipAddress?: string;
+    gateway?: string;
+    macAddress?: string;
+  }>;
+  restartPolicy?: {
+    name: string;
+    maximumRetryCount?: number;
+  };
+  privileged?: boolean;
+  workingDir?: string;
+  user?: string;
+  hostname?: string;
+  platform?: string;
+  architecture?: string;
+}
+
 export interface DockerImage {
   id: string;
   repository: string;
