@@ -1,5 +1,6 @@
 export { Dashboard } from "./Dashboard";
 export { ContainersPage } from "./ContainersPage";
+export { ContainerDetails } from "./ContainerDetails";
 export { Images } from "./Images";
 export { Networks } from "./Networks";
 export { Volumes } from "./Volumes";
