@@ -1,4 +1,5 @@
 import React, { useState, memo, useCallback } from "react";
+import { Link } from "react-router-dom";
 import { ToggleSwitch } from "./ToggleSwitch";
 import { UptimeDisplay } from "./UptimeDisplay";
 import type { ContainerWithStats } from "../types";
@@ -79,9 +80,12 @@ const ContainerCard = memo(function ContainerCard({
         <div className="flex items-center border-0 border-yellow-500 justify-between">
           <div className="flex-1 min-w-0">
             <div className="flex flex-row items-center gap-2">
-              <h3 className="text-lg font-semibold text-gray-100 truncate transition-colors">
+              <Link
+                to={`/containers/${container.id}`}
+                className="text-lg font-semibold text-gray-100 hover:text-blue-400 truncate transition-colors"
+              >
                 {container.name}
-              </h3>
+              </Link>
               <UptimeDisplay
                 status={container.status}
                 className={`inline-flex text-xs px-2 py-1 rounded-full transition-colors ${
@@ -168,15 +172,15 @@ const ContainerCard = memo(function ContainerCard({
               </p>
             </CardActionButton>
 
-            <CardActionButton
-              title="More info"
-              aria-label="More information about this container"
-              onClick={() => console.log("More info")}
-              disabled={!isRunning || !onOpenTerminal}
+            <Link
+              to={`/containers/${container.id}`}
+              className="cursor-pointer w-18 p-1 text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 flex flex-col items-center"
+              title="Container details"
+              aria-label="Container details"
             >
               <FaCircleInfo className="w-5 h-5" />
-              <p className="text-xs text-gray-100 pt-1">More info</p>
-            </CardActionButton>
+              <p className="text-xs text-gray-100 pt-1">Details</p>
+            </Link>
           </div>
         </div>
       </div>
