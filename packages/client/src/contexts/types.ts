@@ -93,6 +93,7 @@ export interface AppContextType {
   requestNetworks: () => void;
   requestVolumes: () => void;
   requestVolumeDetails: (volumeName: string) => void;
+  requestContainerDetails: (containerId: string) => void;
   handleImageRemove: (imageId: string, force?: boolean) => void;
   handleNetworkRemove: (networkId: string, networkName?: string) => void;
   handleVolumeRemove: (volumeName: string) => void;
