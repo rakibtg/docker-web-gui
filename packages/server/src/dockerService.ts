@@ -9,6 +9,7 @@ import {
   TerminalService,
   // Re-export types for backward compatibility
   DockerContainer,
+  DockerContainerDetails,
   DockerImage,
   DockerNetwork,
   DockerVolume,
@@ -22,6 +23,7 @@ import {
 // Re-export types for backward compatibility
 export {
   DockerContainer,
+  DockerContainerDetails,
   DockerImage,
   DockerNetwork,
   DockerVolume,
@@ -73,6 +75,12 @@ export class DockerService extends EventEmitter {
       this.emit("container-state-changed", { containerId, action: "restart" });
     }
     return result;
+  }
+
+  async getDockerContainerDetails(
+    containerId: string
+  ): Promise<DockerContainerDetails> {
+    return ContainerService.getDockerContainerDetails(containerId);
   }
 
   // === Image Operations ===
