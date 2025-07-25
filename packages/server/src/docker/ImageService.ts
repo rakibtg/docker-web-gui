@@ -1,7 +1,77 @@
 import { BaseDockerService } from "./BaseDockerService";
-import { DockerImage, DockerOperationResult } from "./types";
+import {
+  DockerImage,
+  DockerImageDetails,
+  DockerOperationResult,
+} from "./types";
 
 export class ImageService extends BaseDockerService {
+  /**
+   * Get detailed information about a specific Docker image
+   */
+  static async getDockerImageDetails(
+    imageId: string
+  ): Promise<DockerImageDetails> {
+    try {
+      // Get detailed image inspection directly - this is more reliable
+      const { stdout: inspectOutput } = await this.execDockerCommand(
+        `docker inspect ${imageId}`
+      );
+
+      const inspectData = JSON.parse(inspectOutput)[0];
+
+      if (!inspectData) {
+        throw new Error(`Image with ID ${imageId} not found`);
+      }
+
+      // Build the detailed image object from inspect data
+      const imageDetails: DockerImageDetails = {
+        id: inspectData.RepoTags?.[0] || `${imageId}:latest`,
+        repository: inspectData.RepoTags?.[0]?.split(":")[0] || "unknown",
+        tag: inspectData.RepoTags?.[0]?.split(":")[1] || "latest",
+        size: inspectData.Size
+          ? (inspectData.Size / (1024 * 1024)).toFixed(1) + " MB"
+          : "Unknown",
+        created: inspectData.Created || "",
+        imageId: inspectData.Id || imageId,
+        architecture: inspectData.Architecture,
+        os: inspectData.Os,
+        parent: inspectData.Parent,
+        config: {
+          hostname: inspectData.Config?.Hostname,
+          domainname: inspectData.Config?.Domainname,
+          user: inspectData.Config?.User,
+          attachStdin: inspectData.Config?.AttachStdin,
+          attachStdout: inspectData.Config?.AttachStdout,
+          attachStderr: inspectData.Config?.AttachStderr,
+          tty: inspectData.Config?.Tty,
+          openStdin: inspectData.Config?.OpenStdin,
+          stdinOnce: inspectData.Config?.StdinOnce,
+          env: inspectData.Config?.Env,
+          cmd: inspectData.Config?.Cmd,
+          image: inspectData.Config?.Image,
+          volumes: inspectData.Config?.Volumes,
+          workingDir: inspectData.Config?.WorkingDir,
+          entrypoint: inspectData.Config?.Entrypoint,
+          networkDisabled: inspectData.Config?.NetworkDisabled,
+          macAddress: inspectData.Config?.MacAddress,
+          onBuild: inspectData.Config?.OnBuild,
+          labels: inspectData.Config?.Labels,
+          shell: inspectData.Config?.Shell,
+        },
+        rootFS: {
+          type: inspectData.RootFS?.Type,
+          layers: inspectData.RootFS?.Layers,
+        },
+      };
+
+      return imageDetails;
+    } catch (error) {
+      console.error("Error getting Docker image details:", error);
+      throw error;
+    }
+  }
+
   /**
    * Get all Docker images
    */
