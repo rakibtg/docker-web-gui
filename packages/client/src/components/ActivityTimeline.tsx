@@ -82,7 +82,7 @@ export const ActivityTimeline = memo(function ActivityTimeline({
 
       {activities.length > 0 ? (
         <div className="space-y-4">
-          {activities.map((activity, index) => (
+          {activities.map((activity) => (
             <div key={activity.id} className="flex items-start space-x-3">
               <div className={`p-2 rounded-full bg-gray-700 ${activity.color}`}>
                 {activity.icon}
@@ -93,9 +93,6 @@ export const ActivityTimeline = memo(function ActivityTimeline({
                   {activity.timestamp}
                 </p>
               </div>
-              {index < activities.length - 1 && (
-                <div className="absolute left-[1.125rem] mt-10 w-px h-6 bg-gray-600" />
-              )}
             </div>
           ))}
         </div>
