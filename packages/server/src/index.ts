@@ -726,6 +726,45 @@ wss.on("connection", function connection(ws) {
           }
           break;
 
+        case "get-image-details":
+          try {
+            const { imageId } = parsedMessage;
+            if (!imageId) {
+              throw new Error("Image ID is required");
+            }
+
+            console.log(`Requesting image details for: ${imageId}`);
+            const imageDetails = await dockerService.getDockerImageDetails(
+              imageId
+            );
+            console.log(`Image details retrieved successfully for: ${imageId}`);
+            console.log("Sending image details response:", {
+              type: "image-details-result",
+              imageId: imageDetails.imageId,
+              id: imageDetails.id,
+            });
+
+            ws.send(
+              JSON.stringify({
+                type: "image-details-result",
+                data: imageDetails,
+                timestamp: new Date().toISOString(),
+              })
+            );
+          } catch (error) {
+            console.error(`Error getting image details:`, error);
+            ws.send(
+              JSON.stringify({
+                type: "error",
+                message:
+                  error instanceof Error
+                    ? error.message
+                    : "Failed to get Docker image details",
+              })
+            );
+          }
+          break;
+
         case "remove-image":
           try {
             const { imageId, force } = parsedMessage;
