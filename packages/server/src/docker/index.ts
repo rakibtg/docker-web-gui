@@ -9,3 +9,17 @@ export { NetworkService } from "./NetworkService";
 export { VolumeService } from "./VolumeService";
 export { StatsService } from "./StatsService";
 export { TerminalService } from "./TerminalService";
+
+export type {
+  DockerContainer,
+  DockerContainerDetails,
+  DockerImage,
+  DockerImageDetails,
+  DockerNetwork,
+  DockerVolume,
+  DockerStats,
+  ContainerWithStats,
+  DockerOperationResult,
+  DockerAvailabilityResult,
+  VolumesPruneResult,
+} from "./types";

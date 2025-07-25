@@ -48,6 +48,46 @@ export interface DockerImage {
   imageId: string;
 }
 
+export interface DockerImageDetails extends DockerImage {
+  architecture?: string;
+  os?: string;
+  labels?: Record<string, string>;
+  env?: string[];
+  cmd?: string[];
+  entrypoint?: string[];
+  exposedPorts?: string[];
+  workingDir?: string;
+  user?: string;
+  virtualSize?: string;
+  parent?: string;
+  config?: {
+    hostname?: string;
+    domainname?: string;
+    user?: string;
+    attachStdin?: boolean;
+    attachStdout?: boolean;
+    attachStderr?: boolean;
+    tty?: boolean;
+    openStdin?: boolean;
+    stdinOnce?: boolean;
+    env?: string[];
+    cmd?: string[];
+    image?: string;
+    volumes?: Record<string, unknown>;
+    workingDir?: string;
+    entrypoint?: string[];
+    networkDisabled?: boolean;
+    macAddress?: string;
+    onBuild?: string[];
+    labels?: Record<string, string>;
+    shell?: string[];
+  };
+  rootFS?: {
+    type: string;
+    layers?: string[];
+  };
+}
+
 export interface DockerNetwork {
   id: string;
   name: string;
