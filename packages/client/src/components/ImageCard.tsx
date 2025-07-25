@@ -1,4 +1,5 @@
 import React, { useState, memo, useCallback } from "react";
+import { Link } from "react-router-dom";
 import type { DockerImage } from "../types";
 import { FaTrash, FaClock, FaHdd } from "react-icons/fa";
 import { LuLayers3 } from "react-icons/lu";
@@ -115,9 +116,12 @@ const ImageCard = memo(function ImageCard({
       {/* Header with image name, tag, and action button */}
       <div className="flex items-center justify-between mb-2 relative">
         <div className="flex items-center gap-2 flex-1 min-w-0">
-          <h3 className="text-base font-medium text-gray-100 truncate">
+          <Link
+            to={`/images/${image.imageId}`}
+            className="text-base font-medium text-gray-100 hover:text-blue-400 transition-colors truncate"
+          >
             {image.repository}
-          </h3>
+          </Link>
           <span className="inline-flex text-xs px-1.5 py-0.5 rounded border border-blue-400/30 text-blue-100 bg-blue-500/20 shrink-0">
             {image.tag}
           </span>
