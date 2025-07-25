@@ -1,74 +1,19 @@
 import { memo } from "react";
-import {
-  FaDocker,
-  FaPlay,
-  FaStop,
-  FaImage,
-  FaNetworkWired,
-  FaDatabase,
-  FaExclamationTriangle,
-  FaTrash,
-} from "react-icons/fa";
-import type {
-  ContainerWithStats,
-  DockerImage,
-  DockerNetwork,
-  DockerVolume,
-} from "../types";
+import { FaDocker, FaImage, FaNetworkWired, FaDatabase } from "react-icons/fa";
 
 interface ResourceSummaryProps {
-  containers: ContainerWithStats[];
-  images: DockerImage[];
-  networks: DockerNetwork[];
-  volumes: DockerVolume[];
-  onContainerToggle: (containerId: string, currentState: string) => void;
-  onImagesPrune?: () => void;
-  onVolumesPrune?: () => void;
+  containerCount: number;
+  imageCount: number;
+  networkCount: number;
+  volumeCount: number;
 }
 
 export const ResourceSummary = memo(function ResourceSummary({
-  containers,
-  images,
-  networks,
-  volumes,
-  onContainerToggle,
-  onImagesPrune,
-  onVolumesPrune,
+  containerCount,
+  imageCount,
+  networkCount,
+  volumeCount,
 }: ResourceSummaryProps) {
-  const runningContainers = containers.filter((c) => c.state === "running");
-  const stoppedContainers = containers.filter(
-    (c) => c.state === "exited" || c.state === "stopped"
-  );
-
-  // Calculate image sizes
-  const totalImageSize = images.reduce((total, image) => {
-    const sizeStr = image.size || "0B";
-    const sizeValue = parseFloat(sizeStr);
-    let multiplier = 1;
-
-    if (sizeStr.includes("KB")) multiplier = 1024;
-    else if (sizeStr.includes("MB")) multiplier = 1024 * 1024;
-    else if (sizeStr.includes("GB")) multiplier = 1024 * 1024 * 1024;
-
-    return total + sizeValue * multiplier;
-  }, 0);
-
-  const formatSize = (bytes: number) => {
-    if (bytes === 0) return "0 B";
-    const k = 1024;
-    const sizes = ["B", "KB", "MB", "GB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
-  };
-
-  // Find unused images (images not used by any container)
-  const usedImageIds = new Set(containers.map((c) => c.image));
-  const unusedImages = images.filter(
-    (img) =>
-      !usedImageIds.has(img.repository + ":" + img.tag) &&
-      !usedImageIds.has(img.imageId)
-  );
-
   const SummaryCard = ({
     title,
     icon,
@@ -85,126 +30,117 @@ export const ResourceSummary = memo(function ResourceSummary({
     actions?: React.ReactNode;
   }) => {
     const colorClasses = {
-      blue: "text-blue-400 bg-blue-500/10 border-blue-500/20",
-      green: "text-green-400 bg-green-500/10 border-green-500/20",
-      yellow: "text-yellow-400 bg-yellow-500/10 border-yellow-500/20",
-      red: "text-red-400 bg-red-500/10 border-red-500/20",
-      purple: "text-purple-400 bg-purple-500/10 border-purple-500/20",
+      blue: {
+        bg: "bg-gradient-to-br from-blue-500/10 via-blue-600/5 to-blue-400/10",
+        border: "border-blue-500/30",
+        icon: "bg-blue-500/20 text-blue-400",
+        accent: "bg-blue-500",
+      },
+      green: {
+        bg: "bg-gradient-to-br from-green-500/10 via-green-600/5 to-emerald-400/10",
+        border: "border-green-500/30",
+        icon: "bg-green-500/20 text-green-400",
+        accent: "bg-green-500",
+      },
+      yellow: {
+        bg: "bg-gradient-to-br from-yellow-500/10 via-amber-600/5 to-yellow-400/10",
+        border: "border-yellow-500/30",
+        icon: "bg-yellow-500/20 text-yellow-400",
+        accent: "bg-yellow-500",
+      },
+      red: {
+        bg: "bg-gradient-to-br from-red-500/10 via-red-600/5 to-rose-400/10",
+        border: "border-red-500/30",
+        icon: "bg-red-500/20 text-red-400",
+        accent: "bg-red-500",
+      },
+      purple: {
+        bg: "bg-gradient-to-br from-purple-500/10 via-violet-600/5 to-purple-400/10",
+        border: "border-purple-500/30",
+        icon: "bg-purple-500/20 text-purple-400",
+        accent: "bg-purple-500",
+      },
     };
 
+    const colors = colorClasses[color];
+
     return (
-      <div className={`rounded-lg border p-6 ${colorClasses[color]}`}>
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center space-x-3">
-            <div className={`p-2 rounded-lg bg-current/10`}>{icon}</div>
-            <div>
-              <h3 className="text-sm font-medium text-gray-300">{title}</h3>
-              <div className="text-2xl font-bold text-white">{value}</div>
-              {subtitle && (
-                <div className="text-xs text-gray-400">{subtitle}</div>
-              )}
+      <div
+        className={`relative group rounded-2xl border ${colors.border} ${colors.bg} p-6 hover:shadow-xl hover:shadow-${color}-500/10 transition-all duration-300 hover:-translate-y-1`}
+      >
+        {/* Accent line */}
+        <div
+          className={`absolute top-0 left-0 w-full h-1 ${colors.accent} rounded-t-2xl`}
+        ></div>
+
+        {/* Floating glow effect */}
+        <div
+          className={`absolute -inset-0.5 ${colors.bg} rounded-2xl blur opacity-30 group-hover:opacity-50 transition-opacity duration-300`}
+        ></div>
+
+        <div className="relative">
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex items-center space-x-4">
+              <div className={`p-3 rounded-xl ${colors.icon} shadow-lg`}>
+                {icon}
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-gray-300 uppercase tracking-wider">
+                  {title}
+                </h3>
+                <div className="text-3xl font-bold text-white mt-1 font-mono">
+                  {value}
+                </div>
+                {subtitle && (
+                  <div className="text-xs text-gray-400 mt-1 font-medium">
+                    {subtitle}
+                  </div>
+                )}
+              </div>
             </div>
+            {actions && <div className="flex space-x-2">{actions}</div>}
           </div>
-          {actions && <div className="flex space-x-2">{actions}</div>}
         </div>
       </div>
     );
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
       {/* Containers Summary */}
       <SummaryCard
         title="Containers"
-        icon={<FaDocker className="w-5 h-5" />}
-        value={containers.length}
-        subtitle={`${runningContainers.length} running, ${stoppedContainers.length} stopped`}
+        icon={<FaDocker className="w-6 h-6" />}
+        value={containerCount}
+        subtitle="Total containers"
         color="blue"
-        actions={
-          <div className="flex space-x-1">
-            <button
-              onClick={() => {
-                stoppedContainers.forEach((container) => {
-                  onContainerToggle(container.id, container.state);
-                });
-              }}
-              disabled={stoppedContainers.length === 0}
-              className="p-2 rounded bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs"
-              title="Start all stopped containers"
-            >
-              <FaPlay className="w-3 h-3" />
-            </button>
-            <button
-              onClick={() => {
-                runningContainers.forEach((container) => {
-                  onContainerToggle(container.id, container.state);
-                });
-              }}
-              disabled={runningContainers.length === 0}
-              className="p-2 rounded bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs"
-              title="Stop all running containers"
-            >
-              <FaStop className="w-3 h-3" />
-            </button>
-          </div>
-        }
       />
 
       {/* Images Summary */}
       <SummaryCard
         title="Images"
-        icon={<FaImage className="w-5 h-5" />}
-        value={images.length}
-        subtitle={`${formatSize(totalImageSize)} total, ${
-          unusedImages.length
-        } unused`}
+        icon={<FaImage className="w-6 h-6" />}
+        value={imageCount}
+        subtitle="Total images"
         color="green"
-        actions={
-          unusedImages.length > 0 ? (
-            <button
-              onClick={onImagesPrune}
-              className="p-2 rounded bg-yellow-600 hover:bg-yellow-700 text-white text-xs flex items-center space-x-1"
-              title="Clean up unused images"
-            >
-              <FaTrash className="w-3 h-3" />
-              <FaExclamationTriangle className="w-3 h-3" />
-            </button>
-          ) : undefined
-        }
       />
 
       {/* Networks Summary */}
       <SummaryCard
         title="Networks"
-        icon={<FaNetworkWired className="w-5 h-5" />}
-        value={networks.length}
-        subtitle={`${
-          networks.filter((n) => n.containers.length > 0).length
-        } active`}
+        icon={<FaNetworkWired className="w-6 h-6" />}
+        value={networkCount}
+        subtitle="Total networks"
         color="purple"
       />
 
       {/* Volumes Summary */}
       <SummaryCard
         title="Volumes"
-        icon={<FaDatabase className="w-5 h-5" />}
-        value={volumes.length}
-        subtitle={`${
-          volumes.filter((v) => v.usedBy && v.usedBy.length > 0).length
-        } in use`}
+        icon={<FaDatabase className="w-6 h-6" />}
+        value={volumeCount}
+        subtitle="Total volumes"
         color="yellow"
-        actions={
-          volumes.some((v) => !v.usedBy || v.usedBy.length === 0) ? (
-            <button
-              onClick={onVolumesPrune}
-              className="p-2 rounded bg-red-600 hover:bg-red-700 text-white text-xs flex items-center space-x-1"
-              title="Clean up unused volumes"
-            >
-              <FaTrash className="w-3 h-3" />
-              <FaExclamationTriangle className="w-3 h-3" />
-            </button>
-          ) : undefined
-        }
       />
     </div>
   );
