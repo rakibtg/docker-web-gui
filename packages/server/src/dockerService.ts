@@ -11,6 +11,7 @@ import {
   DockerContainer,
   DockerContainerDetails,
   DockerImage,
+  DockerImageDetails,
   DockerNetwork,
   DockerVolume,
   DockerStats,
@@ -25,6 +26,7 @@ export {
   DockerContainer,
   DockerContainerDetails,
   DockerImage,
+  DockerImageDetails,
   DockerNetwork,
   DockerVolume,
   DockerStats,
@@ -86,6 +88,10 @@ export class DockerService extends EventEmitter {
   // === Image Operations ===
   async getDockerImages(): Promise<DockerImage[]> {
     return ImageService.getDockerImages();
+  }
+
+  async getDockerImageDetails(imageId: string): Promise<DockerImageDetails> {
+    return ImageService.getDockerImageDetails(imageId);
   }
 
   async removeImage(
