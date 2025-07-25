@@ -4,6 +4,7 @@ import {
   ContainersPage,
   ContainerDetails,
   Images,
+  ImageDetails,
   Networks,
   Volumes,
   VolumeDetails,
@@ -29,6 +30,7 @@ function AppContent() {
               element={<ContainerDetails />}
             />
             <Route path="/images" element={<Images />} />
+            <Route path="/images/:imageId" element={<ImageDetails />} />
             <Route path="/networks" element={<Networks />} />
             <Route path="/volumes" element={<Volumes />} />
             <Route path="/volumes/:volumeId" element={<VolumeDetails />} />
