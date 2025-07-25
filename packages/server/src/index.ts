@@ -217,6 +217,43 @@ wss.on("connection", function connection(ws) {
       const parsedMessage = JSON.parse(data.toString());
 
       switch (parsedMessage.type) {
+        case "get-dashboard-summary":
+          try {
+            // Fetch all resource counts concurrently for dashboard summary
+            const [containers, images, networks, volumes] = await Promise.all([
+              dockerService.getDockerContainers(),
+              dockerService.getDockerImages(),
+              dockerService.getDockerNetworks(),
+              dockerService.getDockerVolumes(),
+            ]);
+
+            const summary = {
+              containers: containers.length,
+              images: images.length,
+              networks: networks.length,
+              volumes: volumes.length,
+            };
+
+            ws.send(
+              JSON.stringify({
+                type: "dashboard-summary-result",
+                data: summary,
+                timestamp: new Date().toISOString(),
+              })
+            );
+          } catch (error) {
+            ws.send(
+              JSON.stringify({
+                type: "error",
+                message:
+                  error instanceof Error
+                    ? error.message
+                    : "Failed to get dashboard summary",
+              })
+            );
+          }
+          break;
+
         case "get-containers":
           try {
             const containers = await dockerService.getDockerContainers();
