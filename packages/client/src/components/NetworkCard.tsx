@@ -15,6 +15,7 @@ import {
 } from "react-icons/fa";
 import { IoReloadCircle } from "react-icons/io5";
 import { BsCircleFill } from "react-icons/bs";
+import { formatDate } from "../helpers";
 
 function CardActionButton({
   children,
@@ -116,30 +117,6 @@ const NetworkCard = memo(function NetworkCard({
     containerToDisconnect,
   ]);
 
-  const formatDate = (dateString: string) => {
-    if (!dateString) return "Unknown";
-
-    try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) {
-        return dateString;
-      }
-
-      const options: Intl.DateTimeFormatOptions = {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: false,
-      };
-
-      return date.toLocaleDateString("en-US", options);
-    } catch {
-      return dateString;
-    }
-  };
-
   const getDriverIcon = (driver: string) => {
     switch (driver) {
       case "bridge":
@@ -238,8 +215,8 @@ const NetworkCard = memo(function NetworkCard({
 
           <div className="flex items-center gap-1">
             <FaClock className="text-blue-400" size={10} />
-            <span title={formatDate(network.created)}>
-              Created: {formatDate(network.created)}
+            <span title={formatDate(network.created, true)}>
+              Created: {formatDate(network.created, true)}
             </span>
           </div>
         </div>

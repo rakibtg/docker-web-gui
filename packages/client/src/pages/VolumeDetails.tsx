@@ -16,6 +16,7 @@ import {
 } from "react-icons/fa";
 import { BsCircleFill } from "react-icons/bs";
 import { ConfirmationModal } from "../components/ConfirmationModal";
+import { formatDate } from "../helpers";
 
 const VolumeDetails = memo(function VolumeDetails() {
   const { volumeId } = useParams<{ volumeId: string }>();
@@ -122,30 +123,6 @@ const VolumeDetails = memo(function VolumeDetails() {
       setTimeout(() => {
         navigate("/volumes");
       }, 1000);
-    }
-  };
-
-  const formatDate = (dateString: string) => {
-    if (!dateString) return "Unknown";
-    try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) {
-        return dateString;
-      }
-
-      const options: Intl.DateTimeFormatOptions = {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-        hour12: false,
-      };
-
-      return date.toLocaleDateString("en-US", options);
-    } catch {
-      return dateString;
     }
   };
 

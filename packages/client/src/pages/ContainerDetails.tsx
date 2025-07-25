@@ -23,7 +23,7 @@ import {
   FaDesktop,
 } from "react-icons/fa";
 import { BsCircleFill } from "react-icons/bs";
-import { formatDockerPort } from "../helpers/readablePort";
+import { formatDockerPort, formatDate } from "../helpers";
 
 const ContainerDetails = memo(function ContainerDetails() {
   const { containerId } = useParams<{ containerId: string }>();
@@ -172,30 +172,6 @@ const ContainerDetails = memo(function ContainerDetails() {
       await handleContainerRestart(container.id);
     } finally {
       setTimeout(() => setIsRestarting(false), 2000);
-    }
-  };
-
-  const formatDate = (dateString: string) => {
-    if (!dateString) return "Unknown";
-    try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) {
-        return dateString;
-      }
-
-      const options: Intl.DateTimeFormatOptions = {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-        hour12: false,
-      };
-
-      return date.toLocaleDateString("en-US", options);
-    } catch {
-      return dateString;
     }
   };
 

@@ -1,7 +1,7 @@
 import { memo, useEffect, useState, useMemo, useCallback } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useApp } from "../hooks/useApp";
-import type { DockerImageDetails, DockerContainer } from "../types";
+import type { DockerImageDetails } from "../types";
 import {
   FaArrowLeft,
   FaDocker,
@@ -14,6 +14,7 @@ import {
   FaTerminal,
 } from "react-icons/fa";
 import { BsCircleFill } from "react-icons/bs";
+import { formatDate } from "../helpers";
 
 const ImageDetails = memo(function ImageDetails() {
   const { imageId } = useParams<{ imageId: string }>();
@@ -179,30 +180,6 @@ const ImageDetails = memo(function ImageDetails() {
 
   const handleBackClick = () => {
     navigate("/images");
-  };
-
-  const formatDate = (dateString: string) => {
-    if (!dateString) return "Unknown";
-    try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) {
-        return dateString;
-      }
-
-      const options: Intl.DateTimeFormatOptions = {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-        hour12: false,
-      };
-
-      return date.toLocaleDateString("en-US", options);
-    } catch {
-      return dateString;
-    }
   };
 
   const formatSize = (size?: string) => {
