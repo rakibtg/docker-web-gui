@@ -22,3 +22,8 @@ export { ToggleSwitch } from "./ToggleSwitch";
 export { UptimeDisplay } from "./UptimeDisplay";
 export { Terminal } from "./Terminal";
 export { TerminalManager } from "./TerminalManager";
+export { SystemOverview } from "./SystemOverview";
+export { ResourceSummary } from "./ResourceSummary";
+export { LiveStatistics } from "./LiveStatistics";
+export { ActivityTimeline } from "./ActivityTimeline";
+export { QuickActions } from "./QuickActions";
