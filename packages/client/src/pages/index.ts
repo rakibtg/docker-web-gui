@@ -1,10 +1,10 @@
+export { About } from "./About";
+export { Images } from "./Images";
+export { Volumes } from "./Volumes";
+export { Settings } from "./Settings";
+export { Networks } from "./Networks";
 export { Dashboard } from "./Dashboard";
+export { ImageDetails } from "./ImageDetails";
+export { VolumeDetails } from "./VolumeDetails";
 export { ContainersPage } from "./ContainersPage";
 export { ContainerDetails } from "./ContainerDetails";
-export { Images } from "./Images";
-export { ImageDetails } from "./ImageDetails";
-export { Networks } from "./Networks";
-export { Volumes } from "./Volumes";
-export { VolumeDetails } from "./VolumeDetails";
-export { Settings } from "./Settings";
-export { About } from "./About";

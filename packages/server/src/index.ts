@@ -1,16 +1,16 @@
-import { WebSocketServer } from "ws";
-import { createServer } from "http";
-import { readFileSync, existsSync } from "fs";
-import { join, extname } from "path";
 import { parse } from "url";
+import { createServer } from "http";
+import { WebSocketServer } from "ws";
+import { join, extname } from "path";
+import { readFileSync, existsSync } from "fs";
 import { DockerService, ContainerWithStats } from "./dockerService";
 
 // Client management for WebSocket connections
 interface ClientConnection {
   ws: any;
   id: string;
-  isActive: boolean;
   lastPing: number;
+  isActive: boolean;
   terminals?: Map<string, any>; // terminalId -> terminal process
 }
 
