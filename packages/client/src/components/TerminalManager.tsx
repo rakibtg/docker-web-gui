@@ -1,16 +1,22 @@
+import { useCallback } from "react";
 import { Terminal } from "./Terminal";
-import { FiX, FiTerminal } from "react-icons/fi";
-import { IoNewspaper } from "react-icons/io5";
 import { useApp } from "../hooks/useApp";
+import { IoNewspaper } from "react-icons/io5";
+import { FiX, FiTerminal, FiMinimize2 } from "react-icons/fi";
 
 export function TerminalManager() {
   const {
     terminals,
+    websocket,
+    closeTerminal,
+    setShowTerminals,
     activeTerminalId,
     setActiveTerminalId,
-    closeTerminal,
-    websocket,
   } = useApp();
+
+  const handleToggleVisibility = useCallback(() => {
+    setShowTerminals(false);
+  }, [setShowTerminals]);
 
   if (terminals.length === 0) {
     return (
@@ -18,7 +24,7 @@ export function TerminalManager() {
         <div className="text-center text-gray-300">
           <FiTerminal className="w-12 h-12 mx-auto mb-4 opacity-50" />
           <p className="text-lg font-medium mb-2">No Terminal Sessions</p>
-          <p className="text-sm">
+          <p className="text-sm mb-4">
             Open a terminal from a running container to get started
           </p>
         </div>
@@ -28,16 +34,20 @@ export function TerminalManager() {
 
   return (
     <div className="flex-1 bg-gray-800 border-gray-600 border-t flex flex-col">
-      <div className="flex items-center bg-gray-700 px-2 py-1.5">
+      {/* Terminal tabs header */}
+      <div className="flex items-center bg-gray-700 px-2 py-1.5 min-h-[44px]">
         <div className="flex items-center space-x-1 flex-1 overflow-x-auto">
           {terminals.map((terminal) => (
             <button
               key={terminal.id}
               onClick={() => setActiveTerminalId(terminal.id)}
-              className={`flex items-center space-x-1 px-2 py-1.5 rounded-md text-sm font-medium whitespace-nowrap transition-colors ${
+              className={`flex items-center space-x-1 px-3 py-1.5 rounded-md text-sm font-medium whitespace-nowrap transition-all duration-200 ${
                 activeTerminalId === terminal.id
-                  ? "bg-gray-800 text-gray-100 border border-gray-600"
-                  : "text-gray-300 hover:text-gray-100 hover:bg-gray-700"
+                  ? "bg-gray-800 text-gray-100 border border-gray-600 shadow-sm"
+                  : "text-gray-300 hover:text-gray-100 hover:bg-gray-600"
+              }`}
+              title={`${terminal.type === "logs" ? "Logs" : "Terminal"}: ${
+                terminal.containerName
               }`}
             >
               {terminal.type === "logs" ? (
@@ -45,7 +55,7 @@ export function TerminalManager() {
               ) : (
                 <FiTerminal className="w-4 h-4" />
               )}
-              <span className="max-w-34 truncate">
+              <span className="max-w-32 truncate">
                 {terminal.type === "logs"
                   ? `Logs: ${terminal.containerName}`
                   : terminal.containerName}
@@ -55,7 +65,7 @@ export function TerminalManager() {
                   e.stopPropagation();
                   closeTerminal(terminal.id);
                 }}
-                className="ml-1 text-gray-400 hover:text-red-500 transition-colors"
+                className="ml-1 text-gray-400 hover:text-red-500 transition-colors p-0.5 rounded"
                 title="Close terminal"
                 aria-label="Close terminal"
               >
@@ -64,15 +74,27 @@ export function TerminalManager() {
             </button>
           ))}
         </div>
+
+        {/* Minimize button */}
+        <button
+          onClick={handleToggleVisibility}
+          className="ml-2 text-gray-400 hover:text-gray-200 transition-colors p-1.5 rounded hover:bg-gray-600"
+          title="Minimize terminals"
+          aria-label="Minimize terminals"
+        >
+          <FiMinimize2 className="w-4 h-4" />
+        </button>
       </div>
 
-      {/* Active Terminal */}
-      <div className="flex-1 relative">
+      {/* Active Terminal Content */}
+      <div className="flex-1 relative bg-gray-900">
         {terminals.map((terminal) => (
           <div
             key={terminal.id}
-            className={`absolute inset-0 ${
-              activeTerminalId === terminal.id ? "block" : "hidden"
+            className={`absolute inset-0 transition-opacity duration-200 ${
+              activeTerminalId === terminal.id
+                ? "opacity-100"
+                : "opacity-0 pointer-events-none"
             }`}
           >
             {websocket ? (
@@ -85,16 +107,14 @@ export function TerminalManager() {
               />
             ) : (
               <div className="flex items-center justify-center h-full text-gray-300">
-                <p>No terminal connection</p>
+                <div className="text-center">
+                  <FiTerminal className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                  <p>No WebSocket connection</p>
+                </div>
               </div>
             )}
           </div>
         ))}
-        {terminals.length === 0 && (
-          <div className="flex items-center justify-center h-full text-gray-300">
-            <p>No active terminal session</p>
-          </div>
-        )}
       </div>
     </div>
   );
