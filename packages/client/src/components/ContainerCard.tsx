@@ -1,12 +1,12 @@
 import React, { useState, memo, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { ToggleSwitch } from "./ToggleSwitch";
 import { UptimeDisplay } from "./UptimeDisplay";
 import type { ContainerWithStats } from "../types";
 import { BsFillTerminalFill } from "react-icons/bs";
 import { IoNewspaper } from "react-icons/io5";
 import { IoReloadCircle } from "react-icons/io5";
 import { FaCircleInfo } from "react-icons/fa6";
+import { FaPlay, FaStop } from "react-icons/fa6";
 import { formatDockerPort } from "../helpers/readablePort";
 
 function CardActionButton({
@@ -115,18 +115,29 @@ const ContainerCard = memo(function ContainerCard({
 
         <div className="">
           <div className="flex items-center space-x-4 justify-around">
-            <div className="flex flex-col items-center gap-1  w-18 rounded-md p-2">
-              <ToggleSwitch
-                isOn={isRunning}
-                onToggle={handleToggle}
-                loading={isToggling || localToggling}
-                disabled={isToggling || localToggling}
-                size="md"
-              />
-              <p className="text-xs text-gray-100 cursor-default">
-                {isRunning ? "Stop" : "Start"}
+            <CardActionButton
+              title={isRunning ? "Stop container" : "Start container"}
+              aria-label={isRunning ? "Stop container" : "Start container"}
+              onClick={handleToggle}
+              disabled={isToggling || localToggling}
+            >
+              {isToggling || localToggling ? (
+                <div className="w-5 h-5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+              ) : isRunning ? (
+                <FaStop className="w-5 h-5" />
+              ) : (
+                <FaPlay className="w-5 h-5" />
+              )}
+              <p className="text-xs text-gray-100 pt-1">
+                {isToggling || localToggling
+                  ? isRunning
+                    ? "Stopping..."
+                    : "Starting..."
+                  : isRunning
+                  ? "Stop"
+                  : "Start"}
               </p>
-            </div>
+            </CardActionButton>
 
             <CardActionButton
               title="Open terminal"
