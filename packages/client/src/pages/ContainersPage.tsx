@@ -1,6 +1,7 @@
-import { memo, useCallback, useEffect } from "react";
-import { ContainerGrid, EmptyState, TerminalManager } from "../components";
+import { memo, useCallback } from "react";
+import { ContainerGrid, EmptyState } from "../components";
 import { useApp } from "../hooks/useApp";
+import { useTerminal } from "../hooks/useTerminal";
 
 const ContainersPage = memo(function ContainersPage() {
   const {
@@ -8,82 +9,47 @@ const ContainersPage = memo(function ContainersPage() {
     isConnected,
     dockerAvailable,
     loading,
-    showTerminals,
-    terminals,
     requestContainers,
     handleContainerToggle,
     handleContainerRestart,
-    addTerminal,
-    addLogs,
-    closeTerminal,
-    closeAllTerminals,
   } = useApp();
+
+  const { openTerminal, openLogs } = useTerminal();
 
   const handleOpenTerminal = useCallback(
     (containerId: string, containerName: string) => {
-      addTerminal(containerId, containerName);
+      openTerminal(containerId, containerName);
     },
-    [addTerminal]
+    [openTerminal]
   );
 
   const handleOpenLogs = useCallback(
     (containerId: string, containerName: string) => {
-      addLogs(containerId, containerName);
+      openLogs(containerId, containerName);
     },
-    [addLogs]
+    [openLogs]
   );
 
-  useEffect(() => {
-    if (containers.length > 0 && terminals.length > 0) {
-      const currentContainerIds = containers.map((container) => container.id);
-
-      const orphanedTerminals = terminals.filter(
-        (terminal) => !currentContainerIds.includes(terminal.containerId)
-      );
-
-      orphanedTerminals.forEach((terminal) => {
-        closeTerminal(terminal.id);
-      });
-    }
-  }, [containers, terminals, closeTerminal]);
-
-  useEffect(() => {
-    return () => {
-      closeAllTerminals();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   return (
-    <div className="flex flex-col h-full">
-      <div
-        className={`flex-1 ${showTerminals ? "h-1/2" : ""} overflow-auto p-4`}
-      >
-        <div className="space-y-6">
-          {containers.length > 0 ? (
-            <ContainerGrid
-              containers={containers}
-              onContainerToggle={handleContainerToggle}
-              onContainerRestart={handleContainerRestart}
-              onOpenTerminal={handleOpenTerminal}
-              onOpenLogs={handleOpenLogs}
-            />
-          ) : (
-            <EmptyState
-              dockerAvailable={dockerAvailable}
-              isConnected={isConnected}
-              loading={loading}
-              onLoadContainers={requestContainers}
-            />
-          )}
-        </div>
+    <div className="p-4 h-full">
+      <div className="space-y-6">
+        {containers.length > 0 ? (
+          <ContainerGrid
+            containers={containers}
+            onContainerToggle={handleContainerToggle}
+            onContainerRestart={handleContainerRestart}
+            onOpenTerminal={handleOpenTerminal}
+            onOpenLogs={handleOpenLogs}
+          />
+        ) : (
+          <EmptyState
+            dockerAvailable={dockerAvailable}
+            isConnected={isConnected}
+            loading={loading}
+            onLoadContainers={requestContainers}
+          />
+        )}
       </div>
-
-      {showTerminals && (
-        <div className="h-1/2 pt-3">
-          <TerminalManager />
-        </div>
-      )}
     </div>
   );
 });
