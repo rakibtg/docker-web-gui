@@ -1,6 +1,6 @@
 import { memo } from "react";
-import { TerminalManager } from "./TerminalManager";
 import { useApp } from "../hooks/useApp";
+import { TerminalManager } from "./TerminalManager";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -16,9 +16,13 @@ interface LayoutProps {
  * - Smooth transitions
  * - Persistent terminals across routes
  * - Optimized scrolling behavior
+ * - Terminals stay alive when hidden (no DOM removal)
  */
 export const Layout = memo<LayoutProps>(function Layout({ children }) {
-  const { showTerminals } = useApp();
+  const { showTerminals, terminals } = useApp();
+
+  // Only show terminal space if there are terminals and they should be visible
+  const shouldShowTerminalSpace = showTerminals && terminals.length > 0;
 
   return (
     <div className="h-screen flex flex-col overflow-hidden">
@@ -27,7 +31,7 @@ export const Layout = memo<LayoutProps>(function Layout({ children }) {
         className={`
           transition-all duration-300 ease-in-out overflow-auto
           ${
-            showTerminals
+            shouldShowTerminalSpace
               ? "h-1/2 md:h-1/2" // 50% height on all screen sizes when terminals shown
               : "flex-1" // Full height when terminals hidden
           }
@@ -36,18 +40,20 @@ export const Layout = memo<LayoutProps>(function Layout({ children }) {
         {children}
       </div>
 
-      {/* Terminal panel - persistent across routes */}
-      {showTerminals && (
-        <div
-          className={`
-            transition-all duration-300 ease-in-out border-t border-gray-600
-            h-1/2 md:h-1/2
-            ${showTerminals ? "opacity-100" : "opacity-0"}
-          `}
-        >
-          <TerminalManager />
-        </div>
-      )}
+      {/* Terminal panel - always rendered but hidden when not needed */}
+      <div
+        className={`
+          transition-all duration-300 ease-in-out border-t border-gray-600
+          ${
+            shouldShowTerminalSpace
+              ? "h-1/2 md:h-1/2 opacity-100"
+              : "h-0 opacity-0 overflow-hidden"
+          }
+        `}
+      >
+        {/* Always render TerminalManager to keep sessions alive */}
+        <TerminalManager />
+      </div>
     </div>
   );
 });
