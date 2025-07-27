@@ -32,8 +32,8 @@ export const Layout = memo<LayoutProps>(function Layout({ children }) {
           transition-all duration-300 ease-in-out overflow-auto
           ${
             shouldShowTerminalSpace
-              ? "h-1/2 md:h-1/2" // 50% height on all screen sizes when terminals shown
-              : "flex-1" // Full height when terminals hidden
+              ? "h-1/2" // 50% height when terminals shown
+              : "h-full" // Full height when terminals hidden
           }
         `}
       >
@@ -43,10 +43,10 @@ export const Layout = memo<LayoutProps>(function Layout({ children }) {
       {/* Terminal panel - always rendered but hidden when not needed */}
       <div
         className={`
-          transition-all duration-300 ease-in-out border-t border-gray-600
+          transition-all duration-300 ease-in-out
           ${
             shouldShowTerminalSpace
-              ? "h-1/2 md:h-1/2 opacity-100"
+              ? "h-1/2 opacity-100 border-t border-gray-600"
               : "h-0 opacity-0 overflow-hidden"
           }
         `}
