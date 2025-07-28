@@ -131,6 +131,19 @@ export function TerminalManager() {
     terminals.length
   );
 
+  // Auto-scroll to the right when new terminals are added
+  useEffect(() => {
+    if (tabsContainerRef.current && terminals.length > 0) {
+      // Use setTimeout to ensure the DOM has updated with the new terminal tab
+      setTimeout(() => {
+        if (tabsContainerRef.current) {
+          tabsContainerRef.current.scrollLeft =
+            tabsContainerRef.current.scrollWidth;
+        }
+      }, 50);
+    }
+  }, [terminals.length]);
+
   const handleToggleVisibility = useCallback(() => {
     setShowTerminals(false);
   }, [setShowTerminals]);
