@@ -142,7 +142,7 @@ export function TerminalManager() {
         }
       }, 50);
     }
-  }, [terminals.length]);
+  }, [terminals.length, tabsContainerRef]);
 
   const handleToggleVisibility = useCallback(() => {
     setShowTerminals(false);
