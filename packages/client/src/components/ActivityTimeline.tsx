@@ -1,19 +1,19 @@
 import { memo } from "react";
-import { FaDocker, FaPlay, FaStop, FaClock } from "react-icons/fa";
 import type { ContainerWithStats } from "../types";
+import { FaPlay, FaStop, FaClock } from "react-icons/fa";
 
 interface ActivityTimelineProps {
-  containers: ContainerWithStats[];
   lastUpdate: string;
+  containers: ContainerWithStats[];
 }
 
 interface ActivityItem {
   id: string;
-  type: "container_start" | "container_stop" | "container_create" | "general";
+  color: string;
   message: string;
   timestamp: string;
   icon: React.ReactNode;
-  color: string;
+  type: "container_start" | "container_stop" | "container_create" | "general";
 }
 
 export const ActivityTimeline = memo(function ActivityTimeline({
@@ -74,9 +74,8 @@ export const ActivityTimeline = memo(function ActivityTimeline({
   const activities = generateActivities();
 
   return (
-    <div className="bg-gray-800 rounded-lg border border-gray-700 p-6">
-      <h3 className="text-lg font-semibold text-gray-100 mb-6 flex items-center space-x-2">
-        <FaDocker className="text-blue-500" />
+    <div className="bg-gray-800 rounded border border-gray-700 p-4">
+      <h3 className="font-semibold text-gray-100 mb-6 flex items-center space-x-2">
         <span>Recent Activity</span>
       </h3>
 
