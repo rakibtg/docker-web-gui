@@ -33,10 +33,14 @@ export function TerminalManager() {
   }
 
   return (
-    <div className="flex-1 bg-gray-800 border-gray-600 border-t flex flex-col">
+    <div className="flex-1 bg-gray-800 border-gray-600 border-t flex flex-col relative">
       {/* Terminal tabs header */}
-      <div className="flex items-center bg-gray-700 px-2 py-1.5 min-h-[44px]">
-        <div className="flex items-center space-x-1 flex-1 overflow-x-auto">
+      <div className="flex items-center bg-gray-700 px-2 py-1.5 min-h-[44px] pr-10">
+        <div
+          className={`
+          flex items-center space-x-1 flex-1 overflow-x-auto border border-red-400
+        `}
+        >
           {terminals.map((terminal) => (
             <button
               key={terminal.id}
@@ -78,7 +82,10 @@ export function TerminalManager() {
         {/* Minimize button */}
         <button
           onClick={handleToggleVisibility}
-          className="ml-2 text-gray-400 hover:text-gray-200 transition-colors p-1.5 rounded hover:bg-gray-600"
+          className={`
+            ml-2 text-gray-400 hover:text-gray-200 transition-colors p-1.5 rounded hover:bg-gray-600  
+            absolute right-0 mr-1.5
+          `}
           title="Minimize terminals"
           aria-label="Minimize terminals"
         >
