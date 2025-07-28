@@ -1,28 +1,29 @@
 import { useApp } from "../hooks/useApp";
-import { ContainerCard } from "./ContainerCard";
-import { ContainerFilters } from "./ContainerFilters";
-import { useContainerFilterStatus } from "../hooks/useContainerFilters";
-import type { ContainerWithStats } from "../types";
 import { MdRefresh } from "react-icons/md";
-import { filterContainers } from "../helpers/filterContainers";
+import { ContainerCard } from "./ContainerCard";
+import type { ContainerWithStats } from "../types";
 import { useMemo, useCallback, memo } from "react";
+import { ContainerFilters } from "./ContainerFilters";
+import { filterContainers } from "../helpers/filterContainers";
+import { useContainerFilterStatus } from "../hooks/useContainerFilters";
 
 interface ContainerGridProps {
   containers: ContainerWithStats[];
-  onContainerToggle: (containerId: string, currentState: string) => void;
   onContainerRestart?: (containerId: string) => void;
-  onOpenTerminal?: (containerId: string, containerName: string) => void;
   onOpenLogs?: (containerId: string, containerName: string) => void;
+  onOpenTerminal?: (containerId: string, containerName: string) => void;
+  onContainerToggle: (containerId: string, currentState: string) => void;
 }
 
 const ContainerGrid = memo(function ContainerGrid({
+  onOpenLogs,
   containers,
+  onOpenTerminal,
   onContainerToggle,
   onContainerRestart,
-  onOpenTerminal,
-  onOpenLogs,
 }: ContainerGridProps) {
   const { requestContainers } = useApp();
+
   const [containerListStatus, setContainerListStatus] =
     useContainerFilterStatus();
 
@@ -68,7 +69,7 @@ const ContainerGrid = memo(function ContainerGrid({
     <div className="space-y-3">
       <div className="flex items-center justify-between pb-1.5">
         <div className="flex items-center gap-2.5">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-300">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-gray-300">
             Containers{" "}
             <span className="text-sm text-gray-500 dark:text-gray-400 px-1">
               ({filteredContainers.length}
