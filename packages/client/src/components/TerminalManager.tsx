@@ -178,9 +178,8 @@ export function TerminalManager() {
           }}
         >
           {terminals.map((terminal) => (
-            <button
+            <div
               key={terminal.id}
-              onClick={() => setActiveTerminalId(terminal.id)}
               className={`flex items-center space-x-1 px-3 py-1.5 rounded-md text-sm font-medium whitespace-nowrap transition-all duration-200 ${
                 activeTerminalId === terminal.id
                   ? "bg-gray-800 text-gray-100 border border-gray-600 shadow-sm"
@@ -190,16 +189,21 @@ export function TerminalManager() {
                 terminal.containerName
               }`}
             >
-              {terminal.type === "logs" ? (
-                <IoNewspaper className="w-4 h-4" />
-              ) : (
-                <FiTerminal className="w-4 h-4" />
-              )}
-              <span className="max-w-32 truncate">
-                {terminal.type === "logs"
-                  ? `Logs: ${terminal.containerName}`
-                  : terminal.containerName}
-              </span>
+              <button
+                onClick={() => setActiveTerminalId(terminal.id)}
+                className="flex items-center space-x-1 flex-1"
+              >
+                {terminal.type === "logs" ? (
+                  <IoNewspaper className="w-4 h-4" />
+                ) : (
+                  <FiTerminal className="w-4 h-4" />
+                )}
+                <span className="max-w-32 truncate">
+                  {terminal.type === "logs"
+                    ? `Logs: ${terminal.containerName}`
+                    : terminal.containerName}
+                </span>
+              </button>
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -211,7 +215,7 @@ export function TerminalManager() {
               >
                 <FiX className="w-3 h-3" />
               </button>
-            </button>
+            </div>
           ))}
         </div>
 
