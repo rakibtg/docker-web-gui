@@ -1,8 +1,121 @@
-import { useCallback } from "react";
+import { useCallback, useRef, useEffect, useState } from "react";
 import { Terminal } from "./Terminal";
 import { useApp } from "../hooks/useApp";
 import { IoNewspaper } from "react-icons/io5";
 import { FiX, FiTerminal, FiMinimize2 } from "react-icons/fi";
+
+// Custom hook to calculate available width for tabs container
+function useTabsContainerWidth(terminalsCount: number) {
+  const headerRef = useRef<HTMLDivElement>(null);
+  const tabsContainerRef = useRef<HTMLDivElement>(null);
+  const [tabsWidth, setTabsWidth] = useState<number | null>(null);
+
+  const calculateWidth = useCallback(() => {
+    if (!headerRef.current || !tabsContainerRef.current) return;
+
+    const headerElement = headerRef.current;
+    const headerWidth = headerElement.offsetWidth;
+
+    // Calculate space taken by minimize button (approx 44px including margins)
+    const minimizeButtonWidth = 44;
+
+    // Calculate space taken by padding/margins on header (px-2 = 16px)
+    const headerPadding = 16;
+
+    // Calculate available width for tabs
+    const availableWidth = headerWidth - minimizeButtonWidth - headerPadding;
+
+    const newWidth = Math.max(availableWidth, 200); // Minimum width of 200px
+
+    // Debug logging to track width changes
+    console.log("TerminalManager width calculation:", {
+      headerWidth,
+      availableWidth,
+      newWidth,
+      timestamp: new Date().toISOString(),
+    });
+
+    setTabsWidth(newWidth);
+  }, []);
+
+  useEffect(() => {
+    calculateWidth();
+
+    // Recalculate on window resize
+    const handleResize = () => {
+      calculateWidth();
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    // Use ResizeObserver to detect layout changes (like sidebar collapse)
+    let resizeObserver: ResizeObserver | null = null;
+    let mutationObserver: MutationObserver | null = null;
+
+    if (headerRef.current) {
+      // Watch for size changes on the header element
+      resizeObserver = new ResizeObserver(() => {
+        // Use setTimeout to avoid infinite loops and debounce
+        setTimeout(calculateWidth, 50);
+      });
+      resizeObserver.observe(headerRef.current);
+
+      // Find and observe the sidebar element
+      const sidebarElement = document.querySelector("aside");
+      if (sidebarElement) {
+        resizeObserver.observe(sidebarElement);
+      }
+
+      // Find and observe the main content area
+      const mainContentElement = document.querySelector("div.flex-grow");
+      if (mainContentElement) {
+        resizeObserver.observe(mainContentElement);
+      }
+
+      // Also watch for transitions on the sidebar that might indicate collapse/expand
+      mutationObserver = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          if (
+            mutation.type === "attributes" &&
+            mutation.attributeName === "class"
+          ) {
+            const target = mutation.target as Element;
+            // Check if the changed element is related to sidebar width
+            if (
+              target.classList.contains("w-16") ||
+              target.classList.contains("w-64") ||
+              target.closest("aside") ||
+              target.tagName === "ASIDE"
+            ) {
+              setTimeout(calculateWidth, 100);
+            }
+          }
+        });
+      });
+
+      // Watch for class changes on the sidebar element specifically
+      if (sidebarElement) {
+        mutationObserver.observe(sidebarElement, {
+          attributes: true,
+          attributeFilter: ["class"],
+          subtree: true,
+        });
+      }
+    }
+
+    // Also recalculate when terminals count changes (in case of layout changes)
+    const timeoutId = setTimeout(calculateWidth, 100);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      resizeObserver?.disconnect();
+      mutationObserver?.disconnect();
+      clearTimeout(timeoutId);
+    };
+  }, [calculateWidth, terminalsCount]);
+
+  return { headerRef, tabsContainerRef, tabsWidth };
+}
 
 export function TerminalManager() {
   const {
@@ -13,6 +126,10 @@ export function TerminalManager() {
     activeTerminalId,
     setActiveTerminalId,
   } = useApp();
+
+  const { headerRef, tabsContainerRef, tabsWidth } = useTabsContainerWidth(
+    terminals.length
+  );
 
   const handleToggleVisibility = useCallback(() => {
     setShowTerminals(false);
@@ -35,11 +152,17 @@ export function TerminalManager() {
   return (
     <div className="flex-1 bg-gray-800 border-gray-600 border-t flex flex-col relative">
       {/* Terminal tabs header */}
-      <div className="flex items-center bg-gray-700 px-2 py-1.5 min-h-[44px] pr-10">
+      <div
+        ref={headerRef}
+        className="flex items-center bg-gray-700 px-2 py-1.5 min-h-[44px] pr-10"
+      >
+        {/* tabs container */}
         <div
-          className={`
-          flex items-center space-x-1 flex-1 overflow-x-auto border border-red-400
-        `}
+          ref={tabsContainerRef}
+          className="flex items-center space-x-1 flex-1 overflow-x-auto"
+          style={{
+            maxWidth: tabsWidth ? `${tabsWidth}px` : "auto",
+          }}
         >
           {terminals.map((terminal) => (
             <button
