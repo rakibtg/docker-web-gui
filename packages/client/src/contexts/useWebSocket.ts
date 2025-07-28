@@ -402,6 +402,17 @@ export function useWebSocket({
               }
               break;
 
+            // Terminal-related messages (handled by Terminal components)
+            case "terminal-data":
+            case "logs-data":
+            case "terminal-disconnected":
+            case "logs-disconnected":
+            case "terminal-error":
+            case "logs-error":
+              // These messages are handled by individual Terminal components
+              // No action needed at the global WebSocket level
+              break;
+
             default:
               console.log("Unknown message type:", message.type);
           }
