@@ -1,14 +1,14 @@
-import { memo, useCallback } from "react";
-import { ContainerGrid, EmptyState } from "../components";
 import { useApp } from "../hooks/useApp";
+import { memo, useCallback } from "react";
 import { useTerminal } from "../hooks/useTerminal";
+import { ContainerGrid, EmptyState } from "../components";
 
 const ContainersPage = memo(function ContainersPage() {
   const {
+    loading,
     containers,
     isConnected,
     dockerAvailable,
-    loading,
     requestContainers,
     handleContainerToggle,
     handleContainerRestart,
