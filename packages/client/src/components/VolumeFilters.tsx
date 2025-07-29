@@ -1,7 +1,7 @@
 import { memo, useMemo } from "react";
 import SearchInput from "./SearchInput";
-import type { DockerVolume } from "../types";
 import { FaFilter } from "react-icons/fa";
+import type { DockerVolume } from "../types";
 
 interface VolumeFiltersProps {
   searchTerm: string;

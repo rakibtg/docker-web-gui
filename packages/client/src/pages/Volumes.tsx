@@ -26,7 +26,7 @@ const Volumes = memo(function Volumes() {
 
   return (
     <PageWrapper>
-      <div className="border-b border-gray-700 pb-4">
+      <div className="pb-4">
         <h1 className="text-2xl font-bold text-gray-100">Volumes</h1>
         <p className="mt-2 text-gray-400">
           Manage Docker volumes, view usage, and maintain storage
@@ -40,8 +40,6 @@ const Volumes = memo(function Volumes() {
             onSearch={handleSearch}
             searchTerm={searchTerm}
             selectedDriver={selectedDriver}
-            totalVolumes={allVolumes.length}
-            filteredVolumes={volumes.length}
             onDriverFilter={handleDriverFilter}
           />
 
