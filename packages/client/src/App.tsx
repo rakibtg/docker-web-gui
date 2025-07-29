@@ -3,7 +3,6 @@ import {
   Images,
   Volumes,
   Networks,
-  Settings,
   Dashboard,
   ImageDetails,
   VolumeDetails,
@@ -39,7 +38,6 @@ function AppContent() {
               <Route path="/networks" element={<Networks />} />
               <Route path="/volumes" element={<Volumes />} />
               <Route path="/volumes/:volumeId" element={<VolumeDetails />} />
-              <Route path="/settings" element={<Settings />} />
               <Route path="/about" element={<About />} />
               {/* Fallback to containers for unknown routes */}
               <Route path="*" element={<Navigate to="/containers" replace />} />

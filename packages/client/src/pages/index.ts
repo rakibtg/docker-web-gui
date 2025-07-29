@@ -1,7 +1,6 @@
 export { About } from "./About";
 export { Images } from "./Images";
 export { Volumes } from "./Volumes";
-export { Settings } from "./Settings";
 export { Networks } from "./Networks";
 export { Dashboard } from "./Dashboard";
 export { ImageDetails } from "./ImageDetails";

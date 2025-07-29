@@ -1,20 +1,20 @@
 import { useState, memo, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+
 import {
+  HiX,
+  HiMenu,
   HiGlobeAlt,
   HiDatabase,
   HiChartPie,
-  HiMenu,
-  HiX,
-  HiCog,
-  HiInformationCircle,
   HiChevronLeft,
   HiChevronRight,
+  HiInformationCircle,
 } from "react-icons/hi";
+
+import { FiBox } from "react-icons/fi";
 import { Tooltip } from "react-tooltip";
 import { LuLayers3 } from "react-icons/lu";
-import { FiBox } from "react-icons/fi";
-
 import logo from "../assets/docker-web-gui-logo.png";
 
 interface SidebarItem {
@@ -53,11 +53,6 @@ const sidebarItems: SidebarItem[] = [
 
 const bottomItems: SidebarItem[] = [
   {
-    id: "settings",
-    label: "Settings",
-    icon: HiCog,
-  },
-  {
     id: "about",
     label: "About",
     icon: HiInformationCircle,
@@ -65,10 +60,10 @@ const bottomItems: SidebarItem[] = [
 ];
 
 function Sidebar() {
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  const [isMobileOpen, setIsMobileOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   // Get current page from location pathname
   const currentPage = location.pathname.slice(1) || "containers"; // Remove leading slash
@@ -292,5 +287,4 @@ function Sidebar() {
   );
 }
 
-// Memoize the component to prevent unnecessary re-renders
 export default memo(Sidebar);
