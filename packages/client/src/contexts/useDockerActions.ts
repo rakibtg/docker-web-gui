@@ -3,22 +3,22 @@ import type { ImageHistoryState } from "./types";
 
 interface UseDockerActionsProps {
   sendMessage: (message: object) => boolean;
+  setError: React.Dispatch<React.SetStateAction<string>>;
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
   setImagesLoading: React.Dispatch<React.SetStateAction<boolean>>;
   setNetworksLoading: React.Dispatch<React.SetStateAction<boolean>>;
   setVolumesLoading: React.Dispatch<React.SetStateAction<boolean>>;
-  setError: React.Dispatch<React.SetStateAction<string>>;
   setImageHistory: React.Dispatch<React.SetStateAction<ImageHistoryState>>;
 }
 
 export function useDockerActions({
-  sendMessage,
-  setLoading,
-  setImagesLoading,
-  setNetworksLoading,
-  setVolumesLoading,
   setError,
+  setLoading,
+  sendMessage,
   setImageHistory,
+  setImagesLoading,
+  setVolumesLoading,
+  setNetworksLoading,
 }: UseDockerActionsProps) {
   // Function to request containers list
   const requestContainers = useCallback(() => {
@@ -127,51 +127,6 @@ export function useDockerActions({
     [sendMessage]
   );
 
-  // Function to prune unused volumes
-  const handleVolumesPrune = useCallback(() => {
-    sendMessage({
-      type: "prune-volumes",
-    });
-  }, [sendMessage]);
-
-  // Function to connect container to network
-  const handleContainerNetworkConnect = useCallback(
-    (
-      networkId: string,
-      containerId: string,
-      networkName?: string,
-      containerName?: string
-    ) => {
-      sendMessage({
-        type: "connect-container-to-network",
-        networkId,
-        containerId,
-        networkName,
-        containerName,
-      });
-    },
-    [sendMessage]
-  );
-
-  // Function to disconnect container from network
-  const handleContainerNetworkDisconnect = useCallback(
-    (
-      networkId: string,
-      containerId: string,
-      networkName?: string,
-      containerName?: string
-    ) => {
-      sendMessage({
-        type: "disconnect-container-from-network",
-        networkId,
-        containerId,
-        networkName,
-        containerName,
-      });
-    },
-    [sendMessage]
-  );
-
   // Function to get image history
   const getImageHistory = useCallback(
     (imageId: string, imageName: string) => {
@@ -229,21 +184,18 @@ export function useDockerActions({
   );
 
   return {
-    requestContainers,
     requestImages,
-    requestNetworks,
     requestVolumes,
-    requestVolumeDetails,
-    requestContainerDetails,
-    handleImageRemove,
-    handleNetworkRemove,
-    handleVolumeRemove,
-    handleVolumesPrune,
-    handleContainerNetworkConnect,
-    handleContainerNetworkDisconnect,
+    requestNetworks,
     getImageHistory,
+    requestContainers,
+    handleImageRemove,
     closeImageHistory,
+    handleVolumeRemove,
+    handleNetworkRemove,
+    requestVolumeDetails,
     handleContainerToggle,
     handleContainerRestart,
+    requestContainerDetails,
   };
 }
