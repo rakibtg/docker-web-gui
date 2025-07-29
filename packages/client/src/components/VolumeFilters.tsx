@@ -1,49 +1,30 @@
 import { memo, useMemo } from "react";
 import type { DockerVolume } from "../types";
-import { useApp } from "../hooks/useApp";
 
 interface VolumeFiltersProps {
+  searchTerm: string;
+  totalVolumes: number;
+  selectedDriver: string;
+  volumes: DockerVolume[];
+  filteredVolumes: number;
   onSearch: (term: string) => void;
   onDriverFilter: (driver: string) => void;
-  totalVolumes: number;
-  filteredVolumes: number;
-  selectedDriver: string;
-  searchTerm: string;
-  volumes: DockerVolume[];
 }
 
 const VolumeFilters = memo(function VolumeFilters({
-  onSearch,
-  onDriverFilter,
-  totalVolumes,
-  filteredVolumes,
-  selectedDriver,
-  searchTerm,
   volumes,
+  onSearch,
+  searchTerm,
+  totalVolumes,
+  onDriverFilter,
+  selectedDriver,
+  filteredVolumes,
 }: VolumeFiltersProps) {
-  const { handleVolumesPrune } = useApp();
-
   // Get unique drivers from volumes
   const drivers = useMemo(() => {
     const driverSet = new Set(volumes.map((volume) => volume.driver));
     return Array.from(driverSet).sort();
   }, [volumes]);
-
-  const unusedVolumesCount = useMemo(() => {
-    return volumes.filter(
-      (volume) => !volume.usedBy || volume.usedBy.length === 0
-    ).length;
-  }, [volumes]);
-
-  const handlePruneClick = () => {
-    if (
-      confirm(
-        `Are you sure you want to prune ${unusedVolumesCount} unused volumes? This action cannot be undone.`
-      )
-    ) {
-      handleVolumesPrune();
-    }
-  };
 
   return (
     <div className="bg-gray-800 rounded-lg border border-gray-700 p-6">
@@ -113,30 +94,6 @@ const VolumeFilters = memo(function VolumeFilters({
             ))}
           </select>
         </div>
-
-        {/* Prune button */}
-        {unusedVolumesCount > 0 && (
-          <button
-            onClick={handlePruneClick}
-            className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-colors flex items-center space-x-2"
-            title={`Remove ${unusedVolumesCount} unused volumes`}
-          >
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-              />
-            </svg>
-            <span>Prune ({unusedVolumesCount})</span>
-          </button>
-        )}
       </div>
 
       {/* Results summary */}
