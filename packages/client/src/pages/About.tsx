@@ -1,8 +1,9 @@
 import { memo } from "react";
+import { PageWrapper } from "../components/PageWrapper";
 
 const About = memo(function About() {
   return (
-    <div className="space-y-6">
+    <PageWrapper>
       <div className="border-b border-gray-700 pb-4">
         <h1 className="text-2xl font-bold text-gray-100">
           About Docker Web GUI
@@ -36,7 +37,7 @@ const About = memo(function About() {
           <p>Docker Web GUI v2.0</p>
         </div>
       </div>
-    </div>
+    </PageWrapper>
   );
 });
 
