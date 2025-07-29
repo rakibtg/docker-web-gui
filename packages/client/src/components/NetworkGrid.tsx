@@ -1,24 +1,16 @@
 import { memo } from "react";
 import { NetworkCard } from "./NetworkCard";
-import type { DockerNetwork, DockerContainer } from "../types";
+import type { DockerNetwork } from "../types";
 
 interface NetworkGridProps {
   networks: DockerNetwork[];
-  containers: DockerContainer[];
 }
 
-const NetworkGrid = memo(function NetworkGrid({
-  networks,
-  containers,
-}: NetworkGridProps) {
+const NetworkGrid = memo(function NetworkGrid({ networks }: NetworkGridProps) {
   return (
     <div className="space-y-2">
       {networks.map((network) => (
-        <NetworkCard
-          key={network.id}
-          network={network}
-          containers={containers}
-        />
+        <NetworkCard key={network.id} network={network} />
       ))}
     </div>
   );
