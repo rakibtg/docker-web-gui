@@ -5,7 +5,8 @@ import { PageWrapper } from "../components/PageWrapper";
 import { NetworkGrid, NetworkFilters, NetworkEmptyState } from "../components";
 
 const Networks = memo(function Networks() {
-  const { dockerAvailable, isConnected, containers } = useApp();
+  const { dockerAvailable, isConnected } = useApp();
+
   const {
     networks,
     searchTerm,
@@ -26,7 +27,7 @@ const Networks = memo(function Networks() {
 
   return (
     <PageWrapper>
-      <div className="border-b border-gray-700 pb-4">
+      <div className="pb-4">
         <h1 className="text-2xl font-bold text-gray-100">Networks</h1>
         <p className="mt-2 text-gray-400">
           Manage Docker networks and container connectivity
@@ -38,13 +39,11 @@ const Networks = memo(function Networks() {
           <NetworkFilters
             onSearch={handleSearch}
             onDriverFilter={handleDriverFilter}
-            totalNetworks={allNetworks.length}
-            filteredNetworks={networks.length}
             selectedDriver={selectedDriver}
             searchTerm={searchTerm}
           />
 
-          <NetworkGrid networks={networks} containers={containers} />
+          <NetworkGrid networks={networks} />
         </div>
       ) : (
         <NetworkEmptyState

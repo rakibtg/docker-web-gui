@@ -26,7 +26,7 @@ const Images = memo(function Images() {
 
   return (
     <PageWrapper>
-      <div className="border-b border-gray-700 pb-4">
+      <div className="pb-4">
         <h1 className="text-2xl font-bold text-gray-100">Images</h1>
         <p className="mt-2 text-gray-400">
           Manage your Docker images - pull, remove, and view image details
