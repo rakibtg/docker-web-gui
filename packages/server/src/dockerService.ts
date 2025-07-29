@@ -114,23 +114,6 @@ export class DockerService extends EventEmitter {
     return NetworkService.removeDockerNetwork(networkId);
   }
 
-  async connectContainerToNetwork(
-    containerId: string,
-    networkId: string
-  ): Promise<void> {
-    return NetworkService.connectContainerToNetwork(containerId, networkId);
-  }
-
-  async disconnectContainerFromNetwork(
-    containerId: string,
-    networkId: string
-  ): Promise<void> {
-    return NetworkService.disconnectContainerFromNetwork(
-      containerId,
-      networkId
-    );
-  }
-
   // === Volume Operations ===
   async getDockerVolumes(): Promise<DockerVolume[]> {
     return VolumeService.getDockerVolumes();
