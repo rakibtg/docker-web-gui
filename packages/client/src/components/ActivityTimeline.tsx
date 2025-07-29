@@ -74,8 +74,8 @@ export const ActivityTimeline = memo(function ActivityTimeline({
   const activities = generateActivities();
 
   return (
-    <div className="bg-gray-800 rounded border border-gray-700 p-4">
-      <h3 className="font-semibold text-gray-100 mb-6 flex items-center space-x-2">
+    <div>
+      <h3 className="font-semibold text-gray-100 mb-4 flex items-center space-x-2">
         <span>Recent Activity</span>
       </h3>
 
