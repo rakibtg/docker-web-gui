@@ -1,8 +1,9 @@
 import { memo, useEffect } from "react";
+import SearchInput from "../components/SearchInput";
 import { useApp } from "../hooks/useApp";
 import { useImages } from "../hooks/useImages";
 import { PageWrapper } from "../components/PageWrapper";
-import { ImageGrid, ImageFilters, ImageEmptyState } from "../components";
+import { ImageGrid, ImageEmptyState } from "../components";
 
 const Images = memo(function Images() {
   const { dockerAvailable, isConnected } = useApp();
@@ -13,6 +14,7 @@ const Images = memo(function Images() {
     imagesLoading,
     requestImages,
     handleRemoveImage,
+    filters,
   } = useImages();
 
   // Load images on component mount
@@ -33,10 +35,10 @@ const Images = memo(function Images() {
 
       {allImages.length > 0 ? (
         <div className="space-y-6">
-          <ImageFilters
-            onSearch={handleSearch}
-            totalImages={allImages.length}
-            filteredImages={images.length}
+          <SearchInput
+            value={filters.searchQuery}
+            onChange={handleSearch}
+            placeholder="Search images by name or ID..."
           />
 
           <ImageGrid images={images} onImageRemove={handleRemoveImage} />
