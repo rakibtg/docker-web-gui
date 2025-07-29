@@ -70,14 +70,7 @@ const ContainerGrid = memo(function ContainerGrid({
       <div className="flex items-center justify-between pb-1.5">
         <div className="flex items-center gap-2.5">
           <h2 className="text-lg font-bold text-gray-900 dark:text-gray-300">
-            Containers{" "}
-            <span className="text-sm text-gray-500 dark:text-gray-400 px-1">
-              ({filteredContainers.length}
-              {filteredContainers.length !== containers.length
-                ? ` of ${containers.length}`
-                : ""}
-              )
-            </span>
+            Containers
           </h2>
           <button
             title="Refresh Containers"
