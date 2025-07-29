@@ -50,8 +50,6 @@ docker/
 - **Methods**:
   - `getDockerNetworks()`: List all networks with details
   - `removeDockerNetwork()`: Remove a network
-  - `connectContainerToNetwork()`: Connect container to network
-  - `disconnectContainerFromNetwork()`: Disconnect container from network
 
 ### VolumeService
 
