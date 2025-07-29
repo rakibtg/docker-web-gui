@@ -993,39 +993,6 @@ wss.on("connection", function connection(ws) {
           }
           break;
 
-        case "prune-volumes":
-          try {
-            const result = await dockerService.pruneDockerVolumes();
-
-            // Broadcast success to all clients
-            broadcastToAllClients({
-              type: "volumes-pruned",
-              data: result,
-              timestamp: new Date().toISOString(),
-            });
-
-            ws.send(
-              JSON.stringify({
-                type: "volumes-prune-result",
-                success: true,
-                data: result,
-                message: `Pruned ${result.deletedVolumes.length} volumes, reclaimed ${result.reclaimedSpace}`,
-                timestamp: new Date().toISOString(),
-              })
-            );
-          } catch (error) {
-            ws.send(
-              JSON.stringify({
-                type: "error",
-                message:
-                  error instanceof Error
-                    ? error.message
-                    : "Failed to prune volumes",
-              })
-            );
-          }
-          break;
-
         default:
           ws.send(
             JSON.stringify({
