@@ -8,7 +8,6 @@ import {
   FaBox,
   FaTag,
   FaCode,
-  FaDocker,
   FaServer,
   FaTerminal,
   FaArrowLeft,
@@ -255,7 +254,6 @@ const ImageDetails = memo(function ImageDetails() {
         </div>
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
-            <FaDocker className="mx-auto h-16 w-16 text-gray-600" />
             <h3 className="mt-2 text-lg font-medium text-gray-100">
               Image not found
             </h3>
@@ -283,7 +281,6 @@ const ImageDetails = memo(function ImageDetails() {
         </div>
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
-            <FaDocker className="mx-auto h-16 w-16 text-gray-600" />
             <h3 className="mt-2 text-lg font-medium text-gray-100">
               No image data available
             </h3>
@@ -308,7 +305,6 @@ const ImageDetails = memo(function ImageDetails() {
           Back to Images
         </button>
         <div className="flex items-center gap-3 mb-2">
-          <FaDocker className="text-blue-400 text-2xl" />
           <div>
             <h1 className="text-2xl font-bold text-gray-100">
               {image.repository}
@@ -470,6 +466,49 @@ const ImageDetails = memo(function ImageDetails() {
           </div>
         )}
 
+        {/* Related Containers */}
+        {relatedContainers.length > 0 && (
+          <div className="bg-gray-800 rounded-lg border border-gray-700 p-6 lg:col-span-2">
+            <h2 className="text-lg font-semibold text-gray-100 mb-4 flex items-center">
+              <FaServer className="mr-2 text-blue-400" />
+              Containers using this image ({relatedContainers.length})
+            </h2>
+            <div className="space-y-3">
+              {relatedContainers.map((container) => (
+                <div
+                  key={container.id}
+                  className="flex items-center justify-between p-3 bg-gray-900 rounded border border-gray-600"
+                >
+                  <div className="flex items-center gap-3">
+                    <BsCircleFill
+                      className={`text-xs ${getStatusColor(container.status)}`}
+                    />
+                    <div>
+                      <Link
+                        to={`/containers/${container.id}`}
+                        className="text-blue-400 hover:text-blue-300 font-medium"
+                      >
+                        {container.name}
+                      </Link>
+                      <div className="text-sm text-gray-400">
+                        {container.id.substring(0, 12)}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-sm font-medium text-gray-100 capitalize">
+                      {container.status}
+                    </div>
+                    <div className="text-xs text-gray-400">
+                      {formatDate(container.created)}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Labels */}
         {image.config?.labels &&
           Object.keys(image.config.labels).length > 0 && (
@@ -521,49 +560,6 @@ const ImageDetails = memo(function ImageDetails() {
                   </div>
                 </div>
               )}
-            </div>
-          </div>
-        )}
-
-        {/* Related Containers */}
-        {relatedContainers.length > 0 && (
-          <div className="bg-gray-800 rounded-lg border border-gray-700 p-6 lg:col-span-2">
-            <h2 className="text-lg font-semibold text-gray-100 mb-4 flex items-center">
-              <FaServer className="mr-2 text-blue-400" />
-              Containers using this image ({relatedContainers.length})
-            </h2>
-            <div className="space-y-3">
-              {relatedContainers.map((container) => (
-                <div
-                  key={container.id}
-                  className="flex items-center justify-between p-3 bg-gray-900 rounded border border-gray-600"
-                >
-                  <div className="flex items-center gap-3">
-                    <BsCircleFill
-                      className={`text-xs ${getStatusColor(container.status)}`}
-                    />
-                    <div>
-                      <Link
-                        to={`/containers/${container.id}`}
-                        className="text-blue-400 hover:text-blue-300 font-medium"
-                      >
-                        {container.name}
-                      </Link>
-                      <div className="text-sm text-gray-400">
-                        {container.id.substring(0, 12)}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-sm font-medium text-gray-100 capitalize">
-                      {container.status}
-                    </div>
-                    <div className="text-xs text-gray-400">
-                      {formatDate(container.created)}
-                    </div>
-                  </div>
-                </div>
-              ))}
             </div>
           </div>
         )}
