@@ -1,16 +1,17 @@
 import { memo, useEffect } from "react";
-import { ImageGrid, ImageFilters, ImageEmptyState } from "../components";
-import { useImages } from "../hooks/useImages";
 import { useApp } from "../hooks/useApp";
+import { useImages } from "../hooks/useImages";
+import { PageWrapper } from "../components/PageWrapper";
+import { ImageGrid, ImageFilters, ImageEmptyState } from "../components";
 
 const Images = memo(function Images() {
   const { dockerAvailable, isConnected } = useApp();
   const {
     images,
     allImages,
+    handleSearch,
     imagesLoading,
     requestImages,
-    handleSearch,
     handleRemoveImage,
   } = useImages();
 
@@ -22,7 +23,7 @@ const Images = memo(function Images() {
   }, [isConnected, dockerAvailable, requestImages]);
 
   return (
-    <div className="space-y-6 p-4">
+    <PageWrapper>
       <div className="border-b border-gray-700 pb-4">
         <h1 className="text-2xl font-bold text-gray-100">Images</h1>
         <p className="mt-2 text-gray-400">
@@ -48,7 +49,7 @@ const Images = memo(function Images() {
           onLoadImages={requestImages}
         />
       )}
-    </div>
+    </PageWrapper>
   );
 });
 

@@ -1,19 +1,20 @@
 import { memo, useEffect } from "react";
-import { NetworkGrid, NetworkFilters, NetworkEmptyState } from "../components";
-import { useNetworks } from "../hooks/useNetworks";
 import { useApp } from "../hooks/useApp";
+import { useNetworks } from "../hooks/useNetworks";
+import { PageWrapper } from "../components/PageWrapper";
+import { NetworkGrid, NetworkFilters, NetworkEmptyState } from "../components";
 
 const Networks = memo(function Networks() {
   const { dockerAvailable, isConnected, containers } = useApp();
   const {
     networks,
-    allNetworks,
-    networksLoading,
     searchTerm,
-    selectedDriver,
+    allNetworks,
     handleSearch,
-    handleDriverFilter,
+    selectedDriver,
+    networksLoading,
     requestNetworks,
+    handleDriverFilter,
   } = useNetworks();
 
   // Load networks on component mount
@@ -24,7 +25,7 @@ const Networks = memo(function Networks() {
   }, [isConnected, dockerAvailable, requestNetworks]);
 
   return (
-    <div className="space-y-6 p-4">
+    <PageWrapper>
       <div className="border-b border-gray-700 pb-4">
         <h1 className="text-2xl font-bold text-gray-100">Networks</h1>
         <p className="mt-2 text-gray-400">
@@ -53,7 +54,7 @@ const Networks = memo(function Networks() {
           onLoadNetworks={requestNetworks}
         />
       )}
-    </div>
+    </PageWrapper>
   );
 });
 

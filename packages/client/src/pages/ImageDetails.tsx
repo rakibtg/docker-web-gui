@@ -1,30 +1,32 @@
-import { memo, useEffect, useState, useMemo, useCallback } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
 import { useApp } from "../hooks/useApp";
 import type { DockerImageDetails } from "../types";
+import { useParams, useNavigate, Link } from "react-router-dom";
+import { memo, useEffect, useState, useMemo, useCallback } from "react";
+
 import {
-  FaArrowLeft,
-  FaDocker,
-  FaTag,
-  FaServer,
-  FaCode,
-  FaBox,
-  FaLayerGroup,
   FaCog,
+  FaBox,
+  FaTag,
+  FaCode,
+  FaDocker,
+  FaServer,
   FaTerminal,
+  FaArrowLeft,
+  FaLayerGroup,
 } from "react-icons/fa";
-import { BsCircleFill } from "react-icons/bs";
+
 import { formatDate } from "../helpers";
+import { BsCircleFill } from "react-icons/bs";
+import { PageWrapper } from "../components/PageWrapper";
 
 const ImageDetails = memo(function ImageDetails() {
-  const { imageId } = useParams<{ imageId: string }>();
   const navigate = useNavigate();
-  const { containers, images, loading, isConnected, websocket } = useApp();
-  const [image, setImage] = useState<DockerImageDetails | null>(null);
-  const [isLoadingImageDetails, setIsLoadingImageDetails] = useState(false);
+  const { imageId } = useParams<{ imageId: string }>();
   const [imageNotFound, setImageNotFound] = useState(false);
+  const [image, setImage] = useState<DockerImageDetails | null>(null);
+  const { containers, images, loading, isConnected, websocket } = useApp();
+  const [isLoadingImageDetails, setIsLoadingImageDetails] = useState(false);
 
-  // Memoized calculation of related containers
   const relatedContainers = useMemo(() => {
     if (!imageId || images.length === 0 || containers.length === 0) {
       return [];
@@ -295,7 +297,7 @@ const ImageDetails = memo(function ImageDetails() {
   }
 
   return (
-    <div className="p-4 space-y-6">
+    <PageWrapper>
       {/* Header */}
       <div className="border-b border-gray-700 pb-4">
         <button
@@ -566,7 +568,7 @@ const ImageDetails = memo(function ImageDetails() {
           </div>
         )}
       </div>
-    </div>
+    </PageWrapper>
   );
 });
 

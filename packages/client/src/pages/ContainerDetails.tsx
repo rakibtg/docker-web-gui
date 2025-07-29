@@ -1,42 +1,47 @@
 import { memo, useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { useApp } from "../hooks/useApp";
-import type { DockerContainerDetails } from "../types";
+
 import {
-  FaArrowLeft,
-  FaClock,
-  FaDocker,
-  FaCircle,
-  FaServer,
   FaTag,
-  FaTerminal,
+  FaCog,
+  FaHdd,
   FaUser,
   FaPlay,
   FaStop,
   FaRedo,
-  FaCog,
-  FaNetworkWired,
-  FaHdd,
   FaCode,
-  FaShieldAlt,
   FaHome,
+  FaClock,
+  FaCircle,
+  FaServer,
+  FaDocker,
   FaDesktop,
+  FaTerminal,
+  FaArrowLeft,
+  FaShieldAlt,
+  FaNetworkWired,
 } from "react-icons/fa";
+
+import { useApp } from "../hooks/useApp";
 import { BsCircleFill } from "react-icons/bs";
+import type { DockerContainerDetails } from "../types";
+import { PageWrapper } from "../components/PageWrapper";
 import { formatDockerPort, formatDate } from "../helpers";
 
 const ContainerDetails = memo(function ContainerDetails() {
-  const { containerId } = useParams<{ containerId: string }>();
   const navigate = useNavigate();
+  const { containerId } = useParams<{ containerId: string }>();
+
   const {
-    containers,
     loading,
+    websocket,
+    containers,
+    isConnected,
     handleContainerToggle,
     handleContainerRestart,
     requestContainerDetails,
-    isConnected,
-    websocket,
   } = useApp();
+
   const [container, setContainer] = useState<DockerContainerDetails | null>(
     null
   );
@@ -278,7 +283,7 @@ const ContainerDetails = memo(function ContainerDetails() {
   const hasEnvVars = container.env && container.env.length > 0;
 
   return (
-    <div className="p-3 sm:p-4 md:p-6 max-w-7xl mx-auto">
+    <PageWrapper>
       {/* Compact Header */}
       <div className="mb-4 sm:mb-6">
         <div className="flex items-center gap-3 mb-3">
@@ -646,7 +651,7 @@ const ContainerDetails = memo(function ContainerDetails() {
           </div>
         )}
       </div>
-    </div>
+    </PageWrapper>
   );
 });
 

@@ -1,6 +1,7 @@
 import { useApp } from "../hooks/useApp";
 import { memo, useCallback } from "react";
 import { useTerminal } from "../hooks/useTerminal";
+import { PageWrapper } from "../components/PageWrapper";
 import { ContainerGrid, EmptyState } from "../components";
 
 const ContainersPage = memo(function ContainersPage() {
@@ -31,7 +32,7 @@ const ContainersPage = memo(function ContainersPage() {
   );
 
   return (
-    <div className="p-4 h-full">
+    <PageWrapper>
       <div className="space-y-6">
         {containers.length > 0 ? (
           <ContainerGrid
@@ -50,7 +51,7 @@ const ContainersPage = memo(function ContainersPage() {
           />
         )}
       </div>
-    </div>
+    </PageWrapper>
   );
 });
 

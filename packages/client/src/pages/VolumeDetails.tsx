@@ -1,38 +1,43 @@
 import { memo, useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useApp } from "../hooks/useApp";
-import type { DockerVolume } from "../types";
+
 import {
-  FaArrowLeft,
+  FaTag,
   FaHdd,
   FaClock,
-  FaDatabase,
+  FaTrash,
   FaDocker,
   FaCircle,
-  FaTrash,
   FaFolder,
-  FaTag,
   FaServer,
+  FaDatabase,
+  FaArrowLeft,
 } from "react-icons/fa";
-import { BsCircleFill } from "react-icons/bs";
-import { ConfirmationModal } from "../components/ConfirmationModal";
+
 import { formatDate } from "../helpers";
+import { useApp } from "../hooks/useApp";
+import type { DockerVolume } from "../types";
+import { BsCircleFill } from "react-icons/bs";
+import { PageWrapper } from "../components/PageWrapper";
+import { ConfirmationModal } from "../components/ConfirmationModal";
 
 const VolumeDetails = memo(function VolumeDetails() {
-  const { volumeId } = useParams<{ volumeId: string }>();
   const navigate = useNavigate();
+  const { volumeId } = useParams<{ volumeId: string }>();
+
   const {
     volumes,
+    isConnected,
     volumesLoading,
     handleVolumeRemove,
     requestVolumeDetails,
-    isConnected,
   } = useApp();
-  const [volume, setVolume] = useState<DockerVolume | null>(null);
-  const [showRemoveModal, setShowRemoveModal] = useState(false);
+
   const [isRemoving, setIsRemoving] = useState(false);
-  const [isLoadingVolumeDetails, setIsLoadingVolumeDetails] = useState(false);
   const [volumeNotFound, setVolumeNotFound] = useState(false);
+  const [showRemoveModal, setShowRemoveModal] = useState(false);
+  const [volume, setVolume] = useState<DockerVolume | null>(null);
+  const [isLoadingVolumeDetails, setIsLoadingVolumeDetails] = useState(false);
 
   useEffect(() => {
     if (volumeId) {
@@ -224,7 +229,7 @@ const VolumeDetails = memo(function VolumeDetails() {
 
   return (
     <>
-      <div className="p-3 sm:p-4 md:p-6 max-w-7xl mx-auto">
+      <PageWrapper>
         {/* Compact Header */}
         <div className="mb-4 sm:mb-6">
           <div className="flex items-center gap-3 mb-3">
@@ -434,17 +439,17 @@ const VolumeDetails = memo(function VolumeDetails() {
             </div>
           )}
         </div>
-      </div>
+      </PageWrapper>
 
       <ConfirmationModal
-        isOpen={showRemoveModal}
-        onClose={() => setShowRemoveModal(false)}
-        onConfirm={handleConfirmRemove}
-        title="Remove Volume"
-        message={`Are you sure you want to remove the volume "${volume.name}"?\n\n⚠️ This action cannot be undone and all data in the volume will be permanently lost.`}
-        confirmText="Remove Volume"
-        cancelText="Cancel"
         type="danger"
+        cancelText="Cancel"
+        title="Remove Volume"
+        isOpen={showRemoveModal}
+        confirmText="Remove Volume"
+        onConfirm={handleConfirmRemove}
+        onClose={() => setShowRemoveModal(false)}
+        message={`Are you sure you want to remove the volume "${volume.name}"?\n\n⚠️ This action cannot be undone and all data in the volume will be permanently lost.`}
       />
     </>
   );
