@@ -1,7 +1,7 @@
 import { memo, useEffect } from "react";
-import SearchInput from "../components/SearchInput";
 import { useApp } from "../hooks/useApp";
 import { useImages } from "../hooks/useImages";
+import SearchInput from "../components/SearchInput";
 import { PageWrapper } from "../components/PageWrapper";
 import { ImageGrid, ImageEmptyState } from "../components";
 
@@ -9,12 +9,12 @@ const Images = memo(function Images() {
   const { dockerAvailable, isConnected } = useApp();
   const {
     images,
+    filters,
     allImages,
     handleSearch,
     imagesLoading,
     requestImages,
     handleRemoveImage,
-    filters,
   } = useImages();
 
   // Load images on component mount
