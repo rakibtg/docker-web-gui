@@ -1,5 +1,5 @@
-import { useState, useCallback, useMemo } from "react";
 import { useApp } from "./useApp";
+import { useState, useCallback, useMemo } from "react";
 import { filterImages, type ImageFilters } from "../helpers/filterImages";
 
 export function useImages() {
@@ -27,12 +27,12 @@ export function useImages() {
   );
 
   return {
-    images: filteredImages,
-    allImages: images,
-    imagesLoading,
     filters,
-    requestImages,
     handleSearch,
+    imagesLoading,
+    requestImages,
+    allImages: images,
     handleRemoveImage,
+    images: filteredImages,
   };
 }

@@ -9,7 +9,6 @@ export { EmptyState } from "./EmptyState";
 export { DockerInfo } from "./DockerInfo";
 export { NetworkCard } from "./NetworkCard";
 export { NetworkGrid } from "./NetworkGrid";
-export { ImageFilters } from "./ImageFilters";
 export { QuickActions } from "./QuickActions";
 export { ToggleSwitch } from "./ToggleSwitch";
 export { VolumeFilters } from "./VolumeFilters";
