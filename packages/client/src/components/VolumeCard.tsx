@@ -1,16 +1,9 @@
 import { memo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import type { DockerVolume } from "../types";
 import { ConfirmationModal } from "./ConfirmationModal";
 import { useApp } from "../hooks/useApp";
-import {
-  FaTrash,
-  FaHdd,
-  FaDatabase,
-  FaDocker,
-  FaCircle,
-  FaEye,
-} from "react-icons/fa";
+import { FaTrash, FaHdd, FaDatabase, FaDocker, FaCircle } from "react-icons/fa";
 import { IoReloadCircle } from "react-icons/io5";
 import { BsCircleFill } from "react-icons/bs";
 
@@ -40,7 +33,6 @@ interface VolumeCardProps {
 
 const VolumeCard = memo(function VolumeCard({ volume }: VolumeCardProps) {
   const { handleVolumeRemove } = useApp();
-  const navigate = useNavigate();
   const [showRemoveModal, setShowRemoveModal] = useState(false);
   const [isRemoving, setIsRemoving] = useState(false);
 
@@ -54,10 +46,6 @@ const VolumeCard = memo(function VolumeCard({ volume }: VolumeCardProps) {
     setShowRemoveModal(false);
     // Reset removing state after a delay
     setTimeout(() => setIsRemoving(false), 2000);
-  };
-
-  const handleViewMore = () => {
-    navigate(`/volumes/${volume.name}`);
   };
 
   const getDriverIcon = (driver: string) => {
@@ -87,23 +75,16 @@ const VolumeCard = memo(function VolumeCard({ volume }: VolumeCardProps) {
                 } flex-shrink-0`}
                 size={8}
               />
-              <h3 className="text-gray-100 font-medium text-sm truncate">
+              <Link
+                to={`/volumes/${volume.name}`}
+                className="text-gray-100 font-medium text-sm truncate hover:text-blue-400 transition-colors"
+              >
                 {volume.name}
-              </h3>
+              </Link>
             </div>
           </div>
 
           <div className="absolute right-0 top-0 flex items-center gap-1">
-            <CardActionButton
-              onClick={handleViewMore}
-              title="View details"
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              <div className="flex flex-col items-center gap-1 p-1">
-                <FaEye size={12} />
-                <span className="text-xs">View More</span>
-              </div>
-            </CardActionButton>
             {!isInUse && (
               <CardActionButton
                 onClick={handleRemoveClick}
