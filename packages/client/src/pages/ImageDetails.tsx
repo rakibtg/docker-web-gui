@@ -220,20 +220,24 @@ const ImageDetails = memo(function ImageDetails() {
 
   if (loading || isLoadingImageDetails) {
     return (
-      <div className="p-4">
-        <div className="border-b border-gray-700 pb-4 mb-6">
+      <div className="space-y-4 lg:space-y-6 p-3 sm:p-4 lg:p-6">
+        <div className="flex items-center gap-3 mb-3">
           <button
             onClick={handleBackClick}
-            className="inline-flex items-center text-blue-400 hover:text-blue-300 mb-4"
+            className="p-1.5 hover:bg-gray-700 rounded-md transition-colors"
+            title="Back to images"
           >
-            <FaArrowLeft className="mr-2" />
-            Back to Images
+            <FaArrowLeft className="w-4 h-4" />
           </button>
-          <h1 className="text-2xl font-bold text-gray-100">Image Details</h1>
+          <h1 className="text-lg sm:text-xl font-bold text-gray-100">
+            Loading Image
+          </h1>
         </div>
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400"></div>
-          <span className="ml-3 text-gray-400">Loading image details...</span>
+        <div className="text-center py-8 lg:py-16">
+          <div className="animate-spin rounded-full h-8 w-8 lg:h-12 lg:w-12 border-b-2 border-blue-600 mb-4 mx-auto"></div>
+          <p className="text-gray-400 text-sm lg:text-base">
+            Loading image details...
+          </p>
         </div>
       </div>
     );
@@ -241,26 +245,32 @@ const ImageDetails = memo(function ImageDetails() {
 
   if (imageNotFound) {
     return (
-      <div className="p-4">
-        <div className="border-b border-gray-700 pb-4 mb-6">
+      <div className="space-y-4 lg:space-y-6 p-3 sm:p-4 lg:p-6">
+        <div className="flex items-center gap-3 mb-3">
           <button
             onClick={handleBackClick}
-            className="inline-flex items-center text-blue-400 hover:text-blue-300 mb-4"
+            className="p-1.5 hover:bg-gray-700 rounded-md transition-colors"
+            title="Back to images"
           >
-            <FaArrowLeft className="mr-2" />
+            <FaArrowLeft className="w-4 h-4" />
+          </button>
+          <h1 className="text-lg sm:text-xl font-bold text-gray-100">
+            Image Not Found
+          </h1>
+        </div>
+        <div className="text-center py-8 lg:py-16">
+          <h1 className="text-xl lg:text-2xl font-bold text-gray-100 mb-4">
+            Image Not Found
+          </h1>
+          <p className="text-gray-400 text-sm lg:text-base">
+            The image with ID "{imageId}" could not be found.
+          </p>
+          <button
+            onClick={handleBackClick}
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+          >
             Back to Images
           </button>
-          <h1 className="text-2xl font-bold text-gray-100">Image Details</h1>
-        </div>
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <h3 className="mt-2 text-lg font-medium text-gray-100">
-              Image not found
-            </h3>
-            <p className="mt-1 text-gray-400">
-              The image with ID "{imageId}" could not be found.
-            </p>
-          </div>
         </div>
       </div>
     );
@@ -268,26 +278,32 @@ const ImageDetails = memo(function ImageDetails() {
 
   if (!image) {
     return (
-      <div className="p-4">
-        <div className="border-b border-gray-700 pb-4 mb-6">
+      <div className="space-y-4 lg:space-y-6 p-3 sm:p-4 lg:p-6">
+        <div className="flex items-center gap-3 mb-3">
           <button
             onClick={handleBackClick}
-            className="inline-flex items-center text-blue-400 hover:text-blue-300 mb-4"
+            className="p-1.5 hover:bg-gray-700 rounded-md transition-colors"
+            title="Back to images"
           >
-            <FaArrowLeft className="mr-2" />
+            <FaArrowLeft className="w-4 h-4" />
+          </button>
+          <h1 className="text-lg sm:text-xl font-bold text-gray-100">
+            Image Details
+          </h1>
+        </div>
+        <div className="text-center py-8 lg:py-16">
+          <h1 className="text-xl lg:text-2xl font-bold text-gray-100 mb-4">
+            No image data available
+          </h1>
+          <p className="text-gray-400 text-sm lg:text-base">
+            Unable to load image information.
+          </p>
+          <button
+            onClick={handleBackClick}
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+          >
             Back to Images
           </button>
-          <h1 className="text-2xl font-bold text-gray-100">Image Details</h1>
-        </div>
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <h3 className="mt-2 text-lg font-medium text-gray-100">
-              No image data available
-            </h3>
-            <p className="mt-1 text-gray-400">
-              Unable to load image information.
-            </p>
-          </div>
         </div>
       </div>
     );
@@ -295,29 +311,28 @@ const ImageDetails = memo(function ImageDetails() {
 
   return (
     <PageWrapper>
-      {/* Header */}
-      <div className="border-b border-gray-700 pb-4">
-        <button
-          onClick={handleBackClick}
-          className="inline-flex items-center text-blue-400 hover:text-blue-300 mb-4"
-        >
-          <FaArrowLeft className="mr-2" />
-          Back to Images
-        </button>
-        <div className="flex items-center gap-3 mb-2">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-100">
-              {image.repository}
-            </h1>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="inline-flex text-sm px-2 py-1 rounded border border-blue-400/30 text-blue-100 bg-blue-500/20">
-                <FaTag className="mr-1" />
+      {/* Compact Header */}
+      <div className="mb-4 sm:mb-6">
+        <div className="flex items-center gap-3 mb-3">
+          <button
+            onClick={handleBackClick}
+            className="p-1.5 hover:bg-gray-700 rounded-md transition-colors"
+            title="Back to images"
+          >
+            <FaArrowLeft className="w-4 h-4" />
+          </button>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-lg sm:text-xl font-bold text-gray-100 truncate">
+                {image.repository}
+              </h1>
+              <span className="px-2 py-0.5 text-xs rounded-full bg-blue-900 text-blue-200">
                 {image.tag}
               </span>
-              <span className="text-gray-400 text-sm">
-                ID: {image.imageId.substring(0, 12)}
-              </span>
             </div>
+            <p className="text-sm text-gray-400 font-mono mt-1">
+              {image.imageId}
+            </p>
           </div>
         </div>
       </div>
