@@ -24,15 +24,12 @@ const VolumeFilters = memo(function VolumeFilters({
   }, [volumes]);
 
   return (
-    <div className="flex flex-col lg:flex-row lg:items-center gap-4">
-      {/* Search */}
-      <div>
-        <SearchInput
-          value={searchTerm}
-          onChange={onSearch}
-          placeholder="Search volumes by name or ID..."
-        />
-      </div>
+    <div className="flex flex-col lg:flex-row lg:items-center gap-2">
+      <SearchInput
+        value={searchTerm}
+        onChange={onSearch}
+        placeholder="Search volumes by name or ID..."
+      />
 
       <div className="relative">
         <FaFilter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-3 h-3" />
