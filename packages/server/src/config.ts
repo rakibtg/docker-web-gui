@@ -21,7 +21,7 @@ const defaultConfig: EnvConfig = {
 let config: EnvConfig;
 
 function loadConfig(): EnvConfig {
-  const configPath = join(__dirname, "../env.json");
+  const configPath = join(__dirname, "../.env.json");
 
   if (existsSync(configPath)) {
     try {
