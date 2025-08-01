@@ -5,12 +5,22 @@ import { join, extname } from "path";
 import { readFileSync, existsSync } from "fs";
 import { DockerService, ContainerWithStats } from "./dockerService";
 
+import { 
+  AuthSession,
+  createSession, 
+  destroySession, 
+  isAuthRequired,
+  validateSession, 
+  authenticateUser, 
+} from "./auth";
+
 // Client management for WebSocket connections
 interface ClientConnection {
   ws: any;
   id: string;
   lastPing: number;
   isActive: boolean;
+  session?: AuthSession;
   terminals?: Map<string, any>; // terminalId -> terminal process
 }
 
@@ -106,10 +116,126 @@ dockerService.on("error", (error: Error) => {
 // Clean up inactive clients every 30 seconds
 setInterval(cleanupInactiveClients, 30000);
 
+// Helper function to parse cookies
+function parseCookies(cookieHeader: string): Record<string, string> {
+  const cookies: Record<string, string> = {};
+  if (cookieHeader) {
+    cookieHeader.split(';').forEach(cookie => {
+      const [name, value] = cookie.trim().split('=');
+      if (name && value) {
+        cookies[name] = decodeURIComponent(value);
+      }
+    });
+  }
+  return cookies;
+}
+
+// Helper function to read request body
+function readRequestBody(req: any): Promise<string> {
+  return new Promise((resolve, reject) => {
+    let body = '';
+    req.on('data', (chunk: any) => {
+      body += chunk.toString();
+    });
+    req.on('end', () => {
+      resolve(body);
+    });
+    req.on('error', reject);
+  });
+}
+
 // Create HTTP server
-const server = createServer((req, res) => {
+const server = createServer(async (req, res) => {
   const parsedUrl = parse(req.url || "/", true);
   let pathname = parsedUrl.pathname || "/";
+
+  // Handle authentication API routes
+  if (pathname.startsWith("/api/auth/")) {
+    res.setHeader("Content-Type", "application/json");
+    
+    if (pathname === "/api/auth/status" && req.method === "GET") {
+      const cookies = parseCookies(req.headers.cookie || "");
+      const sessionToken = cookies.session_token;
+      
+      const authRequired = isAuthRequired();
+      let isAuthenticated = false;
+      let user = null;
+      
+      if (authRequired && sessionToken) {
+        const session = validateSession(sessionToken);
+        if (session) {
+          isAuthenticated = true;
+          user = { username: session.username };
+        }
+      } else if (!authRequired) {
+        isAuthenticated = true;
+      }
+      
+      res.writeHead(200);
+      res.end(JSON.stringify({
+        isAuthRequired: authRequired,
+        isAuthenticated,
+        user
+      }));
+      return;
+    }
+    
+    if (pathname === "/api/auth/login" && req.method === "POST") {
+      try {
+        const body = await readRequestBody(req);
+        const { username, password } = JSON.parse(body);
+        
+        if (!isAuthRequired()) {
+          res.writeHead(400);
+          res.end(JSON.stringify({ success: false, message: "Authentication not required" }));
+          return;
+        }
+        
+        if (authenticateUser(username, password)) {
+          const session = createSession(username);
+          
+          // Set secure HTTP-only cookie
+          res.setHeader("Set-Cookie", [
+            `session_token=${session.token}; HttpOnly; Path=/; Max-Age=${24 * 60 * 60}; SameSite=Strict`
+          ]);
+          
+          res.writeHead(200);
+          res.end(JSON.stringify({
+            success: true,
+            user: { username: session.username }
+          }));
+        } else {
+          res.writeHead(401);
+          res.end(JSON.stringify({ success: false, message: "Invalid credentials" }));
+        }
+      } catch (error) {
+        res.writeHead(400);
+        res.end(JSON.stringify({ success: false, message: "Invalid request" }));
+      }
+      return;
+    }
+    
+    if (pathname === "/api/auth/logout" && req.method === "POST") {
+      const cookies = parseCookies(req.headers.cookie || "");
+      const sessionToken = cookies.session_token;
+      
+      if (sessionToken) {
+        destroySession(sessionToken);
+      }
+      
+      res.setHeader("Set-Cookie", [
+        "session_token=; HttpOnly; Path=/; Max-Age=0; SameSite=Strict"
+      ]);
+      
+      res.writeHead(200);
+      res.end(JSON.stringify({ success: true }));
+      return;
+    }
+    
+    res.writeHead(404);
+    res.end(JSON.stringify({ error: "Not found" }));
+    return;
+  }
 
   // Default to index.html for root path
   if (pathname === "/") {
@@ -127,15 +253,15 @@ const server = createServer((req, res) => {
 
       // Set content type based on file extension
       const contentTypes: Record<string, string> = {
-        ".html": "text/html",
-        ".js": "application/javascript",
         ".css": "text/css",
-        ".json": "application/json",
+        ".html": "text/html",
         ".png": "image/png",
-        ".jpg": "image/jpeg",
         ".gif": "image/gif",
-        ".svg": "image/svg+xml",
+        ".jpg": "image/jpeg",
         ".ico": "image/x-icon",
+        ".svg": "image/svg+xml",
+        ".json": "application/json",
+        ".js": "application/javascript",
       };
 
       res.setHeader("Content-Type", contentTypes[ext] || "text/plain");
@@ -180,13 +306,38 @@ const wss = new WebSocketServer({ server });
 
 console.log("WebSocket server running on port 8080");
 
-wss.on("connection", function connection(ws) {
+wss.on("connection", function connection(ws, req) {
   const clientId = generateClientId();
   console.log(`New client connected: ${clientId}`);
+
+  // Check authentication if required
+  let session: AuthSession | undefined = undefined;
+  if (isAuthRequired()) {
+    const cookies = parseCookies(req.headers.cookie || "");
+    const sessionToken = cookies.session_token;
+    
+    if (!sessionToken) {
+      console.log(`Unauthenticated connection attempt: ${clientId}`);
+      ws.close(1008, "Authentication required");
+      return;
+    }
+    
+    const validatedSession = validateSession(sessionToken);
+    if (!validatedSession) {
+      console.log(`Invalid session for client: ${clientId}`);
+      ws.close(1008, "Invalid session");
+      return;
+    }
+    
+    session = validatedSession;
+    
+    console.log(`Authenticated client connected: ${clientId} (user: ${session.username})`);
+  }
 
   // Register client
   const client: ClientConnection = {
     ws,
+    session,
     id: clientId,
     isActive: true,
     lastPing: Date.now(),
@@ -208,6 +359,14 @@ wss.on("connection", function connection(ws) {
     }
   });
 
+  // Helper function to check if client is authenticated for Docker operations
+  function isClientAuthenticated(): boolean {
+    if (!isAuthRequired()) {
+      return true; // No auth required
+    }
+    return client.session !== undefined;
+  }
+
   ws.on("message", async function message(data) {
     if (!client.isActive) return;
 
@@ -215,6 +374,34 @@ wss.on("connection", function connection(ws) {
 
     try {
       const parsedMessage = JSON.parse(data.toString());
+
+      // Check authentication for Docker-related operations
+      const dockerOperations = [
+        "get-images",
+        "get-volumes",
+        "remove-image",
+        "get-networks",
+        "stop-container",
+        "terminal-input",
+        "get-containers", 
+        "terminal-resize",
+        "start-container",
+        "terminal-create",
+        "remove-container",
+        "restart-container",
+        "stop-stats-streaming",
+        "get-dashboard-summary",
+        "start-stats-streaming",
+      ];
+
+      if (dockerOperations.includes(parsedMessage.type) && !isClientAuthenticated()) {
+        ws.send(JSON.stringify({
+          type: "error",
+          code: "AUTH_REQUIRED",
+          message: "Authentication required for this operation",
+        }));
+        return;
+      }
 
       switch (parsedMessage.type) {
         case "get-dashboard-summary":
