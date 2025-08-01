@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import {
   HiX,
   HiMenu,
+  HiLogout,
   HiGlobeAlt,
   HiDatabase,
   HiChartPie,
@@ -12,9 +13,10 @@ import {
   HiInformationCircle,
 } from "react-icons/hi";
 
-import { FiBox } from "react-icons/fi";
 import { Tooltip } from "react-tooltip";
 import { LuLayers3 } from "react-icons/lu";
+import { FiBox, FiUser } from "react-icons/fi";
+import { useAuth } from "../contexts/AuthContext";
 import logo from "../assets/docker-web-gui-logo.png";
 
 interface SidebarItem {
@@ -62,6 +64,7 @@ const bottomItems: SidebarItem[] = [
 function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { isAuthRequired, isAuthenticated, user, logout } = useAuth();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
@@ -178,6 +181,33 @@ function Sidebar() {
           <div className="h-px bg-gray-600"></div>
         </div>
 
+        {/* User Info Section - Only show if auth is required and user is authenticated */}
+        {isAuthRequired && isAuthenticated && user && (
+          <div className={`mb-4 ${isCollapsed ? "px-2" : "px-3"}`}>
+            <div className={`bg-gray-700/50 rounded-lg p-3 ${isCollapsed ? "text-center" : ""}`}>
+              {isCollapsed ? (
+                <div
+                  data-tooltip-id="user-tooltip"
+                  data-tooltip-content={`Logged in as: ${user.username}`}
+                  data-tooltip-place="right"
+                >
+                  <FiUser className="w-5 h-5 text-blue-400 mx-auto" />
+                </div>
+              ) : (
+                <div className="flex items-center">
+                  <FiUser className="w-4 h-4 text-blue-400 flex-shrink-0" />
+                  <div className="ml-2 flex-1 min-w-0">
+                    <p className="text-xs text-gray-400">Logged in as:</p>
+                    <p className="text-sm font-medium text-gray-200 truncate">
+                      {user.username}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Bottom Items */}
         <div className="space-y-1">
           {bottomItems.map((item) => {
@@ -216,6 +246,22 @@ function Sidebar() {
               </button>
             );
           })}
+
+          {/* Logout Button - Only show if auth is required and user is authenticated */}
+          {isAuthRequired && isAuthenticated && (
+            <button
+              onClick={logout}
+              className={`w-full flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-200 cursor-pointer text-red-300 hover:text-red-200 hover:bg-red-900/30 ${
+                isCollapsed ? "justify-center" : ""
+              }`}
+              data-tooltip-id={isCollapsed ? "sidebar-tooltip" : undefined}
+              data-tooltip-content={isCollapsed ? "Logout" : undefined}
+              data-tooltip-place={isCollapsed ? "right" : undefined}
+            >
+              <HiLogout className="w-5 h-5 flex-shrink-0" />
+              {!isCollapsed && <span className="ml-3 text-left">Logout</span>}
+            </button>
+          )}
         </div>
       </nav>
     </>
@@ -276,6 +322,15 @@ function Sidebar() {
       />
       <Tooltip
         id="sidebar-tooltip"
+        style={{
+          backgroundColor: "rgb(17 24 39)",
+          color: "rgb(243 244 246)",
+          fontSize: "0.875rem",
+          zIndex: 9999,
+        }}
+      />
+      <Tooltip
+        id="user-tooltip"
         style={{
           backgroundColor: "rgb(17 24 39)",
           color: "rgb(243 244 246)",
