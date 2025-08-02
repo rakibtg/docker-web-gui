@@ -67,7 +67,7 @@ const ContainerGrid = memo(function ContainerGrid({
           containers found.
         </div>
       ) : (
-        <div className="flex flex-col gap-3.5">
+        <div className="flex flex-col gap-2">
           {filteredContainers.map((container) => (
             <ContainerCard
               key={container.id}

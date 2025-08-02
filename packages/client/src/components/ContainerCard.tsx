@@ -66,13 +66,13 @@ const ContainerCard = memo(function ContainerCard({
             <div className="flex flex-row items-center gap-2">
               <Link
                 to={`/containers/${container.id}`}
-                className="text-lg font-semibold text-gray-100 hover:text-blue-400 truncate transition-colors"
+                className="text-base font-medium text-gray-100 hover:text-blue-400 truncate transition-colors"
               >
                 {container.name}
               </Link>
               <UptimeDisplay
                 status={container.status}
-                className={`inline-flex text-xs px-2 py-1 rounded-full transition-colors ${
+                className={`inline-flex text-xs px-2 py-0 rounded-full transition-colors ${
                   isRunning
                     ? "border border-green-400/30 text-green-100"
                     : "border border-red-400/50 text-red-100"
@@ -80,7 +80,7 @@ const ContainerCard = memo(function ContainerCard({
               />
             </div>
             <p
-              className="text-sm text-gray-400 font-mono transition-colors flex items-center gap-1"
+              className="text-xs text-gray-400 font-mono transition-colors flex items-center gap-1 mt-0.5"
               title={`ID: ${container.id.substring(0, 10)}`}
             >
               <span className="inline-block">
