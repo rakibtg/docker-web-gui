@@ -11,7 +11,6 @@ export const IPAccessDenied = memo(({ userIP }: IPAccessDeniedProps) => {
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-900 text-gray-100 p-4">
       <div className="w-auto h-26 mx-auto mb-6">
         <img src={logo} alt="Docker GUI Logo" className="w-full h-full" />
-
       </div>
       <h2 className="text-3xl font-bold text-gray-100 mb-6">
         Docker Web GUI

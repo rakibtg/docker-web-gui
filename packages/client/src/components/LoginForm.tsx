@@ -5,18 +5,21 @@ import { FaEye, FaEyeSlash, FaUser, FaLock } from 'react-icons/fa';
 
 export function LoginForm() {
   const { login } = useAuth();
+
   const [credentials, setCredentials] = useState({
     username: '',
     password: '',
   });
-  const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+
     setError('');
+    setIsLoading(true);
 
     try {
       const result = await login(credentials);
@@ -44,10 +47,10 @@ export function LoginForm() {
     <div className="min-h-screen bg-gray-900 flex items-center justify-center px-4">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
-          <div className="w-20 h-20 mx-auto mb-6">
-            <img src={logo} alt="Docker GUI Logo" className="w-full h-full" />
+          <div className="flex justify-center mb-4">
+            <img src={logo} alt="Docker GUI Logo" className="w-auto h-26" />
           </div>
-          <h2 className="text-3xl font-bold text-gray-100 mb-2">
+          <h2 className="text-3xl font-bold text-gray-100 mb-6">
             Docker Web GUI
           </h2>
           <p className="text-gray-400">
