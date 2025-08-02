@@ -91,22 +91,24 @@ function Sidebar() {
   const SidebarContent = () => (
     <>
       <div className={`flex items-center p-4 ${isCollapsed ? "px-2" : ""}`}>
-        <div
-          className={`flex items-center transition-[justify-content] duration-300 ${
-            isCollapsed ? "justify-center w-full" : "flex-1"
+        <button
+          onClick={() => handleNavigation("")}
+          className={`flex items-center transition-[justify-content] duration-300 hover:bg-gray-700 rounded-lg p-2 -m-2 cursor-pointer group ${
+            isCollapsed ? "justify-center w-full ml-0.5" : "flex-1"
           }`}
+          aria-label="Go to home"
         >
-          <div className="w-10 h-10 flex-shrink-0 transition-transform duration-300 pt-1.5">
+          <div className="w-10 h-10 flex-shrink-0 transition-transform duration-300 pt-1.5 group-hover:scale-105">
             <img src={logo} alt="Docker GUI Logo" />
           </div>
           {!isCollapsed && (
             <div className="ml-3 flex-1 transition-opacity duration-300">
-              <h1 className="text-sm font-bold text-gray-100 truncate ">
+              <h1 className="text-sm font-bold text-gray-100 truncate group-hover:text-blue-300">
                 Docker Web GUI
               </h1>
             </div>
           )}
-        </div>
+        </button>
 
         {!isCollapsed && (
           <button
