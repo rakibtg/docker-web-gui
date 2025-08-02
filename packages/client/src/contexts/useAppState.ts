@@ -44,6 +44,10 @@ export function useAppState() {
   const [isStatsStreaming, setIsStatsStreaming] = useState(false);
   const [showTerminals, setShowTerminals] = useState(false);
 
+  // IP access state
+  const [ipAccessDenied, setIPAccessDenied] = useState(false);
+  const [userIP, setUserIP] = useState<string | null>(null);
+
   // Terminal state
   const [terminals, setTerminals] = useState<TerminalSession[]>([]);
   const [activeTerminalId, setActiveTerminalId] = useState<string | null>(null);
@@ -94,6 +98,12 @@ export function useAppState() {
     setIsStatsStreaming,
     showTerminals,
     setShowTerminals,
+
+    // IP access state
+    ipAccessDenied,
+    setIPAccessDenied,
+    userIP,
+    setUserIP,
 
     // Terminal state
     terminals,
