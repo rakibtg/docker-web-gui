@@ -14,6 +14,8 @@ import {
   authenticateUser, 
 } from "./auth";
 
+import { isIPAllowed, extractClientIP } from "./settings";
+
 // Client management for WebSocket connections
 interface ClientConnection {
   ws: any;
@@ -148,6 +150,34 @@ function readRequestBody(req: any): Promise<string> {
 const server = createServer(async (req, res) => {
   const parsedUrl = parse(req.url || "/", true);
   let pathname = parsedUrl.pathname || "/";
+
+  // Extract client IP for all requests
+  const clientIP = extractClientIP(req);
+  
+  // Check IP access for all API routes
+  if (pathname.startsWith("/api/")) {
+    if (!isIPAllowed(clientIP)) {
+      res.setHeader("Content-Type", "application/json");
+      res.writeHead(403);
+      res.end(JSON.stringify({
+        error: "IP_NOT_ALLOWED",
+        message: "Access denied from your IP address"
+      }));
+      return;
+    }
+  }
+
+  // Handle IP access check endpoint
+  if (pathname === "/api/ip-access" && req.method === "GET") {
+    res.setHeader("Content-Type", "application/json");
+    const allowed = isIPAllowed(clientIP);
+    res.writeHead(200);
+    res.end(JSON.stringify({
+      allowed,
+      ip: clientIP
+    }));
+    return;
+  }
 
   // Handle authentication API routes
   if (pathname.startsWith("/api/auth/")) {
@@ -308,7 +338,16 @@ console.log("WebSocket server running on port 8080");
 
 wss.on("connection", function connection(ws, req) {
   const clientId = generateClientId();
-  console.log(`New client connected: ${clientId}`);
+  const clientIP = extractClientIP(req);
+  
+  console.log(`New client connected: ${clientId} from IP: ${clientIP}`);
+
+  // Check IP access first
+  if (!isIPAllowed(clientIP)) {
+    console.log(`IP access denied for client: ${clientId} (IP: ${clientIP})`);
+    ws.close(1008, "IP_NOT_ALLOWED");
+    return;
+  }
 
   // Check authentication if required
   let session: AuthSession | undefined = undefined;
