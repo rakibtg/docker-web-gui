@@ -10,16 +10,23 @@ import {
   ContainerDetails,
 } from "./pages";
 
+import { useApp } from "./hooks/useApp";
 import { AppProvider } from "./contexts";
-import { AuthProvider } from "./contexts/AuthContext";
-import { AuthGuard } from "./components/AuthGuard";
 import Sidebar from "./components/Sidebar";
-import { Layout, TerminalToggle } from "./components";
+import { AuthGuard } from "./components/AuthGuard";
+import { AuthProvider } from "./contexts/AuthContext";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useTerminalCleanup } from "./hooks/useTerminalCleanup";
+import { Layout, TerminalToggle, IPAccessDenied } from "./components";
 
 function AppContent() {
   useTerminalCleanup();
+  const { ipAccessDenied, userIP } = useApp();
+
+  // Show IP access denied page if access is denied
+  if (ipAccessDenied) {
+    return <IPAccessDenied userIP={userIP || undefined} />;
+  }
 
   return (
     <AuthGuard>
