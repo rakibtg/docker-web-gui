@@ -23,6 +23,8 @@ interface UseWebSocketProps {
   setVolumesLoading: React.Dispatch<React.SetStateAction<boolean>>;
   setError: React.Dispatch<React.SetStateAction<string>>;
   setIsStatsStreaming: React.Dispatch<React.SetStateAction<boolean>>;
+  setIPAccessDenied: React.Dispatch<React.SetStateAction<boolean>>;
+  setUserIP: React.Dispatch<React.SetStateAction<string | null>>;
   dockerAvailable: boolean | null;
   isConnected: boolean;
   isStatsStreaming: boolean;
@@ -44,6 +46,8 @@ export function useWebSocket({
   setVolumesLoading,
   setError,
   setIsStatsStreaming,
+  setIPAccessDenied,
+  setUserIP,
   dockerAvailable,
   isConnected,
   isStatsStreaming,
@@ -112,13 +116,56 @@ export function useWebSocket({
     }
   }, [sendMessage, websocket]);
 
+  // Check IP access before attempting WebSocket connection
+  const checkIPAccess = useCallback(async (): Promise<boolean> => {
+    try {
+      const response = await fetch('/api/ip-access', {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+      if (response.status === 403) {
+        const errorData = await response.json();
+        setIPAccessDenied(true);
+        setError(errorData.message || 'Access denied from your IP address');
+        return false;
+      }
+
+      if (!response.ok) {
+        console.warn('Failed to check IP access, proceeding with connection');
+        return true; // Allow connection attempt on network errors
+      }
+
+      const data = await response.json();
+      setUserIP(data.ip);
+      
+      if (!data.allowed) {
+        setIPAccessDenied(true);
+        setError('Access denied from your IP address');
+        return false;
+      }
+
+      return true;
+    } catch (err) {
+      console.warn('Failed to check IP access:', err);
+      return true; // Allow connection attempt on network errors
+    }
+  }, [setIPAccessDenied, setUserIP, setError]);
+
   // WebSocket connection management
   useEffect(() => {
     let ws: WebSocket;
 
-    const connect = () => {
+    const connect = async () => {
       // Don't reconnect if component is unmounting
       if (!shouldReconnectRef.current) {
+        return;
+      }
+
+      // Check IP access before connecting
+      const ipAllowed = await checkIPAccess();
+      if (!ipAllowed) {
+        console.log('IP access denied, not attempting WebSocket connection');
         return;
       }
 
@@ -429,6 +476,15 @@ export function useWebSocket({
         // Clean up heartbeat
         cleanup();
 
+        // Check if closure was due to IP restriction
+        if (event.code === 1008 && event.reason === "IP_NOT_ALLOWED") {
+          console.log("WebSocket closed due to IP restriction");
+          setIPAccessDenied(true);
+          setError("Access denied from your IP address");
+          shouldReconnectRef.current = false; // Prevent reconnection attempts
+          return;
+        }
+
         // Only attempt to reconnect if we should reconnect and haven't exceeded max attempts
         if (
           shouldReconnectRef.current &&
@@ -487,6 +543,7 @@ export function useWebSocket({
     };
   }, [
     cleanup,
+    checkIPAccess,
     setContainers,
     setImages,
     setNetworks,
@@ -502,6 +559,8 @@ export function useWebSocket({
     setVolumesLoading,
     setError,
     setIsStatsStreaming,
+    setIPAccessDenied,
+    setUserIP,
   ]);
 
   // Handle page visibility change to pause/resume stats streaming
