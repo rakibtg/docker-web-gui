@@ -71,4 +71,60 @@ export function reloadSettings(): SettingsInterface {
   return settings;
 }
 
+// IP validation utilities
+function isValidIP(ip: string): boolean {
+  // IPv4 validation
+  const ipv4Regex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+  // IPv6 validation (basic)
+  const ipv6Regex = /^(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$|^::1$|^::$/;
+  
+  return ipv4Regex.test(ip) || ipv6Regex.test(ip);
+}
+
+export function isIPAllowed(clientIP: string): boolean {
+  const allowedIPs = getSettings('allowed_ip_list');
+  
+  // If allowed_ip_list is null, empty, or contains only empty strings, allow all IPs
+  if (!allowedIPs || allowedIPs.length === 0) {
+    return true;
+  }
+  
+  // Filter out empty strings and validate IPs
+  const validAllowedIPs = allowedIPs.filter(ip => ip.trim() !== '' && isValidIP(ip.trim()));
+  
+  // If no valid IPs in the list, allow all
+  if (validAllowedIPs.length === 0) {
+    return true;
+  }
+  
+  // Check if client IP is in the allowed list
+  const normalizedClientIP = clientIP.trim();
+  return validAllowedIPs.includes(normalizedClientIP);
+}
+
+// Helper function to extract real IP from request
+export function extractClientIP(req: any): string {
+  // Check for forwarded headers (proxy/load balancer)
+  const forwarded = req.headers['x-forwarded-for'];
+  if (forwarded) {
+    // x-forwarded-for can contain multiple IPs, take the first one
+    return forwarded.split(',')[0].trim();
+  }
+  
+  // Check for real IP header
+  const realIP = req.headers['x-real-ip'];
+  if (realIP) {
+    return realIP.trim();
+  }
+  
+  // Fall back to connection remote address
+  const remoteAddress = req.connection?.remoteAddress || req.socket?.remoteAddress;
+  if (remoteAddress) {
+    // Remove IPv6 prefix if present (::ffff:192.168.1.1 -> 192.168.1.1)
+    return remoteAddress.replace(/^::ffff:/, '');
+  }
+  
+  return 'unknown';
+}
+
 export { SettingsInterface, User };
