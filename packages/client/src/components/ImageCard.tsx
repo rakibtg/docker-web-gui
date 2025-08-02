@@ -1,34 +1,16 @@
-import React, { useState, memo, useCallback } from "react";
 import { Link } from "react-router-dom";
-import type { DockerImage } from "../types";
-import { FaTrash, FaClock, FaHdd } from "react-icons/fa";
 import { LuLayers3 } from "react-icons/lu";
-
+import type { DockerImage } from "../types";
 import { IoReloadCircle } from "react-icons/io5";
+import { useState, memo, useCallback } from "react";
+import { CardActionButton } from "./CardActionButton";
 import { ConfirmationModal } from "./ConfirmationModal";
-
-function CardActionButton({
-  children,
-  disabled = false,
-  ...rest
-}: React.ButtonHTMLAttributes<HTMLButtonElement>) {
-  return (
-    <button
-      className={`cursor-pointer px-2 py-1 text-white hover:bg-red-700/40 transition-colors rounded text-xs font-medium flex items-center gap-1 shadow-sm
-        disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-red-600
-      `}
-      disabled={disabled}
-      {...rest}
-    >
-      {children}
-    </button>
-  );
-}
+import { FaTrash, FaClock, FaHdd } from "react-icons/fa";
 
 interface ImageCardProps {
   image: DockerImage;
-  onRemove?: (imageId: string, force?: boolean) => void;
   isRemoving?: boolean;
+  onRemove?: (imageId: string, force?: boolean) => void;
 }
 
 const ImageCard = memo(function ImageCard({
@@ -133,14 +115,12 @@ const ImageCard = memo(function ImageCard({
             title="Remove image"
             disabled={localRemoving || isRemoving}
           >
-            <div className="flex flex-col items-center gap-1 p-1">
-              {localRemoving || isRemoving ? (
-                <IoReloadCircle size={12} className="animate-spin" />
-              ) : (
-                <FaTrash size={12} />
-              )}
-              <span className="text-xs">Remove</span>
-            </div>
+            {localRemoving || isRemoving ? (
+              <IoReloadCircle className="w-5 h-5 animate-spin" />
+            ) : (
+              <FaTrash className="w-5 h-5" />
+            )}
+            <p className="text-xs text-gray-100 pt-1">Remove</p>
           </CardActionButton>
         </div>
       </div>
