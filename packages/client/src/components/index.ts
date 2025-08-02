@@ -15,6 +15,7 @@ export { VolumeFilters } from "./VolumeFilters";
 export { UptimeDisplay } from "./UptimeDisplay";
 export { ContainerCard } from "./ContainerCard";
 export { ContainerGrid } from "./ContainerGrid";
+export { IPAccessDenied } from "./IPAccessDenied";
 export { NetworkFilters } from "./NetworkFilters";
 export { TerminalToggle } from "./TerminalToggle";
 export { SystemOverview } from "./SystemOverview";
