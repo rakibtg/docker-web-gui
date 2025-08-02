@@ -1,16 +1,16 @@
 import type {
-  ContainerWithStats,
   DockerImage,
-  DockerNetwork,
   DockerVolume,
+  DockerNetwork,
+  ContainerWithStats,
 } from "../types";
 
 export interface ImageHistoryLayer {
   id: string;
-  created: string;
-  createdBy: string;
   size: number;
+  created: string;
   comment?: string;
+  createdBy: string;
 }
 
 export interface TerminalSession {
@@ -75,6 +75,12 @@ export interface AppContextType {
   setIsStatsStreaming: React.Dispatch<React.SetStateAction<boolean>>;
   showTerminals: boolean;
   setShowTerminals: React.Dispatch<React.SetStateAction<boolean>>;
+
+  // IP access state
+  ipAccessDenied: boolean;
+  setIPAccessDenied: React.Dispatch<React.SetStateAction<boolean>>;
+  userIP: string | null;
+  setUserIP: React.Dispatch<React.SetStateAction<string | null>>;
 
   // Terminal state
   terminals: TerminalSession[];
