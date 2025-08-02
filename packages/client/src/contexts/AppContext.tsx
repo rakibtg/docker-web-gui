@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
-import type { AppContextType } from "./types";
 import { AppContext } from "./context";
 import { useAppState } from "./useAppState";
+import type { AppContextType } from "./types";
 import { useWebSocket } from "./useWebSocket";
 import { useDockerActions } from "./useDockerActions";
 import { useTerminalManagement } from "./useTerminalManagement";
@@ -20,44 +20,46 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     startStatsStreaming,
     stopStatsStreaming,
   } = useWebSocket({
-    setContainers: state.setContainers,
-    setImages: state.setImages,
-    setNetworks: state.setNetworks,
-    setVolumes: state.setVolumes,
-    setImageHistory: state.setImageHistory,
-    setIsConnected: state.setIsConnected,
-    setDockerAvailable: state.setDockerAvailable,
-    setDockerMessage: state.setDockerMessage,
-    setLastUpdate: state.setLastUpdate,
-    setLoading: state.setLoading,
-    setImagesLoading: state.setImagesLoading,
-    setNetworksLoading: state.setNetworksLoading,
-    setVolumesLoading: state.setVolumesLoading,
     setError: state.setError,
-    setIsStatsStreaming: state.setIsStatsStreaming,
-    dockerAvailable: state.dockerAvailable,
+    setImages: state.setImages,
+    setUserIP: state.setUserIP,
+    setVolumes: state.setVolumes,
+    setLoading: state.setLoading,
     isConnected: state.isConnected,
+    setNetworks: state.setNetworks,
+    setLastUpdate: state.setLastUpdate,
+    setContainers: state.setContainers,
+    setIsConnected: state.setIsConnected,
+    setImageHistory: state.setImageHistory,
+    dockerAvailable: state.dockerAvailable,
+    setDockerMessage: state.setDockerMessage,
     isStatsStreaming: state.isStatsStreaming,
+    setImagesLoading: state.setImagesLoading,
+    setVolumesLoading: state.setVolumesLoading,
+    setIPAccessDenied: state.setIPAccessDenied,
+    setDockerAvailable: state.setDockerAvailable,
+    setNetworksLoading: state.setNetworksLoading,
+    setIsStatsStreaming: state.setIsStatsStreaming,
   });
 
   // Docker actions
   const dockerActions = useDockerActions({
     sendMessage,
-    setLoading: state.setLoading,
-    setImagesLoading: state.setImagesLoading,
-    setNetworksLoading: state.setNetworksLoading,
-    setVolumesLoading: state.setVolumesLoading,
     setError: state.setError,
+    setLoading: state.setLoading,
     setImageHistory: state.setImageHistory,
+    setImagesLoading: state.setImagesLoading,
+    setVolumesLoading: state.setVolumesLoading,
+    setNetworksLoading: state.setNetworksLoading,
   });
 
   // Terminal management
   const terminalActions = useTerminalManagement({
+    websocket,
     terminals: state.terminals,
     setTerminals: state.setTerminals,
-    setActiveTerminalId: state.setActiveTerminalId,
     setShowTerminals: state.setShowTerminals,
-    websocket,
+    setActiveTerminalId: state.setActiveTerminalId,
   });
 
   const value: AppContextType = useMemo(
