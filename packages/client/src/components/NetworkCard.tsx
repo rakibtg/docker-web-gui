@@ -1,5 +1,3 @@
-import { memo, useState, useCallback } from "react";
-
 import {
   FaHdd,
   FaClock,
@@ -15,25 +13,9 @@ import { useApp } from "../hooks/useApp";
 import type { DockerNetwork } from "../types";
 import { BsCircleFill } from "react-icons/bs";
 import { IoReloadCircle } from "react-icons/io5";
+import { memo, useState, useCallback } from "react";
+import { CardActionButton } from "./CardActionButton";
 import { ConfirmationModal } from "./ConfirmationModal";
-
-function CardActionButton({
-  children,
-  disabled = false,
-  ...rest
-}: React.ButtonHTMLAttributes<HTMLButtonElement>) {
-  return (
-    <button
-      className={`cursor-pointer px-2 py-1 text-white hover:bg-red-700/40 transition-colors rounded text-xs font-medium flex items-center gap-1 shadow-sm
-        disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-red-600
-      `}
-      disabled={disabled}
-      {...rest}
-    >
-      {children}
-    </button>
-  );
-}
 
 interface NetworkCardProps {
   network: DockerNetwork;
@@ -69,10 +51,10 @@ const NetworkCard = memo(function NetworkCard({ network }: NetworkCardProps) {
     }
   };
 
-  const isBuiltInNetwork = ["bridge", "host", "none"].includes(network.name);
-
-  const connectedCount = network.containers?.length || 0;
+  
   const subnet = network.ipam?.config?.[0]?.subnet;
+  const connectedCount = network.containers?.length || 0;
+  const isBuiltInNetwork = ["bridge", "host", "none"].includes(network.name);
 
   return (
     <>
@@ -96,22 +78,18 @@ const NetworkCard = memo(function NetworkCard({ network }: NetworkCardProps) {
 
           <div className="absolute right-0 top-0 flex items-center gap-1">
             {!isBuiltInNetwork && (
-              <>
-                <CardActionButton
-                  onClick={() => setShowDeleteModal(true)}
-                  title="Remove network"
-                  disabled={isRemoving}
-                >
-                  <div className="flex flex-col items-center gap-1 p-1">
-                    {isRemoving ? (
-                      <IoReloadCircle size={12} className="animate-spin" />
-                    ) : (
-                      <FaTrash size={12} />
-                    )}
-                    <span className="text-xs">Remove</span>
-                  </div>
-                </CardActionButton>
-              </>
+              <CardActionButton
+                onClick={() => setShowDeleteModal(true)}
+                title="Remove network"
+                disabled={isRemoving}
+              >
+                {isRemoving ? (
+                  <IoReloadCircle className="w-5 h-5 animate-spin" />
+                ) : (
+                  <FaTrash className="w-5 h-5" />
+                )}
+                <p className="text-xs text-gray-100 pt-1">Remove</p>
+              </CardActionButton>
             )}
           </div>
         </div>
