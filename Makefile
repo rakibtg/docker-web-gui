@@ -17,7 +17,7 @@ restart:
 	docker-compose stop && docker-compose start
 
 run-without-compose:
-	docker run -p 3230:3230 -v /usr/local/bin/docker:/usr/local/bin/docker -v /var/run/docker.sock:/var/run/docker.sock docker-web-gui
+	docker run -p 3230:8080 -v /usr/local/bin/docker:/usr/local/bin/docker -v /var/run/docker.sock:/var/run/docker.sock docker-web-gui
 
 build-without-compose:
 	docker build . -t docker-web-gui
