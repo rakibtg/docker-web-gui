@@ -1,22 +1,15 @@
-# Use Node.js 18 (LTS) as the base image for stability and ES module support
 FROM node:20-alpine
 
-# Set the working directory
-WORKDIR /src
+WORKDIR /app
 
-# Install Python, pip, and build tools in one RUN command
 RUN apk add --no-cache python3 py3-pip build-base docker-cli
 
-# Copy application files to the container
-COPY ./backend /src/backend
-# COPY ./client /src/client
-COPY ./app.js /src/app.js
+COPY . /app
 
-# Install backend dependencies
-RUN cd /src/backend && npm install
+RUN cd /app && npm install
 
-# Expose the application port
-EXPOSE 3230
+RUN cd /app && npm run build
 
-# Run the application
-CMD ["node", "/src/app.js"]
+EXPOSE 8080
+
+CMD ["npm", "run", "start:prod"]
