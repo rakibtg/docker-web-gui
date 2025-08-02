@@ -183,7 +183,7 @@ function Sidebar() {
 
         {/* User Info Section - Only show if auth is required and user is authenticated */}
         {isAuthRequired && isAuthenticated && user && (
-          <div className={`mb-4 ${isCollapsed ? "px-2" : "px-3"}`}>
+          <div className={`mb-4 ${isCollapsed ? "px-0" : "px-3"}`}>
             <div className={`bg-gray-700/50 rounded-lg p-3 ${isCollapsed ? "text-center" : ""}`}>
               {isCollapsed ? (
                 <div
