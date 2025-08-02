@@ -64,9 +64,9 @@ const bottomItems: SidebarItem[] = [
 function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAuthRequired, isAuthenticated, user, logout } = useAuth();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const { isAuthRequired, isAuthenticated, user, logout } = useAuth();
 
   // Get current page from location pathname
   const currentPage = location.pathname.slice(1) || "containers"; // Remove leading slash

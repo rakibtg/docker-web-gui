@@ -2,31 +2,31 @@ import { memo } from "react";
 import { FaExclamationTriangle, FaTimes } from "react-icons/fa";
 
 interface ConfirmationModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onConfirm: () => void;
-  onConfirmWithForce?: () => void;
   title: string;
   message: string;
-  confirmText?: string;
-  confirmWithForceText?: string;
+  isOpen: boolean;
   cancelText?: string;
-  type?: "warning" | "danger" | "info";
+  onClose: () => void;
+  confirmText?: string;
+  onConfirm: () => void;
   showForceOption?: boolean;
+  confirmWithForceText?: string;
+  onConfirmWithForce?: () => void;
+  type?: "warning" | "danger" | "info";
 }
 
 const ConfirmationModal = memo(function ConfirmationModal({
+  title,
   isOpen,
+  message,
   onClose,
   onConfirm,
-  onConfirmWithForce,
-  title,
-  message,
-  confirmText = "Confirm",
-  confirmWithForceText = "Force Remove",
-  cancelText = "Cancel",
   type = "warning",
+  onConfirmWithForce,
+  cancelText = "Cancel",
+  confirmText = "Confirm",
   showForceOption = false,
+  confirmWithForceText = "Force Remove",
 }: ConfirmationModalProps) {
   if (!isOpen) return null;
 

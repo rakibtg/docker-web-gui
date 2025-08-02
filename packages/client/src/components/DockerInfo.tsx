@@ -2,8 +2,8 @@ import { StatusIndicator } from "./StatusIndicator";
 import { FaDocker, FaTimesCircle, FaQuestionCircle } from "react-icons/fa";
 
 interface DockerInfoProps {
-  dockerAvailable: boolean | null;
   isConnected: boolean;
+  dockerAvailable: boolean | null;
 }
 
 export function DockerInfo({ dockerAvailable, isConnected }: DockerInfoProps) {

@@ -1,4 +1,3 @@
-export { Header } from "./Header";
 export { Layout } from "./Layout";
 export { Terminal } from "./Terminal";
 export { ImageCard } from "./ImageCard";

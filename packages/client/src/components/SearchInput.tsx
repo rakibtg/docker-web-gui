@@ -3,8 +3,8 @@ import { IoSearchSharp } from "react-icons/io5";
 
 interface SearchInputProps {
   value: string;
-  onChange: (value: string) => void;
   placeholder?: string;
+  onChange: (value: string) => void;
 }
 
 const SearchInput: React.FC<SearchInputProps> = ({

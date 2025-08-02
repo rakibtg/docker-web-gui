@@ -2,22 +2,22 @@ import { memo } from "react";
 
 interface ToggleSwitchProps {
   isOn: boolean;
-  onToggle: () => void;
-  disabled?: boolean;
-  size?: "sm" | "md" | "lg";
   label?: string;
   loading?: boolean;
   className?: string;
+  disabled?: boolean;
+  onToggle: () => void;
+  size?: "sm" | "md" | "lg";
 }
 
 const ToggleSwitch = memo(function ToggleSwitch({
   isOn,
-  onToggle,
-  disabled = false,
-  size = "md",
   label,
-  loading = false,
+  onToggle,
+  size = "md",
   className = "",
+  loading = false,
+  disabled = false,
 }: ToggleSwitchProps) {
   const sizeClasses = {
     sm: {

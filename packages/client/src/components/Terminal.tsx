@@ -1,26 +1,26 @@
-import { useEffect, useRef } from "react";
-import { Terminal as XTerm } from "@xterm/xterm";
-import { FitAddon } from "@xterm/addon-fit";
-import { WebLinksAddon } from "@xterm/addon-web-links";
 import "@xterm/xterm/css/xterm.css";
+import { useEffect, useRef } from "react";
+import { FitAddon } from "@xterm/addon-fit";
+import { Terminal as XTerm } from "@xterm/xterm";
+import { WebLinksAddon } from "@xterm/addon-web-links";
 
 interface TerminalProps {
   terminalId: string; // Unique terminal session ID
   containerId: string;
-  containerName: string;
   websocket: WebSocket;
+  containerName: string;
   sessionType: "terminal" | "logs";
 }
 
 export function Terminal({
+  websocket,
   terminalId,
+  sessionType,
   containerId,
   containerName,
-  websocket,
-  sessionType,
 }: TerminalProps) {
-  const terminalRef = useRef<HTMLDivElement>(null);
   const xtermRef = useRef<XTerm | null>(null);
+  const terminalRef = useRef<HTMLDivElement>(null);
   const fitAddonRef = useRef<FitAddon | null>(null);
   const connectionRequestedRef = useRef<boolean>(false);
 
@@ -28,13 +28,13 @@ export function Terminal({
     if (!terminalRef.current) return;
 
     const terminal = new XTerm({
-      cursorBlink: sessionType === "terminal", // Only blink cursor for interactive terminals
       fontSize: 14,
-      fontFamily: 'Monaco, Menlo, "Ubuntu Mono", monospace',
-      allowTransparency: true,
-      allowProposedApi: true,
       convertEol: true, // Convert \n to \r\n automatically
+      allowProposedApi: true,
+      allowTransparency: true,
       disableStdin: sessionType === "logs", // Disable input for logs sessions
+      cursorBlink: sessionType === "terminal", // Only blink cursor for interactive terminals
+      fontFamily: 'Monaco, Menlo, "Ubuntu Mono", monospace',
       theme: {
         background: sessionType === "logs" ? "#1a1e2e" : "#181e2d", // Slightly different background for logs
         foreground: "#d4d4d4",

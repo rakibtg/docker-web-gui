@@ -1,24 +1,26 @@
 import { memo } from "react";
+
 import {
+  FaHdd,
   FaDocker,
   FaServer,
   FaMemory,
-  FaHdd,
   FaMicrochip,
 } from "react-icons/fa";
+
 import { StatusIndicator } from "./StatusIndicator";
 import { useSystemStats } from "../hooks/useSystemStats";
 
 interface SystemOverviewProps {
-  dockerAvailable: boolean | null;
   isConnected: boolean;
   dockerMessage: string;
+  dockerAvailable: boolean | null;
 }
 
 export const SystemOverview = memo(function SystemOverview({
-  dockerAvailable,
   isConnected,
   dockerMessage,
+  dockerAvailable,
 }: SystemOverviewProps) {
   // Get real system metrics
   const systemMetrics = useSystemStats();

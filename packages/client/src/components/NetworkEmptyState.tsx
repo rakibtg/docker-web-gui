@@ -2,17 +2,17 @@ import { memo } from "react";
 import { FaNetworkWired, FaExclamationTriangle, FaPlug } from "react-icons/fa";
 
 interface NetworkEmptyStateProps {
-  dockerAvailable: boolean | null;
-  isConnected: boolean;
   loading: boolean;
+  isConnected: boolean;
   onLoadNetworks: () => void;
+  dockerAvailable: boolean | null;
 }
 
 const NetworkEmptyState = memo(function NetworkEmptyState({
-  dockerAvailable,
-  isConnected,
   loading,
+  isConnected,
   onLoadNetworks,
+  dockerAvailable,
 }: NetworkEmptyStateProps) {
   if (loading) {
     return (

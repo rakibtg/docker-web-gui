@@ -1,16 +1,16 @@
 import { MdError, MdSignalWifiOff, MdStorage, MdRefresh } from "react-icons/md";
 
 interface EmptyStateProps {
-  dockerAvailable: boolean | null;
-  isConnected: boolean;
   loading: boolean;
+  isConnected: boolean;
   onLoadContainers: () => void;
+  dockerAvailable: boolean | null;
 }
 
 export function EmptyState({
-  dockerAvailable,
-  isConnected,
   loading,
+  isConnected,
+  dockerAvailable,
   onLoadContainers,
 }: EmptyStateProps) {
   const getEmptyStateContent = () => {

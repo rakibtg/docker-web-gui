@@ -1,15 +1,15 @@
 import { MdCheckCircle, MdError, MdWarning, MdCircle } from "react-icons/md";
 
 interface StatusIndicatorProps {
-  status: "connected" | "disconnected" | "available" | "unavailable";
   label: string;
   title?: string;
+  status: "connected" | "disconnected" | "available" | "unavailable";
 }
 
 export function StatusIndicator({
-  status,
   label,
   title,
+  status,
 }: StatusIndicatorProps) {
   const getStatusIcon = () => {
     switch (status) {

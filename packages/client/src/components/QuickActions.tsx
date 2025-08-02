@@ -10,47 +10,47 @@ import {
 } from "react-icons/fa";
 
 interface QuickActionsProps {
+  onPruneSystem: () => void;
+  unusedImagesCount: number;
+  onPruneImages: () => void;
+  unusedVolumesCount: number;
+  onPruneVolumes: () => void;
   runningContainersCount: number;
   stoppedContainersCount: number;
-  unusedImagesCount: number;
-  unusedVolumesCount: number;
-  onStartAllContainers: () => void;
   onStopAllContainers: () => void;
-  onPruneImages: () => void;
-  onPruneVolumes: () => void;
-  onPruneSystem: () => void;
+  onStartAllContainers: () => void;
 }
 
 export const QuickActions = memo(function QuickActions({
-  runningContainersCount,
-  stoppedContainersCount,
-  unusedImagesCount,
-  unusedVolumesCount,
-  onStartAllContainers,
-  onStopAllContainers,
+  onPruneSystem,
   onPruneImages,
   onPruneVolumes,
-  onPruneSystem,
+  unusedImagesCount,
+  unusedVolumesCount,
+  onStopAllContainers,
+  onStartAllContainers,
+  runningContainersCount,
+  stoppedContainersCount,
 }: QuickActionsProps) {
   const ActionButton = ({
-    onClick,
     icon,
     label,
+    onClick,
     color = "blue",
     disabled = false,
     variant = "normal",
   }: {
     onClick: () => void;
-    icon: React.ReactNode;
     label: string;
-    color?: "blue" | "green" | "red" | "yellow" | "orange";
+    icon: React.ReactNode;
     disabled?: boolean;
     variant?: "normal" | "danger";
+    color?: "blue" | "green" | "red" | "yellow" | "orange";
   }) => {
     const colorClasses = {
+      red: "bg-red-600 hover:bg-red-700 text-white",
       blue: "bg-blue-600 hover:bg-blue-700 text-white",
       green: "bg-green-600 hover:bg-green-700 text-white",
-      red: "bg-red-600 hover:bg-red-700 text-white",
       yellow: "bg-yellow-600 hover:bg-yellow-700 text-white",
       orange: "bg-orange-600 hover:bg-orange-700 text-white",
     };

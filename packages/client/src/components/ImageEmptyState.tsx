@@ -2,17 +2,17 @@ import { memo } from "react";
 import { FaDownload, FaImage, FaExclamationTriangle } from "react-icons/fa";
 
 interface ImageEmptyStateProps {
-  dockerAvailable: boolean | null;
-  isConnected: boolean;
   loading: boolean;
+  isConnected: boolean;
   onLoadImages: () => void;
+  dockerAvailable: boolean | null;
 }
 
 const ImageEmptyState = memo(function ImageEmptyState({
-  dockerAvailable,
-  isConnected,
   loading,
+  isConnected,
   onLoadImages,
+  dockerAvailable,
 }: ImageEmptyStateProps) {
   if (loading) {
     return (
