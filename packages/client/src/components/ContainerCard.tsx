@@ -1,50 +1,34 @@
-import React, { useState, memo, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { UptimeDisplay } from "./UptimeDisplay";
-import type { ContainerWithStats } from "../types";
-import { BsFillTerminalFill } from "react-icons/bs";
 import { IoNewspaper } from "react-icons/io5";
+import { UptimeDisplay } from "./UptimeDisplay";
 import { IoReloadCircle } from "react-icons/io5";
-import { FaCircleInfo } from "react-icons/fa6";
-import { FaPlay, FaStop } from "react-icons/fa6";
+import type { ContainerWithStats } from "../types";
+import { useState, memo, useCallback } from "react";
+import { BsFillTerminalFill } from "react-icons/bs";
+import { CardActionButton } from "./CardActionButton";
 import { formatDockerPort } from "../helpers/readablePort";
-
-function CardActionButton({
-  children,
-  ...rest
-}: React.ButtonHTMLAttributes<HTMLButtonElement>) {
-  return (
-    <button
-      className={`cursor-pointer w-18 p-1 text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 flex flex-col items-center
-        disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:text-gray-600 disabled:dark:hover:text-gray-400
-      `}
-      {...rest}
-    >
-      {children}
-    </button>
-  );
-}
+import { FaPlay, FaStop, FaCircleInfo } from "react-icons/fa6";
 
 interface ContainerCardProps {
-  container: ContainerWithStats;
-  onToggle: (containerId: string, currentState: string) => void;
-  onRestart?: (containerId: string) => void;
-  onOpenTerminal?: (containerId: string, containerName: string) => void;
-  onOpenLogs?: (containerId: string, containerName: string) => void;
   isToggling?: boolean;
+  container: ContainerWithStats;
+  onRestart?: (containerId: string) => void;
+  onToggle: (containerId: string, currentState: string) => void;
+  onOpenLogs?: (containerId: string, containerName: string) => void;
+  onOpenTerminal?: (containerId: string, containerName: string) => void;
 }
 
 const ContainerCard = memo(function ContainerCard({
-  container,
   onToggle,
+  container,
   onRestart,
-  onOpenTerminal,
   onOpenLogs,
+  onOpenTerminal,
   isToggling = false,
 }: ContainerCardProps) {
-  const [localToggling, setLocalToggling] = useState(false);
-  const [isRestarting, setIsRestarting] = useState(false);
   const isRunning = container.state === "running";
+  const [isRestarting, setIsRestarting] = useState(false);
+  const [localToggling, setLocalToggling] = useState(false);
 
   const handleToggle = useCallback(async () => {
     setLocalToggling(true);
