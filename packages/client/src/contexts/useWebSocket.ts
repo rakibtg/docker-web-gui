@@ -365,6 +365,11 @@ export function useWebSocket({
               break;
             }
 
+            case "image-details-result":
+              // Handled by ImageDetails component directly
+              console.log("Image details result received");
+              break;
+
             case "networks-result":
               if (Array.isArray(message.data)) {
                 setNetworks(message.data);

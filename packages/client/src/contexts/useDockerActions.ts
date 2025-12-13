@@ -92,6 +92,20 @@ export function useDockerActions({
     [sendMessage, setLoading, setError]
   );
 
+  // Function to request specific image details
+  const requestImageDetails = useCallback(
+    (imageId: string) => {
+      setImagesLoading(true);
+      setError("");
+      const sent = sendMessage({ type: "get-image-details", imageId });
+      if (!sent) {
+        setImagesLoading(false);
+        setError("Cannot send request - not connected to server");
+      }
+    },
+    [sendMessage, setImagesLoading, setError]
+  );
+
   // Function to remove an image
   const handleImageRemove = useCallback(
     (imageId: string, force: boolean = false) => {
@@ -197,5 +211,6 @@ export function useDockerActions({
     handleContainerToggle,
     handleContainerRestart,
     requestContainerDetails,
+    requestImageDetails,
   };
 }
