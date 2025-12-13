@@ -1,191 +1,109 @@
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useParams } from "react-router-dom";
 import { useApp } from "../hooks/useApp";
 import type { DockerImageDetails } from "../types";
-import { useParams, useNavigate, Link } from "react-router-dom";
-import { memo, useEffect, useState, useMemo, useCallback, useRef } from "react";
-
+import { PageWrapper } from "../components/PageWrapper";
+import { formatDate } from "../helpers";
 import {
-  FaCog,
-  FaBox,
-  FaTag,
-  FaCode,
-  FaServer,
-  FaTerminal,
   FaArrowLeft,
+  FaBox,
+  FaCode,
+  FaHdd,
   FaLayerGroup,
 } from "react-icons/fa";
+import { Link } from "react-router-dom";
 
-import { formatDate } from "../helpers";
-import { BsCircleFill } from "react-icons/bs";
-import { PageWrapper } from "../components/PageWrapper";
+const MAX_REQUEST_ATTEMPTS = 3;
+const RESPONSE_TIMEOUT_MS = 5000;
+const RETRY_DELAY_MS = 500;
 
-const ImageDetails = memo(function ImageDetails() {
-  const navigate = useNavigate();
+export function ImageDetails() {
   const { imageId } = useParams<{ imageId: string }>();
-  const [imageNotFound, setImageNotFound] = useState(false);
-  const [image, setImage] = useState<DockerImageDetails | null>(null);
-  const { containers, images, loading, isConnected, websocket } = useApp();
-  const [isLoadingImageDetails, setIsLoadingImageDetails] = useState(false);
-  const [requestedImageId, setRequestedImageId] = useState<string | null>(null);
+  const { requestImageDetails, websocket, isConnected } = useApp();
+  const [data, setData] = useState<DockerImageDetails | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const requestAttemptsRef = useRef(0);
   const requestTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const retryCountRef = useRef(0);
-  const maxRetries = 3;
+  const latestDataRef = useRef<DockerImageDetails | null>(null);
 
-  const relatedContainers = useMemo(() => {
-    if (!imageId || images.length === 0 || containers.length === 0) {
-      return [];
-    }
-
-    const foundImage = images.find(
-      (img) =>
-        img.imageId === imageId ||
-        img.imageId.startsWith(imageId) ||
-        img.id === imageId
-    );
-
-    if (!foundImage) {
-      return [];
-    }
-
-    return containers.filter(
-      (container) =>
-        container.image.includes(foundImage.repository) ||
-        container.image.includes(foundImage.imageId) ||
-        container.image === `${foundImage.repository}:${foundImage.tag}`
-    );
-  }, [imageId, images, containers]);
-
-  // Function to request image details with retry logic
-  const requestImageDetails = useCallback(
-    (targetImageId: string, isRetry: boolean = false) => {
-      if (
-        targetImageId &&
-        websocket &&
-        websocket.readyState === WebSocket.OPEN &&
-        isConnected
-      ) {
-        const retryText = isRetry
-          ? ` (retry ${retryCountRef.current}/${maxRetries})`
-          : "";
-        console.log(
-          `Requesting image details for: ${targetImageId}${retryText}`
-        );
-        setIsLoadingImageDetails(true);
-        setImageNotFound(false);
-        setRequestedImageId(targetImageId);
-
-        websocket.send(
-          JSON.stringify({
-            type: "get-image-details",
-            imageId: targetImageId,
-          })
-        );
-
-        // Set a timeout to retry or show error
-        if (requestTimeoutRef.current) {
-          clearTimeout(requestTimeoutRef.current);
-        }
-        requestTimeoutRef.current = setTimeout(() => {
-          if (retryCountRef.current < maxRetries) {
-            retryCountRef.current++;
-            console.warn(
-              `Image details request timeout for: ${targetImageId}, retrying...`
-            );
-            requestImageDetails(targetImageId, true);
-          } else {
-            console.error(
-              `Image details request failed after ${maxRetries} retries for: ${targetImageId}`
-            );
-            setIsLoadingImageDetails(false);
-            setImageNotFound(true);
-            retryCountRef.current = 0;
-          }
-        }, 5000); // 5 second timeout per attempt
-      } else {
-        console.warn("Cannot request image details - WebSocket not ready", {
-          hasWebsocket: !!websocket,
-          readyState: websocket?.readyState,
-          isConnected,
-        });
-        // If websocket is not ready, try again after a short delay
-        if (retryCountRef.current < maxRetries) {
-          retryCountRef.current++;
-          requestTimeoutRef.current = setTimeout(() => {
-            requestImageDetails(targetImageId, true);
-          }, 1000);
-        }
-      }
-    },
-    [websocket, isConnected, maxRetries]
-  );
-
-  // Reset state when imageId changes
-  useEffect(() => {
-    console.log(`ImageDetails mounted/updated for imageId: ${imageId}`);
-    setImage(null);
-    setIsLoadingImageDetails(false);
-    setImageNotFound(false);
-    setRequestedImageId(null);
-    retryCountRef.current = 0;
-
-    // Clear any pending timeouts
+  const clearRequestTimeout = useCallback(() => {
     if (requestTimeoutRef.current) {
       clearTimeout(requestTimeoutRef.current);
       requestTimeoutRef.current = null;
     }
-  }, [imageId]);
-
-  // Main effect to check if image exists and request details
-  useEffect(() => {
-    // Don't do anything if we're still loading the initial data or no imageId
-    if (!imageId || loading) {
-      return;
-    }
-
-    // Don't proceed if websocket is not connected
-    if (!isConnected || !websocket || websocket.readyState !== WebSocket.OPEN) {
-      console.log("Waiting for WebSocket connection...");
-      return;
-    }
-
-    // If we already have image details for this ID, don't request again
-    if (
-      image &&
-      (image.imageId === imageId ||
-        image.imageId?.startsWith(imageId) ||
-        image.id === imageId)
-    ) {
-      return;
-    }
-
-    // Check if this image exists in the images list
-    const foundImage = images.find(
-      (img) =>
-        img.imageId === imageId ||
-        img.imageId.startsWith(imageId) ||
-        img.id === imageId
-    );
-
-    if (foundImage) {
-      // Image exists - request details if not already requested
-      if (!isLoadingImageDetails && requestedImageId !== imageId) {
-        console.log(`Found image in list, requesting details for: ${imageId}`);
-        requestImageDetails(imageId);
-      }
-    } else if (images.length > 0) {
-      // We have images list but this image is not in it
-      console.log(`Image ${imageId} not found in images list`);
-      setImageNotFound(true);
-    }
-  }, [imageId, images, loading, isConnected, websocket, image, isLoadingImageDetails, requestedImageId, requestImageDetails]);
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (requestTimeoutRef.current) {
-        clearTimeout(requestTimeoutRef.current);
-      }
-    };
   }, []);
+
+  const sendImageDetailsRequest = useCallback(() => {
+    if (!imageId) return;
+
+    if (latestDataRef.current) {
+      setIsLoading(false);
+      return;
+    }
+
+    const canSend = websocket?.readyState === WebSocket.OPEN && isConnected;
+
+    if (!canSend) {
+      clearRequestTimeout();
+      requestTimeoutRef.current = setTimeout(
+        sendImageDetailsRequest,
+        RETRY_DELAY_MS
+      );
+      return;
+    }
+
+    if (requestAttemptsRef.current >= MAX_REQUEST_ATTEMPTS) {
+      clearRequestTimeout();
+      setIsLoading(false);
+      setError("Unable to load image details. Please try again.");
+      return;
+    }
+
+    requestAttemptsRef.current += 1;
+    setIsLoading(true);
+    setError(null);
+    console.log(
+      `Requesting image details for: ${imageId} (attempt ${requestAttemptsRef.current}/${MAX_REQUEST_ATTEMPTS})`
+    );
+    requestImageDetails(imageId);
+
+    clearRequestTimeout();
+    requestTimeoutRef.current = setTimeout(() => {
+      if (!latestDataRef.current) {
+        sendImageDetailsRequest();
+      }
+    }, RESPONSE_TIMEOUT_MS);
+  }, [
+    clearRequestTimeout,
+    imageId,
+    isConnected,
+    requestImageDetails,
+    websocket,
+  ]);
+
+  // Reset and kick off load when the route changes
+  useEffect(() => {
+    latestDataRef.current = null;
+    setData(null);
+    setError(null);
+    setIsLoading(false);
+    requestAttemptsRef.current = 0;
+    clearRequestTimeout();
+
+    if (imageId) {
+      sendImageDetailsRequest();
+    }
+
+    return clearRequestTimeout;
+  }, [imageId, clearRequestTimeout, sendImageDetailsRequest]);
+
+  // Retry when connection status changes and we still don't have data
+  useEffect(() => {
+    if (imageId && !latestDataRef.current) {
+      sendImageDetailsRequest();
+    }
+  }, [imageId, isConnected, websocket, sendImageDetailsRequest]);
 
   // Listen for image details response
   useEffect(() => {
@@ -194,471 +112,322 @@ const ImageDetails = memo(function ImageDetails() {
     const handleMessage = (event: MessageEvent) => {
       try {
         const message = JSON.parse(event.data);
+        if (message.type === "image-details-result" && message.data) {
+          const messageImageId = message.data.imageId || message.data.id;
+          const shortMessageId = messageImageId
+            ?.replace("sha256:", "")
+            .substring(0, 12);
+          const shortCurrentId = imageId
+            ?.replace("sha256:", "")
+            .substring(0, 12);
 
-        // Handle any image-details-result message
-        if (message.type === "image-details-result") {
-          if (message.data) {
-            // More flexible matching - handle short vs full image IDs
-            const messageImageId = message.data.imageId || message.data.id;
-            const shortMessageId = messageImageId
-              ?.replace("sha256:", "")
-              .substring(0, 12);
-            const shortCurrentId = imageId
-              ?.replace("sha256:", "")
-              .substring(0, 12);
-
-            const isMatch =
-              messageImageId === imageId ||
-              messageImageId?.includes(imageId || "") ||
-              imageId?.includes(messageImageId || "") ||
-              shortMessageId === shortCurrentId ||
-              shortMessageId === imageId ||
-              shortCurrentId === messageImageId;
-
-            if (isMatch) {
-              console.log(`Received image details for: ${imageId}`);
-              setImage(message.data);
-              setIsLoadingImageDetails(false);
-              setImageNotFound(false);
-              retryCountRef.current = 0;
-
-              // Clear the timeout since we got a response
-              if (requestTimeoutRef.current) {
-                clearTimeout(requestTimeoutRef.current);
-                requestTimeoutRef.current = null;
-              }
-            } else {
-              console.log(
-                `Received image details but ID doesn't match. Expected: ${imageId}, Got: ${messageImageId}`
-              );
-            }
+          // Match by exact ID or by short ID (first 12 chars of hash)
+          if (
+            messageImageId === imageId ||
+            shortMessageId === imageId ||
+            shortMessageId === shortCurrentId
+          ) {
+            console.log("✓ Received image data for:", imageId);
+            latestDataRef.current = message.data;
+            setData(message.data);
+            setIsLoading(false);
+            setError(null);
+            requestAttemptsRef.current = 0;
+            clearRequestTimeout();
           }
         }
 
-        // Handle errors
         if (message.type === "error") {
-          console.error("Received error message:", message.message);
-          setIsLoadingImageDetails(false);
-          setImageNotFound(true);
-          retryCountRef.current = 0;
-
-          // Clear the timeout
-          if (requestTimeoutRef.current) {
-            clearTimeout(requestTimeoutRef.current);
-            requestTimeoutRef.current = null;
-          }
+          setIsLoading(false);
+          setError(message.message || "Failed to load image details");
+          clearRequestTimeout();
         }
       } catch (error) {
-        console.error("Error parsing WebSocket message:", error);
+        console.error("Error:", error);
       }
     };
 
     websocket.addEventListener("message", handleMessage);
-    return () => websocket.removeEventListener("message", handleMessage);
-  }, [imageId, websocket]);
+    return () => {
+      websocket.removeEventListener("message", handleMessage);
+    };
+  }, [imageId, websocket, clearRequestTimeout]);
 
-  const handleBackClick = () => {
-    navigate("/images");
-  };
-
-  const formatSize = (size?: string) => {
-    if (!size) return "Unknown";
-    if (size.includes("MB") || size.includes("GB") || size.includes("KB")) {
-      return size;
-    }
-    // If size is just a number, assume it's bytes
-    const sizeNum = parseFloat(size);
+  const formattedSize = useMemo(() => {
+    if (!data?.size) return "Unknown";
+    const sizeStr = data.size.toString();
+    if (/[A-Za-z]/.test(sizeStr)) return sizeStr;
+    const sizeNum = Number(sizeStr);
+    if (Number.isNaN(sizeNum)) return "Unknown";
     if (sizeNum < 1024) return `${sizeNum} B`;
     if (sizeNum < 1024 * 1024) return `${(sizeNum / 1024).toFixed(1)} KB`;
     if (sizeNum < 1024 * 1024 * 1024)
       return `${(sizeNum / (1024 * 1024)).toFixed(1)} MB`;
     return `${(sizeNum / (1024 * 1024 * 1024)).toFixed(1)} GB`;
-  };
+  }, [data?.size]);
 
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case "running":
-        return "text-green-400";
-      case "exited":
-        return "text-red-400";
-      case "created":
-        return "text-yellow-400";
-      case "restarting":
-        return "text-orange-400";
-      case "removing":
-        return "text-purple-400";
-      case "paused":
-        return "text-blue-400";
-      case "dead":
-        return "text-gray-400";
-      default:
-        return "text-gray-400";
-    }
-  };
+  const containerClass = "max-w-6xl mx-auto w-full space-y-6";
 
-  if (loading || isLoadingImageDetails) {
+  if (!imageId) {
     return (
-      <div className="space-y-4 lg:space-y-6 p-3 sm:p-4 lg:p-6">
-        <div className="flex items-center gap-3 mb-3">
-          <button
-            onClick={handleBackClick}
-            className="p-1.5 hover:bg-gray-700 rounded-md transition-colors"
-            title="Back to images"
-          >
-            <FaArrowLeft className="w-4 h-4" />
-          </button>
-          <h1 className="text-lg sm:text-xl font-bold text-gray-100">
-            Loading Image
-          </h1>
+      <PageWrapper>
+        <div className={containerClass}>
+          <h1 className="text-xl font-bold text-gray-100">Image Details</h1>
+          <p className="text-gray-400">No image ID provided.</p>
         </div>
-        <div className="text-center py-8 lg:py-16">
-          <div className="animate-spin rounded-full h-8 w-8 lg:h-12 lg:w-12 border-b-2 border-blue-600 mb-4 mx-auto"></div>
-          <p className="text-gray-400 text-sm lg:text-base">
-            Loading image details...
-          </p>
-        </div>
-      </div>
+      </PageWrapper>
     );
   }
 
-  if (imageNotFound) {
+  if (error && !data) {
     return (
-      <div className="space-y-4 lg:space-y-6 p-3 sm:p-4 lg:p-6">
-        <div className="flex items-center gap-3 mb-3">
+      <PageWrapper>
+        <div className={containerClass}>
+          <div className="flex items-center gap-3">
+            <Link
+              to="/images"
+              className="p-1.5 hover:bg-gray-800 rounded-md transition-colors text-gray-200"
+            >
+              <FaArrowLeft className="w-4 h-4" />
+            </Link>
+            <div>
+              <h1 className="text-xl font-bold text-gray-100">Image Details</h1>
+              <p className="text-gray-400 text-sm">{imageId}</p>
+            </div>
+          </div>
+          <div className="bg-red-900/40 border border-red-700 text-red-200 rounded-md p-4">
+            {error}
+          </div>
           <button
-            onClick={handleBackClick}
-            className="p-1.5 hover:bg-gray-700 rounded-md transition-colors"
-            title="Back to images"
+            onClick={sendImageDetailsRequest}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors w-fit"
           >
-            <FaArrowLeft className="w-4 h-4" />
-          </button>
-          <h1 className="text-lg sm:text-xl font-bold text-gray-100">
-            Image Not Found
-          </h1>
-        </div>
-        <div className="text-center py-8 lg:py-16">
-          <h1 className="text-xl lg:text-2xl font-bold text-gray-100 mb-4">
-            Image Not Found
-          </h1>
-          <p className="text-gray-400 text-sm lg:text-base">
-            The image with ID "{imageId}" could not be found.
-          </p>
-          <button
-            onClick={handleBackClick}
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-          >
-            Back to Images
+            Retry
           </button>
         </div>
-      </div>
+      </PageWrapper>
     );
   }
 
-  if (!image) {
+  if ((isLoading || !data) && !error) {
     return (
-      <div className="space-y-4 lg:space-y-6 p-3 sm:p-4 lg:p-6">
-        <div className="flex items-center gap-3 mb-3">
-          <button
-            onClick={handleBackClick}
-            className="p-1.5 hover:bg-gray-700 rounded-md transition-colors"
-            title="Back to images"
-          >
-            <FaArrowLeft className="w-4 h-4" />
-          </button>
-          <h1 className="text-lg sm:text-xl font-bold text-gray-100">
-            Image Details
-          </h1>
+      <PageWrapper>
+        <div className={containerClass}>
+          <div className="p-4 sm:p-6 bg-gray-800 border border-gray-700 rounded-lg">
+            <div className="flex items-center gap-3">
+              <div className="h-8 w-8 border-b-2 border-blue-500 rounded-full animate-spin"></div>
+              <div>
+                <p className="text-gray-100 font-semibold">
+                  Loading image details...
+                </p>
+                <p className="text-gray-400 text-sm break-all">{imageId}</p>
+              </div>
+            </div>
+          </div>
         </div>
-        <div className="text-center py-8 lg:py-16">
-          <h1 className="text-xl lg:text-2xl font-bold text-gray-100 mb-4">
-            No image data available
-          </h1>
-          <p className="text-gray-400 text-sm lg:text-base">
-            Unable to load image information.
-          </p>
-          <button
-            onClick={handleBackClick}
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-          >
-            Back to Images
-          </button>
-        </div>
-      </div>
+      </PageWrapper>
     );
+  }
+
+  if (!data) {
+    return null;
   }
 
   return (
     <PageWrapper>
-      {/* Compact Header */}
-      <div className="mb-4 sm:mb-6">
-        <div className="flex items-center gap-3 mb-3">
-          <button
-            onClick={handleBackClick}
-            className="p-1.5 hover:bg-gray-700 rounded-md transition-colors"
+      <div className={containerClass}>
+        <div className="flex items-center gap-3 flex-wrap">
+          <Link
+            to="/images"
+            className="p-1.5 hover:bg-gray-800 rounded-md transition-colors text-gray-200"
             title="Back to images"
           >
             <FaArrowLeft className="w-4 h-4" />
-          </button>
+          </Link>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <h1 className="text-lg sm:text-xl font-bold text-gray-100 truncate">
-                {image.repository}
+                {data.repository || "Unknown repository"}
               </h1>
               <span className="px-2 py-0.5 text-xs rounded-full bg-blue-900 text-blue-200">
-                {image.tag}
+                {data.tag || "latest"}
               </span>
             </div>
-            <p className="text-sm text-gray-400 font-mono mt-1">
-              {image.imageId}
+            <p className="text-sm text-gray-400 font-mono mt-1 break-all">
+              {data.imageId}
             </p>
           </div>
         </div>
-      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Basic Information */}
-        <div className="bg-gray-800 rounded-lg border border-gray-700 p-6">
-          <h2 className="text-lg font-semibold text-gray-100 mb-4 flex items-center">
-            <FaBox className="mr-2 text-blue-400" />
-            Basic Information
-          </h2>
-          <div className="space-y-3">
-            <div className="flex justify-between">
-              <span className="text-gray-400">Repository:</span>
-              <span className="text-gray-100 font-mono">
-                {image.repository}
-              </span>
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+          <div className="bg-gray-800 rounded-lg border border-gray-700 p-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <FaBox className="text-blue-400" size={14} />
+              <h2 className="text-sm font-semibold text-gray-100">
+                Basic Info
+              </h2>
             </div>
-            <div className="flex justify-between">
-              <span className="text-gray-400">Tag:</span>
-              <span className="text-gray-100">{image.tag}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-400">Image ID:</span>
-              <span className="text-gray-100 font-mono break-all">
-                {image.imageId}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-400">Size:</span>
-              <span className="text-gray-100">{formatSize(image.size)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-400">Created:</span>
-              <span className="text-gray-100">{formatDate(image.created)}</span>
-            </div>
-            {image.architecture && (
-              <div className="flex justify-between">
-                <span className="text-gray-400">Architecture:</span>
-                <span className="text-gray-100">{image.architecture}</span>
+            <div className="text-sm text-gray-300 space-y-2">
+              <div className="flex justify-between gap-3">
+                <span className="text-gray-400">Repository</span>
+                <span className="font-mono">
+                  {data.repository || "Unknown"}
+                </span>
               </div>
-            )}
-            {image.os && (
-              <div className="flex justify-between">
-                <span className="text-gray-400">OS:</span>
-                <span className="text-gray-100">{image.os}</span>
+              <div className="flex justify-between gap-3">
+                <span className="text-gray-400">Tag</span>
+                <span>{data.tag || "latest"}</span>
               </div>
-            )}
+              <div className="flex justify-between gap-3">
+                <span className="text-gray-400">Size</span>
+                <span>{formattedSize}</span>
+              </div>
+              <div className="flex justify-between gap-3">
+                <span className="text-gray-400">Created</span>
+                <span className="text-right">
+                  {formatDate(data.created || "")}
+                </span>
+              </div>
+              <div className="flex justify-between gap-3">
+                <span className="text-gray-400">Parent</span>
+                <span
+                  className="font-mono truncate max-w-[180px]"
+                  title={data.parent}
+                >
+                  {data.parent || "None"}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-gray-800 rounded-lg border border-gray-700 p-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <FaCode className="text-green-400" size={14} />
+              <h2 className="text-sm font-semibold text-gray-100">Runtime</h2>
+            </div>
+            <div className="text-sm text-gray-300 space-y-2">
+              <div className="flex justify-between gap-3">
+                <span className="text-gray-400">OS</span>
+                <span>{data.os || "Unknown"}</span>
+              </div>
+              <div className="flex justify-between gap-3">
+                <span className="text-gray-400">Architecture</span>
+                <span>{data.architecture || "Unknown"}</span>
+              </div>
+              <div className="flex justify-between gap-3">
+                <span className="text-gray-400">User</span>
+                <span>{data.config?.user || "Default"}</span>
+              </div>
+              <div className="flex justify-between gap-3">
+                <span className="text-gray-400">Working Dir</span>
+                <span
+                  className="font-mono truncate max-w-[180px]"
+                  title={data.config?.workingDir}
+                >
+                  {data.config?.workingDir || "/"}
+                </span>
+              </div>
+              <div className="flex justify-between gap-3">
+                <span className="text-gray-400">Entrypoint</span>
+                <span className="text-right">
+                  {data.config?.entrypoint?.join(" ") || "None"}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-gray-800 rounded-lg border border-gray-700 p-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <FaLayerGroup className="text-purple-400" size={14} />
+              <h2 className="text-sm font-semibold text-gray-100">Root FS</h2>
+            </div>
+            <div className="text-sm text-gray-300 space-y-2">
+              <div className="flex justify-between gap-3">
+                <span className="text-gray-400">Type</span>
+                <span>{data.rootFS?.type || "Unknown"}</span>
+              </div>
+              <div className="text-gray-400">Layers</div>
+              <div className="max-h-32 overflow-y-auto space-y-1 pr-1">
+                {data.rootFS?.layers?.length ? (
+                  data.rootFS.layers.map((layer, idx) => (
+                    <div
+                      key={layer}
+                      className="bg-gray-900/60 border border-gray-700 rounded px-2 py-1 font-mono text-xs text-gray-200 truncate"
+                      title={layer}
+                    >
+                      {idx + 1}. {layer}
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-gray-500 text-sm">No layers reported.</p>
+                )}
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Configuration */}
-        {image.config && (
-          <div className="bg-gray-800 rounded-lg border border-gray-700 p-6">
-            <h2 className="text-lg font-semibold text-gray-100 mb-4 flex items-center">
-              <FaCog className="mr-2 text-blue-400" />
-              Configuration
-            </h2>
-            <div className="space-y-3">
-              {image.config.user && (
-                <div className="flex justify-between">
-                  <span className="text-gray-400">User:</span>
-                  <span className="text-gray-100">{image.config.user}</span>
-                </div>
-              )}
-              {image.config.workingDir && (
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Working Directory:</span>
-                  <span className="text-gray-100 font-mono">
-                    {image.config.workingDir}
-                  </span>
-                </div>
-              )}
-              {image.config.hostname && (
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Hostname:</span>
-                  <span className="text-gray-100">{image.config.hostname}</span>
-                </div>
-              )}
-              {image.config.domainname && (
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Domain:</span>
-                  <span className="text-gray-100">
-                    {image.config.domainname}
-                  </span>
-                </div>
-              )}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="bg-gray-800 rounded-lg border border-gray-700 p-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <FaHdd className="text-orange-400" size={14} />
+              <h2 className="text-sm font-semibold text-gray-100">Config</h2>
             </div>
-          </div>
-        )}
-
-        {/* Environment Variables */}
-        {image.config?.env && image.config.env.length > 0 && (
-          <div className="bg-gray-800 rounded-lg border border-gray-700 p-6">
-            <h2 className="text-lg font-semibold text-gray-100 mb-4 flex items-center">
-              <FaCode className="mr-2 text-blue-400" />
-              Environment Variables
-            </h2>
-            <div className="space-y-2 max-h-64 overflow-y-auto">
-              {image.config.env.map((env, index) => {
-                const [key, ...valueParts] = env.split("=");
-                const value = valueParts.join("=");
-                return (
-                  <div key={index} className="text-sm">
-                    <span className="text-blue-400 font-mono">{key}</span>
-                    <span className="text-gray-400">=</span>
-                    <span className="text-gray-100 font-mono break-all">
-                      {value}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Command & Entrypoint */}
-        {(image.config?.cmd || image.config?.entrypoint) && (
-          <div className="bg-gray-800 rounded-lg border border-gray-700 p-6">
-            <h2 className="text-lg font-semibold text-gray-100 mb-4 flex items-center">
-              <FaTerminal className="mr-2 text-blue-400" />
-              Command & Entrypoint
-            </h2>
-            <div className="space-y-3">
-              {image.config.entrypoint && (
-                <div>
-                  <span className="text-gray-400 block mb-1">Entrypoint:</span>
-                  <code className="text-gray-100 bg-gray-900 px-2 py-1 rounded text-sm font-mono block break-all">
-                    {Array.isArray(image.config.entrypoint)
-                      ? image.config.entrypoint.join(" ")
-                      : image.config.entrypoint}
-                  </code>
+            <div className="text-sm text-gray-300 space-y-2">
+              <div>
+                <div className="text-gray-400 mb-1">CMD</div>
+                <div className="font-mono text-xs bg-gray-900/60 border border-gray-700 rounded p-2">
+                  {data.config?.cmd?.join(" ") || "Not set"}
                 </div>
-              )}
-              {image.config.cmd && (
-                <div>
-                  <span className="text-gray-400 block mb-1">Command:</span>
-                  <code className="text-gray-100 bg-gray-900 px-2 py-1 rounded text-sm font-mono block break-all">
-                    {Array.isArray(image.config.cmd)
-                      ? image.config.cmd.join(" ")
-                      : image.config.cmd}
-                  </code>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Related Containers */}
-        {relatedContainers.length > 0 && (
-          <div className="bg-gray-800 rounded-lg border border-gray-700 p-6 lg:col-span-2">
-            <h2 className="text-lg font-semibold text-gray-100 mb-4 flex items-center">
-              <FaServer className="mr-2 text-blue-400" />
-              Containers using this image ({relatedContainers.length})
-            </h2>
-            <div className="space-y-3">
-              {relatedContainers.map((container) => (
-                <div
-                  key={container.id}
-                  className="flex items-center justify-between p-3 bg-gray-900 rounded border border-gray-600"
-                >
-                  <div className="flex items-center gap-3">
-                    <BsCircleFill
-                      className={`text-xs ${getStatusColor(container.status)}`}
-                    />
-                    <div>
-                      <Link
-                        to={`/containers/${container.id}`}
-                        className="text-blue-400 hover:text-blue-300 font-medium"
-                      >
-                        {container.name}
-                      </Link>
-                      <div className="text-sm text-gray-400">
-                        {container.id.substring(0, 12)}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-sm font-medium text-gray-100 capitalize">
-                      {container.status}
-                    </div>
-                    <div className="text-xs text-gray-400">
-                      {formatDate(container.created)}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Labels */}
-        {image.config?.labels &&
-          Object.keys(image.config.labels).length > 0 && (
-            <div className="bg-gray-800 rounded-lg border border-gray-700 p-6 lg:col-span-2">
-              <h2 className="text-lg font-semibold text-gray-100 mb-4 flex items-center">
-                <FaTag className="mr-2 text-blue-400" />
-                Labels
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-64 overflow-y-auto">
-                {Object.entries(image.config.labels).map(([key, value]) => (
-                  <div key={key} className="text-sm">
-                    <span className="text-blue-400 font-mono">{key}</span>
-                    <span className="text-gray-400">:</span>
-                    <span className="text-gray-100 ml-1 break-all">
-                      {value}
-                    </span>
-                  </div>
-                ))}
               </div>
-            </div>
-          )}
-
-        {/* Root Filesystem */}
-        {image.rootFS && (
-          <div className="bg-gray-800 rounded-lg border border-gray-700 p-6 lg:col-span-2">
-            <h2 className="text-lg font-semibold text-gray-100 mb-4 flex items-center">
-              <FaLayerGroup className="mr-2 text-blue-400" />
-              Root Filesystem
-            </h2>
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-gray-400">Type:</span>
-                <span className="text-gray-100">{image.rootFS.type}</span>
-              </div>
-              {image.rootFS.layers && image.rootFS.layers.length > 0 && (
-                <div>
-                  <span className="text-gray-400 block mb-2">
-                    Layers ({image.rootFS.layers.length}):
-                  </span>
-                  <div className="space-y-1 max-h-32 overflow-y-auto">
-                    {image.rootFS.layers.map((layer, index) => (
+              <div>
+                <div className="text-gray-400 mb-1">Env</div>
+                <div className="space-y-1 max-h-44 overflow-y-auto">
+                  {data.config?.env?.length ? (
+                    data.config.env.map((envVar, idx) => (
                       <div
-                        key={index}
-                        className="text-sm font-mono text-gray-300 break-all"
+                        key={`${envVar}-${idx}`}
+                        className="font-mono text-xs bg-gray-900/60 border border-gray-700 rounded px-2 py-1 overflow-x-auto"
                       >
-                        {layer}
+                        {envVar}
                       </div>
-                    ))}
-                  </div>
+                    ))
+                  ) : (
+                    <p className="text-gray-500 text-sm">
+                      No environment variables.
+                    </p>
+                  )}
                 </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-gray-800 rounded-lg border border-gray-700 p-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <FaCode className="text-cyan-400" size={14} />
+              <h2 className="text-sm font-semibold text-gray-100">Labels</h2>
+            </div>
+            <div className="text-sm text-gray-300 space-y-2 max-h-56 overflow-y-auto">
+              {data.config?.labels && Object.keys(data.config.labels).length ? (
+                Object.entries(data.config.labels).map(([key, value]) => (
+                  <div
+                    key={key}
+                    className="flex justify-between gap-3 bg-gray-900/60 border border-gray-700 rounded px-2 py-1"
+                  >
+                    <span className="font-mono text-xs text-blue-200">
+                      {key}
+                    </span>
+                    <span className="font-mono text-xs text-gray-200 text-right">
+                      {String(value)}
+                    </span>
+                  </div>
+                ))
+              ) : (
+                <p className="text-gray-500 text-sm">No labels set.</p>
               )}
             </div>
           </div>
-        )}
+        </div>
       </div>
     </PageWrapper>
   );
-});
-
-export { ImageDetails };
+}
