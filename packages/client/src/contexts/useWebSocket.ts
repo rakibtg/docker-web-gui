@@ -119,35 +119,35 @@ export function useWebSocket({
   // Check IP access before attempting WebSocket connection
   const checkIPAccess = useCallback(async (): Promise<boolean> => {
     try {
-      const response = await fetch('/api/ip-access', {
-        method: 'GET',
-        credentials: 'include',
+      const response = await fetch("/api/ip-access", {
+        method: "GET",
+        credentials: "include",
       });
 
       if (response.status === 403) {
         const errorData = await response.json();
         setIPAccessDenied(true);
-        setError(errorData.message || 'Access denied from your IP address');
+        setError(errorData.message || "Access denied from your IP address");
         return false;
       }
 
       if (!response.ok) {
-        console.warn('Failed to check IP access, proceeding with connection');
+        console.warn("Failed to check IP access, proceeding with connection");
         return true; // Allow connection attempt on network errors
       }
 
       const data = await response.json();
       setUserIP(data.ip);
-      
+
       if (!data.allowed) {
         setIPAccessDenied(true);
-        setError('Access denied from your IP address');
+        setError("Access denied from your IP address");
         return false;
       }
 
       return true;
     } catch (err) {
-      console.warn('Failed to check IP access:', err);
+      console.warn("Failed to check IP access:", err);
       return true; // Allow connection attempt on network errors
     }
   }, [setIPAccessDenied, setUserIP, setError]);
@@ -165,7 +165,7 @@ export function useWebSocket({
       // Check IP access before connecting
       const ipAllowed = await checkIPAccess();
       if (!ipAllowed) {
-        console.log('IP access denied, not attempting WebSocket connection');
+        console.log("IP access denied, not attempting WebSocket connection");
         return;
       }
 

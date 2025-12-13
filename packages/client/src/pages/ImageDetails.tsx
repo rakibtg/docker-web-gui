@@ -1,7 +1,7 @@
 import { useApp } from "../hooks/useApp";
 import type { DockerImageDetails } from "../types";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { memo, useEffect, useState, useMemo, useCallback } from "react";
+import { memo, useEffect, useState, useMemo, useCallback, useRef } from "react";
 
 import {
   FaCog,
@@ -25,6 +25,10 @@ const ImageDetails = memo(function ImageDetails() {
   const [image, setImage] = useState<DockerImageDetails | null>(null);
   const { containers, images, loading, isConnected, websocket } = useApp();
   const [isLoadingImageDetails, setIsLoadingImageDetails] = useState(false);
+  const [requestedImageId, setRequestedImageId] = useState<string | null>(null);
+  const requestTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const retryCountRef = useRef(0);
+  const maxRetries = 3;
 
   const relatedContainers = useMemo(() => {
     if (!imageId || images.length === 0 || containers.length === 0) {
@@ -50,39 +54,110 @@ const ImageDetails = memo(function ImageDetails() {
     );
   }, [imageId, images, containers]);
 
-  // Function to request image details
+  // Function to request image details with retry logic
   const requestImageDetails = useCallback(
-    (targetImageId: string) => {
+    (targetImageId: string, isRetry: boolean = false) => {
       if (
         targetImageId &&
         websocket &&
         websocket.readyState === WebSocket.OPEN &&
         isConnected
       ) {
+        const retryText = isRetry
+          ? ` (retry ${retryCountRef.current}/${maxRetries})`
+          : "";
+        console.log(
+          `Requesting image details for: ${targetImageId}${retryText}`
+        );
         setIsLoadingImageDetails(true);
         setImageNotFound(false);
+        setRequestedImageId(targetImageId);
+
         websocket.send(
           JSON.stringify({
             type: "get-image-details",
             imageId: targetImageId,
           })
         );
+
+        // Set a timeout to retry or show error
+        if (requestTimeoutRef.current) {
+          clearTimeout(requestTimeoutRef.current);
+        }
+        requestTimeoutRef.current = setTimeout(() => {
+          if (retryCountRef.current < maxRetries) {
+            retryCountRef.current++;
+            console.warn(
+              `Image details request timeout for: ${targetImageId}, retrying...`
+            );
+            requestImageDetails(targetImageId, true);
+          } else {
+            console.error(
+              `Image details request failed after ${maxRetries} retries for: ${targetImageId}`
+            );
+            setIsLoadingImageDetails(false);
+            setImageNotFound(true);
+            retryCountRef.current = 0;
+          }
+        }, 5000); // 5 second timeout per attempt
+      } else {
+        console.warn("Cannot request image details - WebSocket not ready", {
+          hasWebsocket: !!websocket,
+          readyState: websocket?.readyState,
+          isConnected,
+        });
+        // If websocket is not ready, try again after a short delay
+        if (retryCountRef.current < maxRetries) {
+          retryCountRef.current++;
+          requestTimeoutRef.current = setTimeout(() => {
+            requestImageDetails(targetImageId, true);
+          }, 1000);
+        }
       }
     },
-    [websocket, isConnected]
+    [websocket, isConnected, maxRetries]
   );
 
   // Reset state when imageId changes
   useEffect(() => {
+    console.log(`ImageDetails mounted/updated for imageId: ${imageId}`);
     setImage(null);
     setIsLoadingImageDetails(false);
     setImageNotFound(false);
+    setRequestedImageId(null);
+    retryCountRef.current = 0;
+
+    // Clear any pending timeouts
+    if (requestTimeoutRef.current) {
+      clearTimeout(requestTimeoutRef.current);
+      requestTimeoutRef.current = null;
+    }
   }, [imageId]);
 
-  // Check if image exists in the images list and request details if needed
+  // Main effect to check if image exists and request details
   useEffect(() => {
-    if (!imageId || !images.length || loading) return;
+    // Don't do anything if we're still loading the initial data or no imageId
+    if (!imageId || loading) {
+      return;
+    }
 
+    // Don't proceed if websocket is not connected
+    if (!isConnected || !websocket || websocket.readyState !== WebSocket.OPEN) {
+      console.log("Waiting for WebSocket connection...");
+      return;
+    }
+
+    // If we already have image details for this ID, don't request again
+    if (
+      image &&
+      (image.imageId === imageId ||
+        image.imageId?.startsWith(imageId) ||
+        image.id === imageId)
+    ) {
+      return;
+    }
+
+    // Check if this image exists in the images list
     const foundImage = images.find(
       (img) =>
         img.imageId === imageId ||
@@ -91,43 +166,26 @@ const ImageDetails = memo(function ImageDetails() {
     );
 
     if (foundImage) {
-      setImageNotFound(false);
-      // Only request details if we don't have them and we're not already loading
-      if (!image && !isLoadingImageDetails && isConnected && imageId) {
+      // Image exists - request details if not already requested
+      if (!isLoadingImageDetails && requestedImageId !== imageId) {
+        console.log(`Found image in list, requesting details for: ${imageId}`);
         requestImageDetails(imageId);
       }
-    } else {
+    } else if (images.length > 0) {
+      // We have images list but this image is not in it
+      console.log(`Image ${imageId} not found in images list`);
       setImageNotFound(true);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [imageId, images, loading, isConnected]); // Removed image and isLoadingImageDetails from deps to prevent loops
+  }, [imageId, images, loading, isConnected, websocket, image, isLoadingImageDetails, requestedImageId, requestImageDetails]);
 
-  // Additional effect to handle connection changes - request image details when connected
+  // Cleanup on unmount
   useEffect(() => {
-    if (
-      imageId &&
-      isConnected &&
-      !image &&
-      !isLoadingImageDetails &&
-      !loading
-    ) {
-      setIsLoadingImageDetails(true);
-      setImageNotFound(false);
-      requestImageDetails(imageId);
-    }
-  }, [isConnected, imageId, image, requestImageDetails, isLoadingImageDetails, loading]);
-
-  // Handle timeout for loading
-  useEffect(() => {
-    if (isLoadingImageDetails) {
-      const timeout = setTimeout(() => {
-        setIsLoadingImageDetails(false);
-        setImageNotFound(true);
-      }, 10000); // 10 second timeout
-
-      return () => clearTimeout(timeout);
-    }
-  }, [isLoadingImageDetails, imageId]);
+    return () => {
+      if (requestTimeoutRef.current) {
+        clearTimeout(requestTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Listen for image details response
   useEffect(() => {
@@ -158,17 +216,37 @@ const ImageDetails = memo(function ImageDetails() {
               shortCurrentId === messageImageId;
 
             if (isMatch) {
+              console.log(`Received image details for: ${imageId}`);
               setImage(message.data);
               setIsLoadingImageDetails(false);
               setImageNotFound(false);
+              retryCountRef.current = 0;
+
+              // Clear the timeout since we got a response
+              if (requestTimeoutRef.current) {
+                clearTimeout(requestTimeoutRef.current);
+                requestTimeoutRef.current = null;
+              }
+            } else {
+              console.log(
+                `Received image details but ID doesn't match. Expected: ${imageId}, Got: ${messageImageId}`
+              );
             }
           }
         }
 
         // Handle errors
         if (message.type === "error") {
+          console.error("Received error message:", message.message);
           setIsLoadingImageDetails(false);
           setImageNotFound(true);
+          retryCountRef.current = 0;
+
+          // Clear the timeout
+          if (requestTimeoutRef.current) {
+            clearTimeout(requestTimeoutRef.current);
+            requestTimeoutRef.current = null;
+          }
         }
       } catch (error) {
         console.error("Error parsing WebSocket message:", error);
