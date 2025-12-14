@@ -104,6 +104,7 @@ export interface AppContextType {
   handleImageRemove: (imageId: string, force?: boolean) => void;
   handleNetworkRemove: (networkId: string, networkName?: string) => void;
   handleVolumeRemove: (volumeName: string) => void;
+  handleContainerRemove: (containerId: string) => void;
   getImageHistory: (imageId: string, imageName: string) => void;
   closeImageHistory: () => void;
   startStatsStreaming: () => void;

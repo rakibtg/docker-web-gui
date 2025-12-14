@@ -705,7 +705,56 @@ wss.on("connection", function connection(ws, req) {
                 message:
                   error instanceof Error
                     ? error.message
-                    : "Failed to restart container",
+                : "Failed to restart container",
+              })
+            );
+          }
+          break;
+
+        case "remove-container":
+          try {
+            const { containerId } = parsedMessage;
+            if (!containerId) {
+              throw new Error("Container ID is required");
+            }
+
+            const result = await dockerService.removeContainer(containerId);
+            ws.send(
+              JSON.stringify({
+                type: "container-action-result",
+                action: "remove",
+                containerId,
+                success: result.success,
+                message: result.message,
+                timestamp: new Date().toISOString(),
+              })
+            );
+
+            if (result.success) {
+              setTimeout(async () => {
+                try {
+                  const containers = await dockerService.getDockerContainers();
+                  broadcastToAllClients({
+                    type: "containers-list",
+                    data: containers,
+                    timestamp: new Date().toISOString(),
+                  });
+                } catch (error) {
+                  console.error(
+                    "Error refreshing containers after remove:",
+                    error
+                  );
+                }
+              }, 1000);
+            }
+          } catch (error) {
+            ws.send(
+              JSON.stringify({
+                type: "error",
+                message:
+                  error instanceof Error
+                    ? error.message
+                    : "Failed to remove container",
               })
             );
           }

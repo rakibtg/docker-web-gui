@@ -10,6 +10,7 @@ interface ContainerGridProps {
   onOpenLogs?: (containerId: string, containerName: string) => void;
   onOpenTerminal?: (containerId: string, containerName: string) => void;
   onContainerToggle: (containerId: string, currentState: string) => void;
+  onContainerRemove?: (containerId: string) => void;
 }
 
 const ContainerGrid = memo(function ContainerGrid({
@@ -18,6 +19,7 @@ const ContainerGrid = memo(function ContainerGrid({
   onOpenTerminal,
   onContainerToggle,
   onContainerRestart,
+  onContainerRemove,
 }: ContainerGridProps) {
   const [containerListStatus] = useContainerFilterStatus();
 
@@ -55,6 +57,13 @@ const ContainerGrid = memo(function ContainerGrid({
     [onOpenLogs]
   );
 
+  const handleContainerRemove = useCallback(
+    (containerId: string) => {
+      onContainerRemove?.(containerId);
+    },
+    [onContainerRemove]
+  );
+
   if (containers.length === 0) {
     return null;
   }
@@ -76,6 +85,7 @@ const ContainerGrid = memo(function ContainerGrid({
               onToggle={handleContainerToggle}
               onRestart={handleContainerRestart}
               onOpenTerminal={handleOpenTerminal}
+              onRemove={handleContainerRemove}
             />
           ))}
         </div>

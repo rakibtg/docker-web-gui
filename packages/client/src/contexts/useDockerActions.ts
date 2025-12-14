@@ -197,6 +197,16 @@ export function useDockerActions({
     [sendMessage]
   );
 
+  const handleContainerRemove = useCallback(
+    (containerId: string) => {
+      sendMessage({
+        type: "remove-container",
+        containerId: containerId,
+      });
+    },
+    [sendMessage]
+  );
+
   return {
     requestImages,
     requestVolumes,
@@ -210,6 +220,7 @@ export function useDockerActions({
     requestVolumeDetails,
     handleContainerToggle,
     handleContainerRestart,
+    handleContainerRemove,
     requestContainerDetails,
     requestImageDetails,
   };

@@ -121,6 +121,53 @@ export class ContainerService extends BaseDockerService {
   }
 
   /**
+   * Remove a Docker container
+   * Tries to stop the container first, but will proceed with removal even if stopping fails.
+   */
+  static async removeContainer(
+    containerId: string
+  ): Promise<DockerOperationResult> {
+    let stopError: string | null = null;
+
+    try {
+      const { stdout } = await this.execDockerCommand(
+        `docker stop ${containerId}`
+      );
+      console.log(`Container ${containerId} stopped before removal:`, stdout);
+    } catch (error) {
+      stopError =
+        error instanceof Error ? error.message : "Failed to stop container";
+      console.warn(
+        `Proceeding with removal despite stop failure for ${containerId}:`,
+        error
+      );
+    }
+
+    try {
+      const { stdout } = await this.execDockerCommand(
+        `docker rm -f ${containerId}`
+      );
+      console.log(`Container ${containerId} removed:`, stdout);
+
+      return {
+        success: true,
+        message: stopError
+          ? `Container removed (stop failed: ${stopError})`
+          : `Container ${containerId} removed successfully`,
+      };
+    } catch (error) {
+      console.error(`Error removing container ${containerId}:`, error);
+      return {
+        success: false,
+        message:
+          error instanceof Error
+            ? error.message
+            : "Failed to remove container",
+      };
+    }
+  }
+
+  /**
    * Get detailed information about a specific Docker container
    */
   static async getDockerContainerDetails(

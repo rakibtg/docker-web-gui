@@ -7,13 +7,15 @@ import { useState, memo, useCallback } from "react";
 import { BsFillTerminalFill } from "react-icons/bs";
 import { CardActionButton } from "./CardActionButton";
 import { formatDockerPort } from "../helpers/readablePort";
-import { FaPlay, FaStop, FaCircleInfo } from "react-icons/fa6";
+import { ConfirmationModal } from "./ConfirmationModal";
+import { FaPlay, FaStop, FaCircleInfo, FaTrash } from "react-icons/fa6";
 
 interface ContainerCardProps {
   isToggling?: boolean;
   container: ContainerWithStats;
   onRestart?: (containerId: string) => void;
   onToggle: (containerId: string, currentState: string) => void;
+  onRemove?: (containerId: string) => void;
   onOpenLogs?: (containerId: string, containerName: string) => void;
   onOpenTerminal?: (containerId: string, containerName: string) => void;
 }
@@ -24,11 +26,14 @@ const ContainerCard = memo(function ContainerCard({
   onRestart,
   onOpenLogs,
   onOpenTerminal,
+  onRemove,
   isToggling = false,
 }: ContainerCardProps) {
   const isRunning = container.state === "running";
   const [isRestarting, setIsRestarting] = useState(false);
   const [localToggling, setLocalToggling] = useState(false);
+  const [isRemoving, setIsRemoving] = useState(false);
+  const [showRemoveModal, setShowRemoveModal] = useState(false);
 
   const handleToggle = useCallback(async () => {
     setLocalToggling(true);
@@ -58,180 +63,228 @@ const ContainerCard = memo(function ContainerCard({
     onOpenLogs?.(container.id, container.name);
   }, [onOpenLogs, container.id, container.name]);
 
+  const handleRemoveClick = useCallback(() => {
+    setShowRemoveModal(true);
+  }, []);
+
+  const handleCancelRemove = useCallback(() => {
+    setShowRemoveModal(false);
+  }, []);
+
+  const handleConfirmRemove = useCallback(async () => {
+    if (!onRemove) return;
+
+    setIsRemoving(true);
+    setShowRemoveModal(false);
+    try {
+      await onRemove(container.id);
+    } finally {
+      setTimeout(() => setIsRemoving(false), 1000);
+    }
+  }, [onRemove, container.id]);
+
   return (
-    <div className="bg-gray-800 rounded shadow-md border-gray-600 border p-4 pt-2.5 hover:shadow-lg transition-all duration-200 flex flex-col gap-2">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center border-0 border-yellow-500 justify-between">
-          <div className="flex-1 min-w-0">
-            <div className="flex flex-row items-center gap-2">
+    <>
+      <div className="bg-gray-800 rounded shadow-md border-gray-600 border p-4 pt-2.5 hover:shadow-lg transition-all duration-200 flex flex-col gap-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center border-0 border-yellow-500 justify-between">
+            <div className="flex-1 min-w-0">
+              <div className="flex flex-row items-center gap-2">
+                <Link
+                  to={`/containers/${container.id}`}
+                  className="text-base font-medium text-gray-100 hover:text-blue-400 truncate transition-colors"
+                >
+                  {container.name}
+                </Link>
+                <UptimeDisplay
+                  status={container.status}
+                  className={`inline-flex text-xs px-2 py-0 rounded-full transition-colors ${
+                    isRunning
+                      ? "border border-green-400/30 text-green-100"
+                      : "border border-red-400/50 text-red-100"
+                  }`}
+                />
+              </div>
+              <p
+                className="text-xs text-gray-400 font-mono transition-colors flex items-center gap-1 mt-0.5"
+                title={`ID: ${container.id.substring(0, 10)}`}
+              >
+                <span className="inline-block">
+                  {container.id.substring(0, 10)}
+                </span>
+                <span className="inline-block text-xs">|</span>
+                <span
+                  className="inline-block max-w-full truncate"
+                  title={`Image: ${container.image}`}
+                >
+                  {container.image}
+                </span>
+              </p>
+            </div>
+          </div>
+
+          <div className="">
+            <div className="flex items-center space-x-4 justify-around">
+              <CardActionButton
+                title={isRunning ? "Stop container" : "Start container"}
+                aria-label={isRunning ? "Stop container" : "Start container"}
+                onClick={handleToggle}
+                disabled={isToggling || localToggling}
+              >
+                {isToggling || localToggling ? (
+                  <div className="w-5 h-5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+                ) : isRunning ? (
+                  <FaStop className="w-5 h-5" />
+                ) : (
+                  <FaPlay className="w-5 h-5" />
+                )}
+                <p className="text-xs text-gray-100 pt-1">
+                  {isToggling || localToggling
+                    ? isRunning
+                      ? "Stopping..."
+                      : "Starting..."
+                    : isRunning
+                    ? "Stop"
+                    : "Start"}
+                </p>
+              </CardActionButton>
+
+              <CardActionButton
+                title="Open terminal"
+                aria-label="Open terminal"
+                onClick={handleOpenTerminal}
+                disabled={!isRunning || !onOpenTerminal}
+              >
+                <BsFillTerminalFill className="w-5 h-5" />
+                <p className="text-xs text-gray-100 pt-1">Terminal</p>
+              </CardActionButton>
+
+              <CardActionButton
+                title="Open logs"
+                aria-label="Open logs"
+                onClick={handleOpenLogs}
+                disabled={!isRunning || !onOpenLogs}
+              >
+                <IoNewspaper className="w-5 h-5" />
+                <p className="text-xs text-gray-100 pt-1">Logs</p>
+              </CardActionButton>
+
+              <CardActionButton
+                title={
+                  isRestarting ? "Restarting container..." : "Reload container"
+                }
+                aria-label={
+                  isRestarting ? "Restarting container..." : "Reload container"
+                }
+                onClick={handleRestart}
+                disabled={!isRunning || !onRestart || isRestarting}
+              >
+                <IoReloadCircle
+                  className={`w-6 h-6 transition-transform ${
+                    isRestarting ? "animate-spin text-blue-500" : ""
+                  }`}
+                />
+                <p
+                  className={`text-xs pt-1 ${
+                    isRestarting ? "text-blue-500" : "text-gray-100"
+                  }`}
+                >
+                  {isRestarting ? "Restarting..." : "Restart"}
+                </p>
+              </CardActionButton>
+
+              <CardActionButton
+                title="Delete container"
+                aria-label="Delete container"
+                onClick={handleRemoveClick}
+                disabled={isRemoving || !onRemove}
+              >
+                {isRemoving ? (
+                  <IoReloadCircle className="w-6 h-6 animate-spin text-red-400" />
+                ) : (
+                  <FaTrash className="w-5 h-5" />
+                )}
+                <p className="text-xs text-gray-100 pt-1">
+                  {isRemoving ? "Deleting..." : "Delete"}
+                </p>
+              </CardActionButton>
+
               <Link
                 to={`/containers/${container.id}`}
-                className="text-base font-medium text-gray-100 hover:text-blue-400 truncate transition-colors"
+                className="cursor-pointer w-18 p-1 text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 flex flex-col items-center"
+                title="Container details"
+                aria-label="Container details"
               >
-                {container.name}
+                <FaCircleInfo className="w-5 h-5" />
+                <p className="text-xs text-gray-100 pt-1">Details</p>
               </Link>
-              <UptimeDisplay
-                status={container.status}
-                className={`inline-flex text-xs px-2 py-0 rounded-full transition-colors ${
-                  isRunning
-                    ? "border border-green-400/30 text-green-100"
-                    : "border border-red-400/50 text-red-100"
-                }`}
-              />
             </div>
-            <p
-              className="text-xs text-gray-400 font-mono transition-colors flex items-center gap-1 mt-0.5"
-              title={`ID: ${container.id.substring(0, 10)}`}
-            >
-              <span className="inline-block">
-                {container.id.substring(0, 10)}
-              </span>
-              <span className="inline-block text-xs">|</span>
-              <span
-                className="inline-block max-w-full truncate"
-                title={`Image: ${container.image}`}
-              >
-                {container.image}
-              </span>
-            </p>
           </div>
         </div>
 
-        <div className="">
-          <div className="flex items-center space-x-4 justify-around">
-            <CardActionButton
-              title={isRunning ? "Stop container" : "Start container"}
-              aria-label={isRunning ? "Stop container" : "Start container"}
-              onClick={handleToggle}
-              disabled={isToggling || localToggling}
-            >
-              {isToggling || localToggling ? (
-                <div className="w-5 h-5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
-              ) : isRunning ? (
-                <FaStop className="w-5 h-5" />
-              ) : (
-                <FaPlay className="w-5 h-5" />
-              )}
-              <p className="text-xs text-gray-100 pt-1">
-                {isToggling || localToggling
-                  ? isRunning
-                    ? "Stopping..."
-                    : "Starting..."
-                  : isRunning
-                  ? "Stop"
-                  : "Start"}
-              </p>
-            </CardActionButton>
-
-            <CardActionButton
-              title="Open terminal"
-              aria-label="Open terminal"
-              onClick={handleOpenTerminal}
-              disabled={!isRunning || !onOpenTerminal}
-            >
-              <BsFillTerminalFill className="w-5 h-5" />
-              <p className="text-xs text-gray-100 pt-1">Terminal</p>
-            </CardActionButton>
-
-            <CardActionButton
-              title="Open logs"
-              aria-label="Open logs"
-              onClick={handleOpenLogs}
-              disabled={!isRunning || !onOpenLogs}
-            >
-              <IoNewspaper className="w-5 h-5" />
-              <p className="text-xs text-gray-100 pt-1">Logs</p>
-            </CardActionButton>
-
-            <CardActionButton
-              title={
-                isRestarting ? "Restarting container..." : "Reload container"
-              }
-              aria-label={
-                isRestarting ? "Restarting container..." : "Reload container"
-              }
-              onClick={handleRestart}
-              disabled={!isRunning || !onRestart || isRestarting}
-            >
-              <IoReloadCircle
-                className={`w-6 h-6 transition-transform ${
-                  isRestarting ? "animate-spin text-blue-500" : ""
-                }`}
-              />
-              <p
-                className={`text-xs pt-1 ${
-                  isRestarting ? "text-blue-500" : "text-gray-100"
-                }`}
-              >
-                {isRestarting ? "Restarting..." : "Restart"}
-              </p>
-            </CardActionButton>
-
-            <Link
-              to={`/containers/${container.id}`}
-              className="cursor-pointer w-18 p-1 text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 flex flex-col items-center"
-              title="Container details"
-              aria-label="Container details"
-            >
-              <FaCircleInfo className="w-5 h-5" />
-              <p className="text-xs text-gray-100 pt-1">Details</p>
-            </Link>
-          </div>
-        </div>
-      </div>
-
-      {isRunning && container.stats && (
-        <div className="transition-colors">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            <div className="rounded-lg p-2 px-3 border-gray-600 border transition-colors">
-              <p className="text-xs font-bold uppercase text-blue-600 dark:text-blue-400 transition-colors">
-                CPU
-              </p>
-              <p className="text-sm font-mono text-gray-100 transition-colors">
-                {container.stats.cpuPerc}
-              </p>
-            </div>
-            <div className="rounded-lg p-2 px-3 border-gray-600 border transition-colors col-span-1 md:col-span-2">
-              <p className="text-xs font-bold uppercase text-green-600 dark:text-green-400 transition-colors">
-                Memory
-              </p>
-              <div className="flex flex-row gap-1">
+        {isRunning && container.stats && (
+          <div className="transition-colors">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+              <div className="rounded-lg p-2 px-3 border-gray-600 border transition-colors">
+                <p className="text-xs font-bold uppercase text-blue-600 dark:text-blue-400 transition-colors">
+                  CPU
+                </p>
                 <p className="text-sm font-mono text-gray-100 transition-colors">
-                  {container.stats.memPerc}
-                </p>{" "}
-                <p className="text-sm font-mono text-gray-300 transition-colors">
-                  ({container.stats.memUsage})
+                  {container.stats.cpuPerc}
                 </p>
               </div>
-            </div>
-            <div className="rounded-lg p-2 px-3 border-gray-600 border transition-colors">
-              <div className="text-xs font-bold uppercase text-orange-600 dark:text-orange-400 transition-colors">
-                Block I/O
+              <div className="rounded-lg p-2 px-3 border-gray-600 border transition-colors col-span-1 md:col-span-2">
+                <p className="text-xs font-bold uppercase text-green-600 dark:text-green-400 transition-colors">
+                  Memory
+                </p>
+                <div className="flex flex-row gap-1">
+                  <p className="text-sm font-mono text-gray-100 transition-colors">
+                    {container.stats.memPerc}
+                  </p>{" "}
+                  <p className="text-sm font-mono text-gray-300 transition-colors">
+                    ({container.stats.memUsage})
+                  </p>
+                </div>
               </div>
-              <div className="text-sm font-mono text-gray-100 transition-colors">
-                {container.stats.blockIO}
+              <div className="rounded-lg p-2 px-3 border-gray-600 border transition-colors">
+                <div className="text-xs font-bold uppercase text-orange-600 dark:text-orange-400 transition-colors">
+                  Block I/O
+                </div>
+                <div className="text-sm font-mono text-gray-100 transition-colors">
+                  {container.stats.blockIO}
+                </div>
               </div>
-            </div>
-            <div className="rounded-lg p-2 px-3 border-gray-600 border transition-colors">
-              <div className="text-xs font-bold uppercase text-purple-600 dark:text-purple-400 transition-colors">
-                Network I/O
+              <div className="rounded-lg p-2 px-3 border-gray-600 border transition-colors">
+                <div className="text-xs font-bold uppercase text-purple-600 dark:text-purple-400 transition-colors">
+                  Network I/O
+                </div>
+                <div className="text-sm font-mono text-gray-100 transition-colors">
+                  {container.stats.netIO}
+                </div>
               </div>
-              <div className="text-sm font-mono text-gray-100 transition-colors">
-                {container.stats.netIO}
-              </div>
-            </div>
-            <div className="rounded-lg p-2 px-3 border-gray-600 border transition-colors">
-              <div className="text-xs font-bold uppercase text-yellow-600 dark:text-yellow-400 transition-colors">
-                Port
-              </div>
-              <div className="text-sm font-mono text-gray-100 transition-colors">
-                {formatDockerPort(container.ports)}
+              <div className="rounded-lg p-2 px-3 border-gray-600 border transition-colors">
+                <div className="text-xs font-bold uppercase text-yellow-600 dark:text-yellow-400 transition-colors">
+                  Port
+                </div>
+                <div className="text-sm font-mono text-gray-100 transition-colors">
+                  {formatDockerPort(container.ports)}
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+      <ConfirmationModal
+        isOpen={showRemoveModal}
+        onClose={handleCancelRemove}
+        onConfirm={handleConfirmRemove}
+        title="Delete Container"
+        message={`Are you sure you want to delete the container "${container.name}"?\nWe'll try to stop it first before removing it.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        type="danger"
+      />
+    </>
   );
 });
 

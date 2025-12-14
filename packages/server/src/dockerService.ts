@@ -79,6 +79,14 @@ export class DockerService extends EventEmitter {
     return result;
   }
 
+  async removeContainer(containerId: string): Promise<DockerOperationResult> {
+    const result = await ContainerService.removeContainer(containerId);
+    if (result.success) {
+      this.emit("container-state-changed", { containerId, action: "remove" });
+    }
+    return result;
+  }
+
   async getDockerContainerDetails(
     containerId: string
   ): Promise<DockerContainerDetails> {

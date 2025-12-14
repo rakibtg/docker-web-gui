@@ -17,6 +17,7 @@ const ContainersPage = memo(function ContainersPage() {
     requestContainers,
     handleContainerToggle,
     handleContainerRestart,
+    handleContainerRemove,
   } = useApp();
 
   const { openTerminal, openLogs } = useTerminal();
@@ -83,6 +84,7 @@ const ContainersPage = memo(function ContainersPage() {
             onContainerRestart={handleContainerRestart}
             onOpenTerminal={handleOpenTerminal}
             onOpenLogs={handleOpenLogs}
+            onContainerRemove={handleContainerRemove}
           />
         ) : (
           <EmptyState
