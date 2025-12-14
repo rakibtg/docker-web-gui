@@ -104,11 +104,11 @@ function Sidebar() {
           }`}
           aria-label="Go to home"
         >
-          <div className="w-10 h-10 flex-shrink-0 transition-transform duration-300 pt-1.5 group-hover:scale-105">
+          <div className="w-10 h-10 shrink-0 transition-transform duration-300 pt-1.5 group-hover:scale-105">
             <img src={logo} alt="Docker GUI Logo" />
           </div>
           {!isCollapsed && (
-            <div className="ml-3 flex-1 transition-opacity duration-300">
+            <div className=" ml-3 flex-1 transition-opacity duration-300">
               <h1 className="text-sm font-bold text-gray-100 truncate group-hover:text-blue-300">
                 Docker Web GUI
               </h1>
