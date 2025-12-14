@@ -18,7 +18,7 @@ export function useDashboardSummary() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
 
-  const { websocket, isConnected } = useApp();
+  const { websocket, isConnected, sendMessage } = useApp();
 
   useEffect(() => {
     if (!websocket || !isConnected) return;
@@ -45,26 +45,25 @@ export function useDashboardSummary() {
 
     websocket.addEventListener("message", handleMessage);
 
-    // Request dashboard summary data
-    websocket.send(
-      JSON.stringify({
+    // Request dashboard summary data with a small delay to ensure WebSocket is fully open
+    const timer = setTimeout(() => {
+      sendMessage({
         type: "get-dashboard-summary",
-      })
-    );
+      });
+    }, 100);
 
     return () => {
+      clearTimeout(timer);
       websocket.removeEventListener("message", handleMessage);
     };
-  }, [websocket, isConnected]);
+  }, [websocket, isConnected, sendMessage]);
 
   const refreshSummary = () => {
-    if (websocket && isConnected) {
+    if (isConnected) {
       setLoading(true);
-      websocket.send(
-        JSON.stringify({
-          type: "get-dashboard-summary",
-        })
-      );
+      sendMessage({
+        type: "get-dashboard-summary",
+      });
     }
   };
 
