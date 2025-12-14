@@ -11,13 +11,13 @@ import {
   HiChevronLeft,
   HiChevronRight,
   HiInformationCircle,
-  HiSparkles,
 } from "react-icons/hi";
 
 import { Tooltip } from "react-tooltip";
 import { LuLayers3 } from "react-icons/lu";
 import { FiBox, FiUser } from "react-icons/fi";
 import { useAuth } from "../contexts/AuthContext";
+import { IoTrashBinOutline } from "react-icons/io5";
 import logo from "../assets/docker-web-gui-logo.png";
 
 interface SidebarItem {
@@ -55,7 +55,7 @@ const sidebarItems: SidebarItem[] = [
   {
     id: "cleanup",
     label: "Cleanup",
-    icon: HiSparkles,
+    icon: IoTrashBinOutline,
   },
 ];
 
@@ -192,7 +192,11 @@ function Sidebar() {
         {/* User Info Section - Only show if auth is required and user is authenticated */}
         {isAuthRequired && isAuthenticated && user && (
           <div className={`mb-4 ${isCollapsed ? "px-0" : "px-3"}`}>
-            <div className={`bg-gray-700/50 rounded-lg p-3 ${isCollapsed ? "text-center" : ""}`}>
+            <div
+              className={`bg-gray-700/50 rounded-lg p-3 ${
+                isCollapsed ? "text-center" : ""
+              }`}
+            >
               {isCollapsed ? (
                 <div
                   data-tooltip-id="user-tooltip"
