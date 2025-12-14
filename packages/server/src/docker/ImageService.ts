@@ -133,6 +133,55 @@ export class ImageService extends BaseDockerService {
   }
 
   /**
+   * Prune unused images
+   */
+  static async pruneImages(all: boolean = false): Promise<DockerOperationResult> {
+    try {
+      const command = all
+        ? "docker image prune -a -f"
+        : "docker image prune -f";
+      const { stdout, stderr } = await this.execDockerCommand(command);
+
+      if (stderr && !stderr.includes("WARNING")) {
+        console.error("Docker image prune stderr:", stderr);
+      }
+
+      const lines = stdout.split("\n").map((line) => line.trim());
+      const deletedImages: string[] = [];
+      let reclaimedSpace = "0B";
+      let collecting = false;
+
+      for (const line of lines) {
+        if (!line) continue;
+        if (line.startsWith("Deleted Images:")) {
+          collecting = true;
+          continue;
+        }
+        if (line.startsWith("Total reclaimed space")) {
+          reclaimedSpace = line.split("Total reclaimed space:")[1]?.trim() || "0B";
+          collecting = false;
+          continue;
+        }
+        if (collecting) {
+          deletedImages.push(line);
+        }
+      }
+
+      return {
+        success: true,
+        data: { deletedImages, reclaimedSpace, scope: all ? "all" : "dangling" },
+        message: `Pruned ${deletedImages.length} ${all ? "unused" : "dangling"} images, reclaimed ${reclaimedSpace}`,
+      };
+    } catch (error: any) {
+      console.error("Error pruning images:", error);
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : "Failed to prune images",
+      };
+    }
+  }
+
+  /**
    * Get image history
    */
   static async getImageHistory(

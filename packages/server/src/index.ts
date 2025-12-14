@@ -428,6 +428,11 @@ wss.on("connection", function connection(ws, req) {
         "terminal-create",
         "remove-container",
         "restart-container",
+        "prune-containers",
+        "prune-images",
+        "prune-networks",
+        "prune-volumes",
+        "system-prune",
         "stop-stats-streaming",
         "get-dashboard-summary",
         "start-stats-streaming",
@@ -754,7 +759,259 @@ wss.on("connection", function connection(ws, req) {
                 message:
                   error instanceof Error
                     ? error.message
-                    : "Failed to remove container",
+                : "Failed to remove container",
+              })
+            );
+          }
+          break;
+
+        case "prune-containers":
+          try {
+            const result = await dockerService.pruneContainers();
+            ws.send(
+              JSON.stringify({
+                type: "cleanup-result",
+                action: "prune-containers",
+                success: result.success,
+                message: result.message,
+                data: result.data,
+                timestamp: new Date().toISOString(),
+              })
+            );
+
+            if (result.success) {
+              setTimeout(async () => {
+                try {
+                  const containers = await dockerService.getDockerContainers();
+                  broadcastToAllClients({
+                    type: "containers-list",
+                    data: containers,
+                    timestamp: new Date().toISOString(),
+                  });
+                } catch (error) {
+                  console.error(
+                    "Error refreshing containers after prune:",
+                    error
+                  );
+                }
+              }, 500);
+            }
+          } catch (error) {
+            ws.send(
+              JSON.stringify({
+                type: "cleanup-result",
+                action: "prune-containers",
+                success: false,
+                message:
+                  error instanceof Error
+                    ? error.message
+                    : "Failed to prune containers",
+                timestamp: new Date().toISOString(),
+              })
+            );
+          }
+          break;
+
+        case "prune-images":
+          try {
+            const { all } = parsedMessage;
+            const result = await dockerService.pruneImages(!!all);
+            ws.send(
+              JSON.stringify({
+                type: "cleanup-result",
+                action: "prune-images",
+                scope: result.data?.scope || (all ? "all" : "dangling"),
+                success: result.success,
+                message: result.message,
+                data: result.data,
+                timestamp: new Date().toISOString(),
+              })
+            );
+
+            if (result.success) {
+              setTimeout(async () => {
+                try {
+                  const images = await dockerService.getDockerImages();
+                  broadcastToAllClients({
+                    type: "images-list",
+                    data: images,
+                    timestamp: new Date().toISOString(),
+                  });
+                } catch (error) {
+                  console.error("Error refreshing images after prune:", error);
+                }
+              }, 500);
+            }
+          } catch (error) {
+            ws.send(
+              JSON.stringify({
+                type: "cleanup-result",
+                action: "prune-images",
+                success: false,
+                scope: parsedMessage?.all ? "all" : "dangling",
+                message:
+                  error instanceof Error
+                    ? error.message
+                    : "Failed to prune images",
+                timestamp: new Date().toISOString(),
+              })
+            );
+          }
+          break;
+
+        case "prune-networks":
+          try {
+            const result = await dockerService.pruneDockerNetworks();
+            ws.send(
+              JSON.stringify({
+                type: "cleanup-result",
+                action: "prune-networks",
+                success: result.success,
+                message: result.message,
+                data: result.data,
+                timestamp: new Date().toISOString(),
+              })
+            );
+
+            if (result.success) {
+              setTimeout(async () => {
+                try {
+                  const networks = await dockerService.getDockerNetworks();
+                  broadcastToAllClients({
+                    type: "networks-result",
+                    data: networks,
+                    timestamp: new Date().toISOString(),
+                  });
+                } catch (error) {
+                  console.error("Error refreshing networks after prune:", error);
+                }
+              }, 500);
+            }
+          } catch (error) {
+            ws.send(
+              JSON.stringify({
+                type: "cleanup-result",
+                action: "prune-networks",
+                success: false,
+                message:
+                  error instanceof Error
+                    ? error.message
+                    : "Failed to prune networks",
+                timestamp: new Date().toISOString(),
+              })
+            );
+          }
+          break;
+
+        case "prune-volumes":
+          try {
+            const result = await dockerService.pruneDockerVolumes();
+            ws.send(
+              JSON.stringify({
+                type: "cleanup-result",
+                action: "prune-volumes",
+                success: true,
+                data: result,
+                message: `Pruned ${result.deletedVolumes.length} volumes, reclaimed ${result.reclaimedSpace}`,
+                timestamp: new Date().toISOString(),
+              })
+            );
+
+            setTimeout(async () => {
+              try {
+                const volumes = await dockerService.getDockerVolumes();
+                broadcastToAllClients({
+                  type: "volumes-result",
+                  data: volumes,
+                  timestamp: new Date().toISOString(),
+                });
+              } catch (error) {
+                console.error("Error refreshing volumes after prune:", error);
+              }
+            }, 500);
+          } catch (error) {
+            ws.send(
+              JSON.stringify({
+                type: "cleanup-result",
+                action: "prune-volumes",
+                success: false,
+                message:
+                  error instanceof Error
+                    ? error.message
+                    : "Failed to prune volumes",
+                timestamp: new Date().toISOString(),
+              })
+            );
+          }
+          break;
+
+        case "system-prune":
+          try {
+            const { includeVolumes } = parsedMessage;
+            const result = await dockerService.systemPrune(!!includeVolumes);
+            ws.send(
+              JSON.stringify({
+                type: "cleanup-result",
+                action: "system-prune",
+                includeVolumes: !!includeVolumes,
+                success: result.success,
+                message: result.message,
+                data: result.data,
+                timestamp: new Date().toISOString(),
+              })
+            );
+
+            if (result.success) {
+              setTimeout(async () => {
+                try {
+                  const [containers, images, networks, volumes] =
+                    await Promise.all([
+                      dockerService.getDockerContainers(),
+                      dockerService.getDockerImages(),
+                      dockerService.getDockerNetworks(),
+                      dockerService.getDockerVolumes(),
+                    ]);
+
+                  broadcastToAllClients({
+                    type: "containers-list",
+                    data: containers,
+                    timestamp: new Date().toISOString(),
+                  });
+                  broadcastToAllClients({
+                    type: "images-list",
+                    data: images,
+                    timestamp: new Date().toISOString(),
+                  });
+                  broadcastToAllClients({
+                    type: "networks-result",
+                    data: networks,
+                    timestamp: new Date().toISOString(),
+                  });
+                  broadcastToAllClients({
+                    type: "volumes-result",
+                    data: volumes,
+                    timestamp: new Date().toISOString(),
+                  });
+                } catch (error) {
+                  console.error(
+                    "Error refreshing resources after system prune:",
+                    error
+                  );
+                }
+              }, 500);
+            }
+          } catch (error) {
+            ws.send(
+              JSON.stringify({
+                type: "cleanup-result",
+                action: "system-prune",
+                includeVolumes: !!parsedMessage?.includeVolumes,
+                success: false,
+                message:
+                  error instanceof Error
+                    ? error.message
+                    : "Failed to run system prune",
+                timestamp: new Date().toISOString(),
               })
             );
           }

@@ -121,6 +121,54 @@ export class ContainerService extends BaseDockerService {
   }
 
   /**
+   * Prune stopped containers
+   */
+  static async pruneContainers(): Promise<DockerOperationResult> {
+    try {
+      const { stdout, stderr } = await this.execDockerCommand(
+        "docker container prune -f"
+      );
+
+      if (stderr && !stderr.includes("WARNING")) {
+        console.error("Docker container prune stderr:", stderr);
+      }
+
+      const lines = stdout.split("\n").map((line) => line.trim());
+      const deletedContainers: string[] = [];
+      let reclaimedSpace = "0B";
+      let collecting = false;
+
+      for (const line of lines) {
+        if (!line) continue;
+        if (line.startsWith("Deleted Containers:")) {
+          collecting = true;
+          continue;
+        }
+        if (line.startsWith("Total reclaimed space")) {
+          reclaimedSpace = line.split("Total reclaimed space:")[1]?.trim() || "0B";
+          collecting = false;
+          continue;
+        }
+        if (collecting) {
+          deletedContainers.push(line);
+        }
+      }
+
+      return {
+        success: true,
+        data: { deletedContainers, reclaimedSpace },
+        message: `Removed ${deletedContainers.length} stopped containers, reclaimed ${reclaimedSpace}`,
+      };
+    } catch (error: any) {
+      console.error("Error pruning containers:", error);
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : "Failed to prune containers",
+      };
+    }
+  }
+
+  /**
    * Remove a Docker container
    * Tries to stop the container first, but will proceed with removal even if stopping fails.
    */

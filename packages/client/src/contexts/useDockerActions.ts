@@ -207,6 +207,44 @@ export function useDockerActions({
     [sendMessage]
   );
 
+  const pruneContainers = useCallback(() => {
+    return sendMessage({
+      type: "prune-containers",
+    });
+  }, [sendMessage]);
+
+  const pruneImages = useCallback(
+    (all: boolean = false) => {
+      return sendMessage({
+        type: "prune-images",
+        all,
+      });
+    },
+    [sendMessage]
+  );
+
+  const pruneNetworks = useCallback(() => {
+    return sendMessage({
+      type: "prune-networks",
+    });
+  }, [sendMessage]);
+
+  const pruneVolumes = useCallback(() => {
+    return sendMessage({
+      type: "prune-volumes",
+    });
+  }, [sendMessage]);
+
+  const systemPrune = useCallback(
+    (includeVolumes: boolean = false) => {
+      return sendMessage({
+        type: "system-prune",
+        includeVolumes,
+      });
+    },
+    [sendMessage]
+  );
+
   return {
     requestImages,
     requestVolumes,
@@ -221,6 +259,11 @@ export function useDockerActions({
     handleContainerToggle,
     handleContainerRestart,
     handleContainerRemove,
+    pruneContainers,
+    pruneImages,
+    pruneNetworks,
+    pruneVolumes,
+    systemPrune,
     requestContainerDetails,
     requestImageDetails,
   };

@@ -1,5 +1,5 @@
 import { BaseDockerService } from "./BaseDockerService";
-import { DockerNetwork } from "./types";
+import { DockerNetwork, DockerOperationResult } from "./types";
 
 export class NetworkService extends BaseDockerService {
   /**
@@ -84,6 +84,54 @@ export class NetworkService extends BaseDockerService {
     } catch (error) {
       console.error(`Error removing Docker network ${networkId}:`, error);
       throw error;
+    }
+  }
+
+  /**
+   * Prune unused Docker networks
+   */
+  static async pruneDockerNetworks(): Promise<DockerOperationResult> {
+    try {
+      const { stdout, stderr } = await this.execDockerCommand(
+        "docker network prune -f"
+      );
+
+      if (stderr && !stderr.includes("WARNING")) {
+        console.error("Docker network prune stderr:", stderr);
+      }
+
+      const lines = stdout.split("\n").map((line) => line.trim());
+      const deletedNetworks: string[] = [];
+      let reclaimedSpace = "0B";
+      let collecting = false;
+
+      for (const line of lines) {
+        if (!line) continue;
+        if (line.startsWith("Deleted Networks:")) {
+          collecting = true;
+          continue;
+        }
+        if (line.startsWith("Total reclaimed space")) {
+          reclaimedSpace = line.split("Total reclaimed space:")[1]?.trim() || "0B";
+          collecting = false;
+          continue;
+        }
+        if (collecting) {
+          deletedNetworks.push(line);
+        }
+      }
+
+      return {
+        success: true,
+        data: { deletedNetworks, reclaimedSpace },
+        message: `Pruned ${deletedNetworks.length} networks, reclaimed ${reclaimedSpace}`,
+      };
+    } catch (error: any) {
+      console.error("Error pruning networks:", error);
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : "Failed to prune networks",
+      };
     }
   }
 }

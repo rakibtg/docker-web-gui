@@ -105,6 +105,11 @@ export interface AppContextType {
   handleNetworkRemove: (networkId: string, networkName?: string) => void;
   handleVolumeRemove: (volumeName: string) => void;
   handleContainerRemove: (containerId: string) => void;
+  pruneContainers: () => void;
+  pruneImages: (all?: boolean) => void;
+  pruneNetworks: () => void;
+  pruneVolumes: () => void;
+  systemPrune: (includeVolumes?: boolean) => void;
   getImageHistory: (imageId: string, imageName: string) => void;
   closeImageHistory: () => void;
   startStatsStreaming: () => void;

@@ -8,6 +8,7 @@ import {
   VolumeDetails,
   ContainersPage,
   ContainerDetails,
+  Cleanup,
 } from "./pages";
 
 import { useApp } from "./hooks/useApp";
@@ -48,6 +49,7 @@ function AppContent() {
                 <Route path="/networks" element={<Networks />} />
                 <Route path="/volumes" element={<Volumes />} />
                 <Route path="/volumes/:volumeId" element={<VolumeDetails />} />
+                <Route path="/cleanup" element={<Cleanup />} />
                 <Route path="/about" element={<About />} />
                 <Route path="*" element={<Navigate to="/containers" replace />} />
               </Routes>

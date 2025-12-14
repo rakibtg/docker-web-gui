@@ -87,6 +87,10 @@ export class DockerService extends EventEmitter {
     return result;
   }
 
+  async pruneContainers(): Promise<DockerOperationResult> {
+    return ContainerService.pruneContainers();
+  }
+
   async getDockerContainerDetails(
     containerId: string
   ): Promise<DockerContainerDetails> {
@@ -109,6 +113,10 @@ export class DockerService extends EventEmitter {
     return ImageService.removeImage(imageId, force);
   }
 
+  async pruneImages(all: boolean = false): Promise<DockerOperationResult> {
+    return ImageService.pruneImages(all);
+  }
+
   async getImageHistory(imageId: string): Promise<DockerOperationResult> {
     return ImageService.getImageHistory(imageId);
   }
@@ -120,6 +128,10 @@ export class DockerService extends EventEmitter {
 
   async removeDockerNetwork(networkId: string): Promise<void> {
     return NetworkService.removeDockerNetwork(networkId);
+  }
+
+  async pruneDockerNetworks(): Promise<DockerOperationResult> {
+    return NetworkService.pruneDockerNetworks();
   }
 
   // === Volume Operations ===
@@ -164,5 +176,39 @@ export class DockerService extends EventEmitter {
   // === Docker Availability Check ===
   async checkDockerAvailability(): Promise<DockerAvailabilityResult> {
     return BaseDockerService.checkDockerAvailability();
+  }
+
+  // === System Cleanup ===
+  async systemPrune(includeVolumes: boolean = false): Promise<DockerOperationResult> {
+    try {
+      const { stdout, stderr } = await BaseDockerService.execDockerCommand(
+        `docker system prune -f${includeVolumes ? " --volumes" : ""}`
+      );
+
+      if (stderr && !stderr.includes("WARNING")) {
+        console.error("Docker system prune stderr:", stderr);
+      }
+
+      const lines = stdout.split("\n").map((line) => line.trim());
+      let reclaimedSpace = "0B";
+      for (const line of lines) {
+        if (line.startsWith("Total reclaimed space")) {
+          reclaimedSpace = line.split("Total reclaimed space:")[1]?.trim() || "0B";
+          break;
+        }
+      }
+
+      return {
+        success: true,
+        data: { reclaimedSpace, includeVolumes },
+        message: `System prune completed, reclaimed ${reclaimedSpace}${includeVolumes ? " (including unused volumes)" : ""}`,
+      };
+    } catch (error: any) {
+      console.error("Error running system prune:", error);
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : "Failed to run system prune",
+      };
+    }
   }
 }

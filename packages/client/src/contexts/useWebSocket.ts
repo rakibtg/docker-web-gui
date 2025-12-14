@@ -316,6 +316,17 @@ export function useWebSocket({
               break;
             }
 
+            case "cleanup-result": {
+              if (message.success) {
+                if (message.message) {
+                  setDockerMessage(message.message);
+                }
+              } else {
+                setError(message.message || "Cleanup action failed");
+              }
+              break;
+            }
+
             case "image-action-result": {
               const actionResult = message;
               const {

@@ -7,3 +7,4 @@ export { ImageDetails } from "./ImageDetails";
 export { VolumeDetails } from "./VolumeDetails";
 export { ContainersPage } from "./ContainersPage";
 export { ContainerDetails } from "./ContainerDetails";
+export { Cleanup } from "./Cleanup";
