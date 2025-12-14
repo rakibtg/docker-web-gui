@@ -21,7 +21,10 @@ export class TerminalService extends BaseDockerService {
         for (const shell of shells) {
           try {
             await this.execDockerCommand(
-              `docker exec ${containerId} test -f ${shell}`
+              `docker exec ${containerId} test -f ${shell}`,
+              {
+                logErrors: false, // Shell probing is expected to fail for missing shells
+              }
             );
             availableShell = shell;
             console.log(`Found shell ${shell} in container ${containerId}`);

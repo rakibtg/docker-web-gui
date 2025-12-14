@@ -54,12 +54,17 @@ export class BaseDockerService {
    * Execute Docker command with proper error handling
    */
   static async execDockerCommand(
-    command: string
+    command: string,
+    options?: { logErrors?: boolean }
   ): Promise<{ stdout: string; stderr: string }> {
+    const { logErrors = true } = options || {};
+
     try {
       return await execAsync(command);
     } catch (error) {
-      console.error(`Error executing Docker command: ${command}`, error);
+      if (logErrors) {
+        console.error(`Error executing Docker command: ${command}`, error);
+      }
 
       // Check for common Docker errors
       if (
