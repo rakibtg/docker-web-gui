@@ -4,3 +4,4 @@ build
 packages/server/public
 .DS_Store
 packages/server/.settings.json
+packages/server/data

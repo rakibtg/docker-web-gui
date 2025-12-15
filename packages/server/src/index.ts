@@ -4,6 +4,8 @@ import { WebSocketServer } from "ws";
 import { join, extname } from "path";
 import { readFileSync, existsSync } from "fs";
 import { DockerService, ContainerWithStats } from "./dockerService";
+import { initializeDatabase } from "./db/connection";
+import logger from "./logger";
 
 import { 
   AuthSession,
@@ -267,6 +269,51 @@ const server = createServer(async (req, res) => {
     return;
   }
 
+  if (pathname === "/api/logs" && req.method === "GET") {
+    res.setHeader("Content-Type", "application/json");
+
+    if (isAuthRequired()) {
+      const cookies = parseCookies(req.headers.cookie || "");
+      const sessionToken = cookies.session_token;
+      const session = sessionToken ? validateSession(sessionToken) : null;
+
+      if (!session) {
+        res.writeHead(401);
+        res.end(JSON.stringify({ error: "AUTH_REQUIRED" }));
+        return;
+      }
+    }
+
+    const { limit, offset, action, status, userId } = parsedUrl.query;
+    const parsedLimit = typeof limit === "string" ? Number(limit) : undefined;
+    const parsedOffset = typeof offset === "string" ? Number(offset) : undefined;
+
+    try {
+      const logs = await logger.getLogs({
+        action: typeof action === "string" ? action : undefined,
+        status: typeof status === "string" ? status : undefined,
+        userId: typeof userId === "string" ? userId : undefined,
+        limit: Number.isFinite(parsedLimit) ? parsedLimit : undefined,
+        offset: Number.isFinite(parsedOffset) ? parsedOffset : undefined,
+      });
+
+      res.writeHead(200);
+      res.end(JSON.stringify({ data: logs }));
+    } catch (error) {
+      res.writeHead(500);
+      res.end(
+        JSON.stringify({
+          error: "LOGS_FETCH_FAILED",
+          message:
+            error instanceof Error
+              ? error.message
+              : "Unable to fetch logs at this time",
+        })
+      );
+    }
+    return;
+  }
+
   // Default to index.html for root path
   if (pathname === "/") {
     pathname = "/index.html";
@@ -326,15 +373,23 @@ const server = createServer(async (req, res) => {
   }
 });
 
-// Start HTTP server on port 8080
-server.listen(8080, () => {
-  console.log("HTTP server running on port 8080");
-});
-
 // Create WebSocket server using the HTTP server
 const wss = new WebSocketServer({ server });
 
-console.log("WebSocket server running on port 8080");
+async function startServer() {
+  try {
+    await initializeDatabase();
+    server.listen(8080, () => {
+      console.log("HTTP server running on port 8080");
+      console.log("WebSocket server running on port 8080");
+    });
+  } catch (error) {
+    console.error("Failed to initialize database:", error);
+    process.exit(1);
+  }
+}
+
+startServer();
 
 wss.on("connection", function connection(ws, req) {
   const clientId = generateClientId();
