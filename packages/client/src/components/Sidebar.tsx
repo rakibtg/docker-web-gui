@@ -11,6 +11,7 @@ import {
   HiChevronLeft,
   HiChevronRight,
   HiInformationCircle,
+  HiClipboardList,
 } from "react-icons/hi";
 
 import { Tooltip } from "react-tooltip";
@@ -56,6 +57,11 @@ const sidebarItems: SidebarItem[] = [
     id: "cleanup",
     label: "Cleanup",
     icon: IoTrashBinOutline,
+  },
+  {
+    id: "logs",
+    label: "Logs",
+    icon: HiClipboardList,
   },
 ];
 

@@ -26,6 +26,9 @@ export interface LogQueryOptions {
   action?: string;
   userId?: string;
   status?: string;
+  username?: string;
+  ipAddress?: string;
+  isAnonymous?: boolean;
 }
 
 export class LoggerService {
@@ -54,28 +57,45 @@ export class LoggerService {
     return typeof id === "object" && id !== null ? (id as any).id : Number(id);
   }
 
-  async getLogs(options: LogQueryOptions = {}): Promise<LogEntry[]> {
+  async getLogs(options: LogQueryOptions = {}): Promise<{ logs: LogEntry[]; total: number }> {
     await initializeDatabase();
     const limit = Math.min(Math.max(options.limit ?? 50, 1), 200);
     const offset = Math.max(options.offset ?? 0, 0);
 
-    const rows = await this.db("action_logs")
-      .modify((queryBuilder) => {
-        if (options.action) {
-          queryBuilder.where("action", options.action);
-        }
-        if (options.userId) {
-          queryBuilder.where("user_id", options.userId);
-        }
-        if (options.status) {
-          queryBuilder.where("status", options.status);
-        }
-      })
+    const baseQuery = this.db("action_logs").modify((queryBuilder) => {
+      if (options.action) {
+        queryBuilder.where("action", options.action);
+      }
+      if (options.userId) {
+        queryBuilder.where("user_id", options.userId);
+      }
+      if (options.username) {
+        queryBuilder.where((qb) => {
+          qb.where("username", options.username).orWhere("user_id", options.username);
+        });
+      }
+      if (options.status) {
+        queryBuilder.where("status", options.status);
+      }
+      if (options.ipAddress) {
+        queryBuilder.where("ip_address", options.ipAddress);
+      }
+      if (typeof options.isAnonymous === "boolean") {
+        queryBuilder.where("is_anonymous", options.isAnonymous);
+      }
+    });
+
+    const countResult = await baseQuery.clone().count({ count: "*" });
+    const totalRaw = (countResult as any)?.[0]?.count ?? (countResult as any)?.[0]?.["count(*)"];
+    const total = typeof totalRaw === "string" ? parseInt(totalRaw, 10) : Number(totalRaw || 0);
+
+    const rows = await baseQuery
+      .clone()
       .orderBy("created_at", "desc")
       .limit(limit)
       .offset(offset);
 
-    return rows.map((row: any) => {
+    const logs = rows.map((row: any) => {
       let parsedMetadata: Record<string, any> | null = null;
       if (row.metadata) {
         try {
@@ -100,6 +120,8 @@ export class LoggerService {
         createdAt: row.created_at,
       };
     });
+
+    return { logs, total };
   }
 }
 

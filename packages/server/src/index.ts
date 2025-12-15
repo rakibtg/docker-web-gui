@@ -93,6 +93,55 @@ function broadcastToAllClients(message: object): void {
   }
 }
 
+interface LogContext {
+  userId: string | null;
+  username: string | null;
+  isAnonymous: boolean;
+}
+
+function createLogContext(session?: AuthSession | null): LogContext {
+  if (session) {
+    return {
+      userId: session.userId || session.username,
+      username: session.username,
+      isAnonymous: false,
+    };
+  }
+  return {
+    userId: null,
+    username: null,
+    isAnonymous: true,
+  };
+}
+
+async function recordAction(action: string, options: {
+  message?: string;
+  status?: string;
+  metadata?: Record<string, any>;
+  session?: AuthSession | null;
+  ipAddress?: string | null;
+  resourceType?: string | null;
+  resourceId?: string | null;
+} = {}): Promise<void> {
+  const context = createLogContext(options.session);
+  try {
+    await logger.logAction({
+      action,
+      message: options.message ?? null,
+      status: options.status ?? null,
+      metadata: options.metadata ?? null,
+      userId: context.userId,
+      username: context.username,
+      isAnonymous: context.isAnonymous,
+      ipAddress: options.ipAddress ?? null,
+      resourceType: options.resourceType ?? null,
+      resourceId: options.resourceId ?? null,
+    });
+  } catch (error) {
+    console.warn("Failed to log action:", error);
+  }
+}
+
 // Set up Docker service event listeners
 dockerService.on("stats", (containerWithStats: ContainerWithStats) => {
   broadcastStats(containerWithStats);
@@ -231,16 +280,33 @@ const server = createServer(async (req, res) => {
             `session_token=${session.token}; HttpOnly; Path=/; Max-Age=${24 * 60 * 60}; SameSite=Strict`
           ]);
           
+          await recordAction("auth_login", {
+            session,
+            status: "success",
+            message: "User logged in",
+            ipAddress: clientIP,
+          });
+
           res.writeHead(200);
           res.end(JSON.stringify({
             success: true,
             user: { username: session.username }
           }));
         } else {
+          await recordAction("auth_login", {
+            status: "failed",
+            message: "Invalid credentials",
+            ipAddress: clientIP,
+          });
           res.writeHead(401);
           res.end(JSON.stringify({ success: false, message: "Invalid credentials" }));
         }
       } catch (error) {
+        await recordAction("auth_login", {
+          status: "error",
+          message: "Login request failed",
+          ipAddress: clientIP,
+        });
         res.writeHead(400);
         res.end(JSON.stringify({ success: false, message: "Invalid request" }));
       }
@@ -250,6 +316,7 @@ const server = createServer(async (req, res) => {
     if (pathname === "/api/auth/logout" && req.method === "POST") {
       const cookies = parseCookies(req.headers.cookie || "");
       const sessionToken = cookies.session_token;
+      const session = sessionToken ? validateSession(sessionToken) : null;
       
       if (sessionToken) {
         destroySession(sessionToken);
@@ -259,6 +326,13 @@ const server = createServer(async (req, res) => {
         "session_token=; HttpOnly; Path=/; Max-Age=0; SameSite=Strict"
       ]);
       
+      await recordAction("auth_logout", {
+        session,
+        status: "success",
+        message: "User logged out",
+        ipAddress: clientIP,
+      });
+
       res.writeHead(200);
       res.end(JSON.stringify({ success: true }));
       return;
@@ -284,21 +358,46 @@ const server = createServer(async (req, res) => {
       }
     }
 
-    const { limit, offset, action, status, userId } = parsedUrl.query;
+    const { limit, offset, action, status, userId, username, ip, anonymous, page } = parsedUrl.query;
     const parsedLimit = typeof limit === "string" ? Number(limit) : undefined;
     const parsedOffset = typeof offset === "string" ? Number(offset) : undefined;
+    const parsedPage = typeof page === "string" ? Number(page) : undefined;
+    const effectiveLimit: number = Number.isFinite(parsedLimit) ? Number(parsedLimit) : 20;
+    const effectiveOffset: number =
+      Number.isFinite(parsedOffset) && parsedOffset !== undefined
+        ? Number(parsedOffset)
+        : Math.max((Number.isFinite(parsedPage) ? (parsedPage as number) - 1 : 0) * effectiveLimit, 0);
 
     try {
-      const logs = await logger.getLogs({
+      const { logs, total } = await logger.getLogs({
         action: typeof action === "string" ? action : undefined,
         status: typeof status === "string" ? status : undefined,
         userId: typeof userId === "string" ? userId : undefined,
-        limit: Number.isFinite(parsedLimit) ? parsedLimit : undefined,
-        offset: Number.isFinite(parsedOffset) ? parsedOffset : undefined,
+        username: typeof username === "string" ? username : undefined,
+        ipAddress: typeof ip === "string" ? ip : undefined,
+        isAnonymous:
+          typeof anonymous === "string"
+            ? anonymous === "true" || anonymous === "1"
+              ? true
+              : anonymous === "false" || anonymous === "0"
+              ? false
+              : undefined
+            : undefined,
+        limit: effectiveLimit,
+        offset: effectiveOffset,
       });
 
       res.writeHead(200);
-      res.end(JSON.stringify({ data: logs }));
+      res.end(
+        JSON.stringify({
+          data: logs,
+          meta: {
+            total,
+            page: parsedPage && parsedPage > 0 ? parsedPage : Math.floor(effectiveOffset / effectiveLimit) + 1,
+            pageSize: effectiveLimit,
+          },
+        })
+      );
     } catch (error) {
       res.writeHead(500);
       res.end(
@@ -373,9 +472,6 @@ const server = createServer(async (req, res) => {
   }
 });
 
-// Create WebSocket server using the HTTP server
-const wss = new WebSocketServer({ server });
-
 async function startServer() {
   try {
     await initializeDatabase();
@@ -390,6 +486,9 @@ async function startServer() {
 }
 
 startServer();
+
+// Create WebSocket server using the HTTP server
+const wss = new WebSocketServer({ server });
 
 wss.on("connection", function connection(ws, req) {
   const clientId = generateClientId();
@@ -637,6 +736,15 @@ wss.on("connection", function connection(ws, req) {
               })
             );
 
+            await recordAction("container_start", {
+              session,
+              ipAddress: clientIP,
+              resourceType: "container",
+              resourceId: containerId,
+              status: result.success ? "success" : "failed",
+              message: result.message,
+            });
+
             // Refresh container list after action
             if (result.success) {
               setTimeout(async () => {
@@ -657,6 +765,15 @@ wss.on("connection", function connection(ws, req) {
               }, 1000);
             }
           } catch (error) {
+            await recordAction("container_start", {
+              session,
+              ipAddress: clientIP,
+              resourceType: "container",
+              resourceId: parsedMessage?.containerId,
+              status: "error",
+              message:
+                error instanceof Error ? error.message : "Failed to start container",
+            });
             ws.send(
               JSON.stringify({
                 type: "error",
@@ -688,6 +805,15 @@ wss.on("connection", function connection(ws, req) {
               })
             );
 
+            await recordAction("container_stop", {
+              session,
+              ipAddress: clientIP,
+              resourceType: "container",
+              resourceId: containerId,
+              status: result.success ? "success" : "failed",
+              message: result.message,
+            });
+
             // Refresh container list after action
             if (result.success) {
               setTimeout(async () => {
@@ -708,6 +834,15 @@ wss.on("connection", function connection(ws, req) {
               }, 1000);
             }
           } catch (error) {
+            await recordAction("container_stop", {
+              session,
+              ipAddress: clientIP,
+              resourceType: "container",
+              resourceId: parsedMessage?.containerId,
+              status: "error",
+              message:
+                error instanceof Error ? error.message : "Failed to stop container",
+            });
             ws.send(
               JSON.stringify({
                 type: "error",
@@ -739,6 +874,15 @@ wss.on("connection", function connection(ws, req) {
               })
             );
 
+            await recordAction("container_restart", {
+              session,
+              ipAddress: clientIP,
+              resourceType: "container",
+              resourceId: containerId,
+              status: result.success ? "success" : "failed",
+              message: result.message,
+            });
+
             // Refresh container list after action
             if (result.success) {
               setTimeout(async () => {
@@ -759,6 +903,17 @@ wss.on("connection", function connection(ws, req) {
               }, 1000);
             }
           } catch (error) {
+            await recordAction("container_restart", {
+              session,
+              ipAddress: clientIP,
+              resourceType: "container",
+              resourceId: parsedMessage?.containerId,
+              status: "error",
+              message:
+                error instanceof Error
+                  ? error.message
+                  : "Failed to restart container",
+            });
             ws.send(
               JSON.stringify({
                 type: "error",
@@ -790,6 +945,15 @@ wss.on("connection", function connection(ws, req) {
               })
             );
 
+            await recordAction("container_remove", {
+              session,
+              ipAddress: clientIP,
+              resourceType: "container",
+              resourceId: containerId,
+              status: result.success ? "success" : "failed",
+              message: result.message,
+            });
+
             if (result.success) {
               setTimeout(async () => {
                 try {
@@ -808,6 +972,17 @@ wss.on("connection", function connection(ws, req) {
               }, 1000);
             }
           } catch (error) {
+            await recordAction("container_remove", {
+              session,
+              ipAddress: clientIP,
+              resourceType: "container",
+              resourceId: parsedMessage?.containerId,
+              status: "error",
+              message:
+                error instanceof Error
+                  ? error.message
+                  : "Failed to remove container",
+            });
             ws.send(
               JSON.stringify({
                 type: "error",
@@ -834,6 +1009,15 @@ wss.on("connection", function connection(ws, req) {
               })
             );
 
+            await recordAction("containers_prune", {
+              session,
+              ipAddress: clientIP,
+              resourceType: "container",
+              status: result.success ? "success" : "failed",
+              message: result.message,
+              metadata: result.data ? { summary: result.data } : undefined,
+            });
+
             if (result.success) {
               setTimeout(async () => {
                 try {
@@ -852,6 +1036,16 @@ wss.on("connection", function connection(ws, req) {
               }, 500);
             }
           } catch (error) {
+            await recordAction("containers_prune", {
+              session,
+              ipAddress: clientIP,
+              resourceType: "container",
+              status: "error",
+              message:
+                error instanceof Error
+                  ? error.message
+                  : "Failed to prune containers",
+            });
             ws.send(
               JSON.stringify({
                 type: "cleanup-result",
@@ -883,6 +1077,18 @@ wss.on("connection", function connection(ws, req) {
               })
             );
 
+            await recordAction("images_prune", {
+              session,
+              ipAddress: clientIP,
+              resourceType: "image",
+              status: result.success ? "success" : "failed",
+              message: result.message,
+              metadata: {
+                scope: result.data?.scope || (all ? "all" : "dangling"),
+                reclaimed: result.data?.SpaceReclaimed,
+              },
+            });
+
             if (result.success) {
               setTimeout(async () => {
                 try {
@@ -893,11 +1099,21 @@ wss.on("connection", function connection(ws, req) {
                     timestamp: new Date().toISOString(),
                   });
                 } catch (error) {
-                  console.error("Error refreshing images after prune:", error);
-                }
-              }, 500);
-            }
-          } catch (error) {
+                console.error("Error refreshing images after prune:", error);
+              }
+            }, 500);
+          }
+        } catch (error) {
+            await recordAction("images_prune", {
+              session,
+              ipAddress: clientIP,
+              resourceType: "image",
+              status: "error",
+              message:
+                error instanceof Error
+                  ? error.message
+                  : "Failed to prune images",
+            });
             ws.send(
               JSON.stringify({
                 type: "cleanup-result",
@@ -928,6 +1144,15 @@ wss.on("connection", function connection(ws, req) {
               })
             );
 
+            await recordAction("networks_prune", {
+              session,
+              ipAddress: clientIP,
+              resourceType: "network",
+              status: result.success ? "success" : "failed",
+              message: result.message,
+              metadata: result.data ? { summary: result.data } : undefined,
+            });
+
             if (result.success) {
               setTimeout(async () => {
                 try {
@@ -943,6 +1168,16 @@ wss.on("connection", function connection(ws, req) {
               }, 500);
             }
           } catch (error) {
+            await recordAction("networks_prune", {
+              session,
+              ipAddress: clientIP,
+              resourceType: "network",
+              status: "error",
+              message:
+                error instanceof Error
+                  ? error.message
+                  : "Failed to prune networks",
+            });
             ws.send(
               JSON.stringify({
                 type: "cleanup-result",
@@ -972,6 +1207,18 @@ wss.on("connection", function connection(ws, req) {
               })
             );
 
+            await recordAction("volumes_prune", {
+              session,
+              ipAddress: clientIP,
+              resourceType: "volume",
+              status: "success",
+              message: `Pruned ${result.deletedVolumes.length} volumes, reclaimed ${result.reclaimedSpace}`,
+              metadata: {
+                deletedVolumes: result.deletedVolumes,
+                reclaimedSpace: result.reclaimedSpace,
+              },
+            });
+
             setTimeout(async () => {
               try {
                 const volumes = await dockerService.getDockerVolumes();
@@ -985,6 +1232,16 @@ wss.on("connection", function connection(ws, req) {
               }
             }, 500);
           } catch (error) {
+            await recordAction("volumes_prune", {
+              session,
+              ipAddress: clientIP,
+              resourceType: "volume",
+              status: "error",
+              message:
+                error instanceof Error
+                  ? error.message
+                  : "Failed to prune volumes",
+            });
             ws.send(
               JSON.stringify({
                 type: "cleanup-result",
@@ -1015,6 +1272,18 @@ wss.on("connection", function connection(ws, req) {
                 timestamp: new Date().toISOString(),
               })
             );
+
+            await recordAction("system_prune", {
+              session,
+              ipAddress: clientIP,
+              resourceType: "docker",
+              status: result.success ? "success" : "failed",
+              message: result.message,
+              metadata: {
+                includeVolumes: !!includeVolumes,
+                summary: result.data,
+              },
+            });
 
             if (result.success) {
               setTimeout(async () => {
@@ -1056,6 +1325,16 @@ wss.on("connection", function connection(ws, req) {
               }, 500);
             }
           } catch (error) {
+            await recordAction("system_prune", {
+              session,
+              ipAddress: clientIP,
+              resourceType: "docker",
+              status: "error",
+              message:
+                error instanceof Error
+                  ? error.message
+                  : "Failed to run system prune",
+            });
             ws.send(
               JSON.stringify({
                 type: "cleanup-result",
@@ -1175,7 +1454,27 @@ wss.on("connection", function connection(ws, req) {
 
             // Don't send connection confirmation message
             // Just set the connected state on the client side
+
+            await recordAction("terminal_connect", {
+              session,
+              ipAddress: clientIP,
+              resourceType: "container",
+              resourceId: containerId,
+              status: "success",
+              message: `Terminal ${terminalId} connected`,
+            });
           } catch (error) {
+            await recordAction("terminal_connect", {
+              session,
+              ipAddress: clientIP,
+              resourceType: "container",
+              resourceId: parsedMessage?.containerId,
+              status: "error",
+              message:
+                error instanceof Error
+                  ? error.message
+                  : "Failed to connect terminal",
+            });
             ws.send(
               JSON.stringify({
                 type: "terminal-error",
@@ -1223,7 +1522,26 @@ wss.on("connection", function connection(ws, req) {
               client.terminals?.delete(terminalId);
               console.log(`Disconnected terminal ${terminalId}`);
             }
+            await recordAction("terminal_disconnect", {
+              session,
+              ipAddress: clientIP,
+              resourceType: "container",
+              resourceId: parsedMessage?.containerId,
+              status: "success",
+              message: `Terminal ${terminalId} disconnected`,
+            });
           } catch (error) {
+            await recordAction("terminal_disconnect", {
+              session,
+              ipAddress: clientIP,
+              resourceType: "container",
+              resourceId: parsedMessage?.containerId,
+              status: "error",
+              message:
+                error instanceof Error
+                  ? error.message
+                  : "Error disconnecting terminal",
+            });
             console.error("Error disconnecting terminal:", error);
           }
           break;
@@ -1298,7 +1616,27 @@ wss.on("connection", function connection(ws, req) {
               }
               client.terminals?.delete(terminalId);
             });
+
+            await recordAction("logs_stream_start", {
+              session,
+              ipAddress: clientIP,
+              resourceType: "container",
+              resourceId: containerId,
+              status: "success",
+              message: `Logs streaming started for container ${containerId}`,
+            });
           } catch (error) {
+            await recordAction("logs_stream_start", {
+              session,
+              ipAddress: clientIP,
+              resourceType: "container",
+              resourceId: parsedMessage?.containerId,
+              status: "error",
+              message:
+                error instanceof Error
+                  ? error.message
+                  : "Failed to connect to logs",
+            });
             ws.send(
               JSON.stringify({
                 type: "logs-error",
@@ -1322,7 +1660,26 @@ wss.on("connection", function connection(ws, req) {
               client.terminals?.delete(terminalId);
               console.log(`Disconnected logs session ${terminalId}`);
             }
+            await recordAction("logs_stream_stop", {
+              session,
+              ipAddress: clientIP,
+              resourceType: "container",
+              resourceId: parsedMessage?.containerId,
+              status: "success",
+              message: `Logs stream disconnected (${terminalId})`,
+            });
           } catch (error) {
+            await recordAction("logs_stream_stop", {
+              session,
+              ipAddress: clientIP,
+              resourceType: "container",
+              resourceId: parsedMessage?.containerId,
+              status: "error",
+              message:
+                error instanceof Error
+                  ? error.message
+                  : "Error disconnecting logs session",
+            });
             console.error("Error disconnecting logs session:", error);
           }
           break;
@@ -1408,6 +1765,16 @@ wss.on("connection", function connection(ws, req) {
               })
             );
 
+            await recordAction("image_remove", {
+              session,
+              ipAddress: clientIP,
+              resourceType: "image",
+              resourceId: imageId,
+              status: result.success ? "success" : "failed",
+              message: result.message,
+              metadata: { force: !!force },
+            });
+
             // Refresh images list after action
             if (result.success) {
               setTimeout(async () => {
@@ -1424,6 +1791,17 @@ wss.on("connection", function connection(ws, req) {
               }, 1000);
             }
           } catch (error) {
+            await recordAction("image_remove", {
+              session,
+              ipAddress: clientIP,
+              resourceType: "image",
+              resourceId: parsedMessage?.imageId,
+              status: "error",
+              message:
+                error instanceof Error
+                  ? error.message
+                  : "Failed to remove image",
+            });
             ws.send(
               JSON.stringify({
                 type: "error",
@@ -1567,7 +1945,26 @@ wss.on("connection", function connection(ws, req) {
                 timestamp: new Date().toISOString(),
               })
             );
+            await recordAction("volume_remove", {
+              session,
+              ipAddress: clientIP,
+              resourceType: "volume",
+              resourceId: volumeName,
+              status: "success",
+              message: `Volume "${volumeName}" removed successfully`,
+            });
           } catch (error) {
+            await recordAction("volume_remove", {
+              session,
+              ipAddress: clientIP,
+              resourceType: "volume",
+              resourceId: parsedMessage?.volumeName,
+              status: "error",
+              message:
+                error instanceof Error
+                  ? error.message
+                  : "Failed to remove volume",
+            });
             ws.send(
               JSON.stringify({
                 type: "error",

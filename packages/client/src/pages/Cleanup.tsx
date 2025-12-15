@@ -12,7 +12,6 @@ import { useApp } from "../hooks/useApp";
 import {
   FaRecycle,
   FaBroom,
-  FaTrashAlt,
   FaNetworkWired,
   FaHdd,
   FaShieldAlt,
@@ -247,9 +246,6 @@ const Cleanup = memo(function Cleanup() {
       <div className="space-y-6">
         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <div>
-            {/* <p className="text-sm uppercase tracking-wide text-blue-300 flex items-center gap-2">
-              <FaTrashAlt className="w-4 h-4" /> Cleanup
-            </p> */}
             <h2 className="text-lg font-bold text-gray-900 dark:text-gray-300">
               Cleanup
             </h2>
