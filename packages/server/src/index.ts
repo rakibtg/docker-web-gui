@@ -14,6 +14,16 @@ import {
   deleteGroup,
   getGroupById,
 } from "./groups";
+import {
+  buildCsrfCookie,
+  generateCsrfToken,
+  getCsrfTokenFromCookies,
+  getCsrfTokenFromHeaders,
+  isValidCsrfToken,
+  CSRF_COOKIE_NAME,
+  HOST_CSRF_COOKIE_NAME,
+} from "./csrf";
+import { authRateLimiter } from "./rateLimiter";
 
 import {
   AuthSession,
@@ -30,8 +40,6 @@ import {
   getSettings,
   isTrustedProxyRequest,
 } from "./settings";
-
-import { authRateLimiter } from "./rateLimiter";
 
 // Client management for WebSocket connections
 interface ClientConnection {
@@ -299,6 +307,26 @@ function clearSessionCookie(name: string, secure: boolean): string {
   return cookie;
 }
 
+function getCsrfTokenCookieName(secure: boolean): string {
+  const useHostCookie =
+    secure && isTruthyEnv(process.env.USE_HOST_COOKIE_PREFIX);
+  return useHostCookie ? HOST_CSRF_COOKIE_NAME : CSRF_COOKIE_NAME;
+}
+
+function isCsrfProtectedMethod(method?: string): boolean {
+  if (!method) {
+    return false;
+  }
+  return ["POST", "PUT", "DELETE"].includes(method.toUpperCase());
+}
+
+function isValidCsrfRequest(req: any): boolean {
+  const cookies = parseCookies(req.headers.cookie || "");
+  const cookieToken = getCsrfTokenFromCookies(cookies);
+  const headerToken = getCsrfTokenFromHeaders(req.headers);
+  return isValidCsrfToken(cookieToken, headerToken);
+}
+
 function normalizeOriginValue(origin: string): string | null {
   try {
     return new URL(origin).origin.toLowerCase();
@@ -452,6 +480,22 @@ const server = createServer(async (req, res) => {
     }
   }
 
+  if (pathname.startsWith("/api/") && isCsrfProtectedMethod(req.method)) {
+    if (!isValidCsrfRequest(req)) {
+      res.setHeader("Content-Type", "application/json");
+      res.writeHead(403);
+      res.end(
+        JSON.stringify({
+          error: "CSRF_TOKEN_INVALID",
+          message: "Invalid or missing CSRF token",
+        })
+      );
+      return;
+    } else {
+      console.log("Valid CSRF token received");
+    }
+  }
+
   // Handle IP access check endpoint
   if (pathname === "/api/ip-access" && req.method === "GET") {
     res.setHeader("Content-Type", "application/json");
@@ -463,6 +507,21 @@ const server = createServer(async (req, res) => {
         ip: clientIP,
       })
     );
+    return;
+  }
+
+  if (pathname === "/api/csrf" && req.method === "GET") {
+    res.setHeader("Content-Type", "application/json");
+    res.setHeader("Cache-Control", "no-store");
+    const token = generateCsrfToken();
+    const secureCookie = isSecureRequest(req);
+    const cookieName = getCsrfTokenCookieName(secureCookie);
+    res.setHeader(
+      "Set-Cookie",
+      buildCsrfCookie(cookieName, token, secureCookie)
+    );
+    res.writeHead(200);
+    res.end(JSON.stringify({ csrfToken: token }));
     return;
   }
 
