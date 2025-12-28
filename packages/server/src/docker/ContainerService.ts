@@ -12,7 +12,12 @@ export class ContainerService extends BaseDockerService {
   static async getDockerContainers(): Promise<DockerContainer[]> {
     try {
       const { stdout } = await this.execDockerCommand(
-        'docker ps -a --format "{{.ID}}|{{.Names}}|{{.Image}}|{{.Status}}|{{.State}}|{{.Ports}}|{{.CreatedAt}}"'
+        [
+          "ps",
+          "-a",
+          "--format",
+          "{{.ID}}|{{.Names}}|{{.Image}}|{{.Status}}|{{.State}}|{{.Ports}}|{{.CreatedAt}}",
+        ]
       );
 
       const containers: DockerContainer[] = stdout
@@ -47,14 +52,15 @@ export class ContainerService extends BaseDockerService {
     containerId: string
   ): Promise<DockerOperationResult> {
     try {
+      const normalizedId = this.validateContainerId(containerId);
       const { stdout } = await this.execDockerCommand(
-        `docker start ${containerId}`
+        ["start", normalizedId]
       );
-      console.log(`Container ${containerId} started:`, stdout);
+      console.log(`Container ${normalizedId} started:`, stdout);
 
       return {
         success: true,
-        message: `Container ${containerId} started successfully`,
+        message: `Container ${normalizedId} started successfully`,
       };
     } catch (error) {
       console.error(`Error starting container ${containerId}:`, error);
@@ -73,14 +79,15 @@ export class ContainerService extends BaseDockerService {
     containerId: string
   ): Promise<DockerOperationResult> {
     try {
+      const normalizedId = this.validateContainerId(containerId);
       const { stdout } = await this.execDockerCommand(
-        `docker stop ${containerId}`
+        ["stop", normalizedId]
       );
-      console.log(`Container ${containerId} stopped:`, stdout);
+      console.log(`Container ${normalizedId} stopped:`, stdout);
 
       return {
         success: true,
-        message: `Container ${containerId} stopped successfully`,
+        message: `Container ${normalizedId} stopped successfully`,
       };
     } catch (error) {
       console.error(`Error stopping container ${containerId}:`, error);
@@ -99,14 +106,15 @@ export class ContainerService extends BaseDockerService {
     containerId: string
   ): Promise<DockerOperationResult> {
     try {
+      const normalizedId = this.validateContainerId(containerId);
       const { stdout } = await this.execDockerCommand(
-        `docker restart ${containerId}`
+        ["restart", normalizedId]
       );
-      console.log(`Container ${containerId} restarted:`, stdout);
+      console.log(`Container ${normalizedId} restarted:`, stdout);
 
       return {
         success: true,
-        message: `Container ${containerId} restarted successfully`,
+        message: `Container ${normalizedId} restarted successfully`,
       };
     } catch (error) {
       console.error(`Error restarting container ${containerId}:`, error);
@@ -126,7 +134,7 @@ export class ContainerService extends BaseDockerService {
   static async pruneContainers(): Promise<DockerOperationResult> {
     try {
       const { stdout, stderr } = await this.execDockerCommand(
-        "docker container prune -f"
+        ["container", "prune", "-f"]
       );
 
       if (stderr && !stderr.includes("WARNING")) {
@@ -176,32 +184,42 @@ export class ContainerService extends BaseDockerService {
     containerId: string
   ): Promise<DockerOperationResult> {
     let stopError: string | null = null;
+    let normalizedId = "";
+    try {
+      normalizedId = this.validateContainerId(containerId);
+    } catch (error) {
+      return {
+        success: false,
+        message:
+          error instanceof Error ? error.message : "Failed to remove container",
+      };
+    }
 
     try {
       const { stdout } = await this.execDockerCommand(
-        `docker stop ${containerId}`
+        ["stop", normalizedId]
       );
-      console.log(`Container ${containerId} stopped before removal:`, stdout);
+      console.log(`Container ${normalizedId} stopped before removal:`, stdout);
     } catch (error) {
       stopError =
         error instanceof Error ? error.message : "Failed to stop container";
       console.warn(
-        `Proceeding with removal despite stop failure for ${containerId}:`,
+        `Proceeding with removal despite stop failure for ${normalizedId}:`,
         error
       );
     }
 
     try {
       const { stdout } = await this.execDockerCommand(
-        `docker rm -f ${containerId}`
+        ["rm", "-f", normalizedId]
       );
-      console.log(`Container ${containerId} removed:`, stdout);
+      console.log(`Container ${normalizedId} removed:`, stdout);
 
       return {
         success: true,
         message: stopError
           ? `Container removed (stop failed: ${stopError})`
-          : `Container ${containerId} removed successfully`,
+          : `Container ${normalizedId} removed successfully`,
       };
     } catch (error) {
       console.error(`Error removing container ${containerId}:`, error);
@@ -222,33 +240,34 @@ export class ContainerService extends BaseDockerService {
     containerId: string
   ): Promise<DockerContainerDetails> {
     try {
-      console.log(`Getting container details for: ${containerId}`);
+      const normalizedId = this.validateContainerId(containerId);
+      console.log(`Getting container details for: ${normalizedId}`);
 
       // First check if container exists
       const { stdout: containerExists } = await this.execDockerCommand(
-        `docker ps -a --format "{{.ID}}" --filter id=${containerId}`
+        ["ps", "-a", "--format", "{{.ID}}", "--filter", `id=${normalizedId}`]
       );
 
       if (!containerExists.trim()) {
-        throw new Error(`Container "${containerId}" not found`);
+        throw new Error(`Container "${normalizedId}" not found`);
       }
 
-      console.log(`Container ${containerId} found, getting detailed info...`);
+      console.log(`Container ${normalizedId} found, getting detailed info...`);
 
       // Get detailed container info using docker inspect
       const { stdout: containerInfo } = await this.execDockerCommand(
-        `docker inspect ${containerId}`
+        ["inspect", normalizedId]
       );
 
       const containerDetails = JSON.parse(containerInfo)[0];
-      console.log(`Container details parsed for: ${containerId}`);
+      console.log(`Container details parsed for: ${normalizedId}`);
 
       // Extract basic container info first
       const basicInfo = await this.getDockerContainers();
       const basicContainer = basicInfo.find((c) =>
         c.id.startsWith(containerId)
       ) || {
-        id: containerDetails.Id || containerId,
+        id: containerDetails.Id || normalizedId,
         name: (containerDetails.Name || "").replace(/^\//, ""),
         image: containerDetails.Config?.Image || "",
         status: containerDetails.State?.Status || "",
@@ -257,7 +276,7 @@ export class ContainerService extends BaseDockerService {
         created: containerDetails.Created || "",
       };
 
-      console.log(`Basic container info extracted for: ${containerId}`);
+      console.log(`Basic container info extracted for: ${normalizedId}`);
 
       // Process port bindings
       let ports = "";
@@ -327,7 +346,7 @@ export class ContainerService extends BaseDockerService {
         architecture: containerDetails.Architecture || "",
       };
 
-      console.log(`Container details successfully created for: ${containerId}`);
+      console.log(`Container details successfully created for: ${normalizedId}`);
       return detailedContainer;
     } catch (error) {
       console.error("Error getting Docker container details:", error);
