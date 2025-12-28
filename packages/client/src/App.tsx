@@ -1,15 +1,16 @@
 import {
+  Logs,
   About,
   Images,
+  Groups,
   Volumes,
+  Cleanup,
   Networks,
   Dashboard,
   ImageDetails,
   VolumeDetails,
   ContainersPage,
   ContainerDetails,
-  Cleanup,
-  Logs,
 } from "./pages";
 
 import { useApp } from "./hooks/useApp";
@@ -38,9 +39,13 @@ function AppContent() {
           <Layout>
             <main className="h-full">
               <Routes>
-                <Route path="/" element={<Navigate to="/containers" replace />} />
+                <Route
+                  path="/"
+                  element={<Navigate to="/containers" replace />}
+                />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/containers" element={<ContainersPage />} />
+                <Route path="/groups" element={<Groups />} />
                 <Route
                   path="/containers/:containerId"
                   element={<ContainerDetails />}
@@ -53,7 +58,10 @@ function AppContent() {
                 <Route path="/cleanup" element={<Cleanup />} />
                 <Route path="/logs" element={<Logs />} />
                 <Route path="/about" element={<About />} />
-                <Route path="*" element={<Navigate to="/containers" replace />} />
+                <Route
+                  path="*"
+                  element={<Navigate to="/containers" replace />}
+                />
               </Routes>
             </main>
             <TerminalToggle />
