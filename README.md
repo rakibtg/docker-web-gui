@@ -60,8 +60,25 @@ docker run -p 8080:8080 \
   -e SETTINGS_PATH=/config/settings.json \
   -v /usr/local/bin/docker:/usr/local/bin/docker \
   -v /var/run/docker.sock:/var/run/docker.sock \
+docker-web-gui
+```
+
+### Host system metrics in Docker
+
+The System Resources card reads host metrics from the server. When you run in Docker, the container can only see what the Docker host exposes. On Linux hosts you can bind-mount host paths to make host-level CPU/memory/disk visible:
+
+```
+docker run -p 8080:8080 \
+  -v /proc:/host/proc:ro \
+  -v /:/host:ro \
+  -e HOST_PROC=/host/proc \
+  -e HOST_ROOT=/host \
+  -v /usr/local/bin/docker:/usr/local/bin/docker \
+  -v /var/run/docker.sock:/var/run/docker.sock \
   docker-web-gui
 ```
+
+Note: On Docker Desktop (macOS/Windows), containers run inside a Linux VM, so metrics reflect that VM rather than the macOS/Windows host.
 
 ### Without Docker Compose
 
