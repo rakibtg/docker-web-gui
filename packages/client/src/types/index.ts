@@ -149,10 +149,18 @@ export interface ContainerWithStats extends DockerContainer {
 
 export interface ServerMessage {
   type: string;
-  data?: DockerContainer[] | ContainerWithStats | unknown;
-  message?: string;
-  available?: boolean;
-  timestamp?: string;
   error?: string;
+  message?: string;
+  timestamp?: string;
+  available?: boolean;
   clientId?: string;
+  data?: DockerContainer[] | ContainerWithStats | unknown;
+}
+
+export interface ContainerGroup {
+  id: number;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+  containerIds: string[];
 }
