@@ -72,6 +72,30 @@ export async function listGroups(): Promise<ContainerGroup[]> {
   );
 }
 
+export async function getGroupById(
+  groupId: number
+): Promise<ContainerGroup | null> {
+  const db = getDatabase();
+  const group: ContainerGroupRow | undefined = await db("container_groups")
+    .select("id", "name", "created_at", "updated_at")
+    .where({ id: groupId })
+    .first();
+
+  if (!group) {
+    return null;
+  }
+
+  const containers: GroupContainerRow[] = await db("group_containers")
+    .select("group_id", "container_id")
+    .where({ group_id: groupId })
+    .orderBy("container_id", "asc");
+
+  return mapGroupRow(
+    group,
+    containers.map((container) => container.container_id)
+  );
+}
+
 export async function createGroup(
   name: string,
   containerIds: string[]
