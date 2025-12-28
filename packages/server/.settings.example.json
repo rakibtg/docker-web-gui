@@ -1,0 +1,16 @@
+{
+  "auth_protected": true,
+  "users": [
+    {
+      "username": "admin",
+      "password": "your-password-here"
+    }
+  ],
+  "allowed_ip_list": null,
+  "rate_limit": {
+    "window_minutes": 15,
+    "max_attempts": 5,
+    "block_minutes": 15,
+    "max_tracked_ips": 10000
+  }
+}
