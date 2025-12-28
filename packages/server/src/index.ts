@@ -7,6 +7,12 @@ import { join, extname, resolve, sep } from "path";
 import { initializeDatabase } from "./db/connection";
 import { DockerService, ContainerWithStats } from "./dockerService";
 import { getSystemStats } from "./systemStats";
+import {
+  listGroups,
+  createGroup,
+  updateGroup,
+  deleteGroup,
+} from "./groups";
 
 import {
   AuthSession,
@@ -644,6 +650,185 @@ const server = createServer(async (req, res) => {
       );
     }
     return;
+  }
+
+  if (pathname === "/api/groups" && req.method === "GET") {
+    res.setHeader("Content-Type", "application/json");
+
+    if (isAuthRequired()) {
+      const cookies = parseCookies(req.headers.cookie || "");
+      const sessionToken = getSessionTokenFromCookies(cookies);
+      const session = sessionToken ? validateSession(sessionToken) : null;
+
+      if (!session) {
+        res.writeHead(401);
+        res.end(JSON.stringify({ error: "AUTH_REQUIRED" }));
+        return;
+      }
+    }
+
+    try {
+      const groups = await listGroups();
+      res.writeHead(200);
+      res.end(JSON.stringify({ data: groups }));
+    } catch (error) {
+      console.error("Failed to fetch groups:", error);
+      res.writeHead(500);
+      res.end(JSON.stringify({ error: "GROUPS_FETCH_FAILED" }));
+    }
+    return;
+  }
+
+  if (pathname === "/api/groups" && req.method === "POST") {
+    res.setHeader("Content-Type", "application/json");
+
+    if (isAuthRequired()) {
+      const cookies = parseCookies(req.headers.cookie || "");
+      const sessionToken = getSessionTokenFromCookies(cookies);
+      const session = sessionToken ? validateSession(sessionToken) : null;
+
+      if (!session) {
+        res.writeHead(401);
+        res.end(JSON.stringify({ error: "AUTH_REQUIRED" }));
+        return;
+      }
+    }
+
+    try {
+      const body = await readRequestBody(req);
+      const payload = JSON.parse(body);
+      const name =
+        typeof payload?.name === "string" ? payload.name.trim() : "";
+      const containerIds = Array.isArray(payload?.containerIds)
+        ? payload.containerIds.filter((id: unknown) => typeof id === "string")
+        : [];
+
+      if (!name) {
+        res.writeHead(400);
+        res.end(
+          JSON.stringify({ error: "INVALID_REQUEST", message: "Name required" })
+        );
+        return;
+      }
+
+      const group = await createGroup(name, containerIds);
+      res.writeHead(201);
+      res.end(JSON.stringify({ data: group }));
+    } catch (error: any) {
+      const message = error?.message || "Failed to create group";
+      const isConstraint =
+        typeof message === "string" &&
+        message.toLowerCase().includes("unique");
+      const isSyntaxError = error instanceof SyntaxError;
+      res.writeHead(isSyntaxError ? 400 : isConstraint ? 409 : 500);
+      res.end(
+        JSON.stringify({
+          error: isConstraint
+            ? "GROUP_NAME_EXISTS"
+            : isSyntaxError
+            ? "INVALID_REQUEST"
+            : "GROUP_CREATE_FAILED",
+          message,
+        })
+      );
+    }
+    return;
+  }
+
+  if (pathname.startsWith("/api/groups/")) {
+    res.setHeader("Content-Type", "application/json");
+
+    if (isAuthRequired()) {
+      const cookies = parseCookies(req.headers.cookie || "");
+      const sessionToken = getSessionTokenFromCookies(cookies);
+      const session = sessionToken ? validateSession(sessionToken) : null;
+
+      if (!session) {
+        res.writeHead(401);
+        res.end(JSON.stringify({ error: "AUTH_REQUIRED" }));
+        return;
+      }
+    }
+
+    const idSegment = pathname.split("/")[3];
+    const groupId = Number(idSegment);
+    if (!idSegment || !Number.isFinite(groupId) || groupId <= 0) {
+      res.writeHead(400);
+      res.end(
+        JSON.stringify({ error: "INVALID_REQUEST", message: "Invalid group" })
+      );
+      return;
+    }
+
+    if (req.method === "PUT") {
+      try {
+        const body = await readRequestBody(req);
+        const payload = JSON.parse(body);
+        const name =
+          typeof payload?.name === "string" ? payload.name.trim() : "";
+        const containerIds = Array.isArray(payload?.containerIds)
+          ? payload.containerIds.filter(
+              (id: unknown) => typeof id === "string"
+            )
+          : [];
+
+        if (!name) {
+          res.writeHead(400);
+          res.end(
+            JSON.stringify({
+              error: "INVALID_REQUEST",
+              message: "Name required",
+            })
+          );
+          return;
+        }
+
+        const group = await updateGroup(groupId, name, containerIds);
+        if (!group) {
+          res.writeHead(404);
+          res.end(JSON.stringify({ error: "GROUP_NOT_FOUND" }));
+          return;
+        }
+
+        res.writeHead(200);
+        res.end(JSON.stringify({ data: group }));
+      } catch (error: any) {
+        const message = error?.message || "Failed to update group";
+        const isConstraint =
+          typeof message === "string" &&
+          message.toLowerCase().includes("unique");
+        const isSyntaxError = error instanceof SyntaxError;
+        res.writeHead(isSyntaxError ? 400 : isConstraint ? 409 : 500);
+        res.end(
+          JSON.stringify({
+            error: isConstraint
+              ? "GROUP_NAME_EXISTS"
+              : isSyntaxError
+              ? "INVALID_REQUEST"
+              : "GROUP_UPDATE_FAILED",
+            message,
+          })
+        );
+      }
+      return;
+    }
+
+    if (req.method === "DELETE") {
+      try {
+        const deleted = await deleteGroup(groupId);
+        if (!deleted) {
+          res.writeHead(404);
+          res.end(JSON.stringify({ error: "GROUP_NOT_FOUND" }));
+          return;
+        }
+        res.writeHead(200);
+        res.end(JSON.stringify({ success: true }));
+      } catch (error) {
+        res.writeHead(500);
+        res.end(JSON.stringify({ error: "GROUP_DELETE_FAILED" }));
+      }
+      return;
+    }
   }
 
   if (pathname === "/api/system-stats" && req.method === "GET") {
