@@ -276,10 +276,6 @@ const Groups = memo(function Groups() {
     setPendingAction({ group, type: "delete-group" });
   }, []);
 
-  const confirmGroupContainerRemoval = useCallback((group: ContainerGroup) => {
-    setPendingAction({ group, type: "delete-containers" });
-  }, []);
-
   const handleConfirmAction = useCallback(async () => {
     if (!pendingAction) {
       return;
@@ -505,7 +501,6 @@ const Groups = memo(function Groups() {
     handleOpenTerminal,
     handleOpenLogs,
     confirmGroupDeletion,
-    confirmGroupContainerRemoval,
     handleEditGroup,
   ]);
 
