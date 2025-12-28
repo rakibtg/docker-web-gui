@@ -6,7 +6,9 @@ services:
     build:
       context: .
     ports:
-      - "3230:8080"
+      - "127.0.0.1:3230:8080"
+    environment:
+      - BIND_HOST=0.0.0.0
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     restart: always  # This ensures the container auto-starts and restarts on failure
