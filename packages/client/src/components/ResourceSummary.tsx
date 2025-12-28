@@ -62,7 +62,7 @@ const SummaryCard = ({
 
   return (
     <div
-      className={`relative group border rounded-lg ${colors.border} ${colors.bg} p-6 hover:shadow-xl hover:shadow-${color}-500/10 overflow-hidden`}
+      className={`relative group border rounded-sm ${colors.border} ${colors.bg} p-6 hover:shadow-xl hover:shadow-${color}-500/10 overflow-hidden`}
     >
       <div
         className={`absolute -inset-0.5 ${colors.bg} rounded-2xl blur opacity-30 group-hover:opacity-50 transition-opacity duration-300`}
@@ -71,7 +71,7 @@ const SummaryCard = ({
       <div className="relative">
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center space-x-4">
-            <div className={`p-3 rounded-lg ${colors.icon} shadow-lg`}>
+            <div className={`p-3 rounded-sm ${colors.icon} shadow-lg`}>
               {icon}
             </div>
             <div>

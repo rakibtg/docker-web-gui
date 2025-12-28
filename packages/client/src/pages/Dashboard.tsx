@@ -159,18 +159,18 @@ const Dashboard = memo(function Dashboard() {
         </section>
 
         <section>
-          <div className="flex items-center mb-4 justify-between gap-3">
+          <div className="flex items-center mb-4 justify-between gap-2">
             <h3 className="font-semibold text-gray-100 flex items-center space-x-2">
               <span>Recent Activity</span>
             </h3>
             <button
               onClick={() => navigate("/logs")}
-              className="px-3 py-1.5 text-sm rounded-lg bg-gray-800 border border-gray-700 text-gray-100 hover:bg-gray-700 transition-colors"
+              className="px-3 py-1.5 text-sm rounded-sm bg-gray-800 border border-gray-700 text-gray-100 hover:bg-gray-700 transition-colors"
             >
               See all logs
             </button>
           </div>
-          <div className="bg-gray-800 border border-gray-700 rounded-xl p-4 shadow-lg shadow-black/20">
+          <div className="bg-gray-800 border border-gray-700 rounded-sm p-4 shadow-lg shadow-black/20">
             {recentLogsList}
           </div>
         </section>

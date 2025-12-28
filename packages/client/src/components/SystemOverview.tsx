@@ -88,7 +88,7 @@ export const SystemOverview = memo(function SystemOverview({
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* Docker Status Card */}
-      <div className="bg-gray-800 rounded-lg border border-gray-700 p-6">
+      <div className="bg-gray-800 rounded-sm border border-gray-700 p-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-100 flex items-center space-x-2">
             <FaDocker className="text-blue-500" />
@@ -138,7 +138,7 @@ export const SystemOverview = memo(function SystemOverview({
       </div>
 
       {/* System Resources Card */}
-      <div className="bg-gray-800 rounded-lg border border-gray-700 p-6">
+      <div className="bg-gray-800 rounded-sm border border-gray-700 p-6">
         <h3 className="text-lg font-semibold text-gray-100 mb-6 flex items-center space-x-2">
           <FaServer className="text-green-500" />
           <span>System Resources</span>
