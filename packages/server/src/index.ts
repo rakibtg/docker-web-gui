@@ -1402,7 +1402,9 @@ wss.on("connection", function connection(ws, req) {
             // Validate container ID before processing
             const validatedContainerId = validateContainerIdInput(containerId);
 
-            const result = await dockerService.startContainer(validatedContainerId);
+            const result = await dockerService.startContainer(
+              validatedContainerId
+            );
             ws.send(
               JSON.stringify({
                 type: "container-action-result",
@@ -1476,7 +1478,9 @@ wss.on("connection", function connection(ws, req) {
             // Validate container ID before processing
             const validatedContainerId = validateContainerIdInput(containerId);
 
-            const result = await dockerService.stopContainer(validatedContainerId);
+            const result = await dockerService.stopContainer(
+              validatedContainerId
+            );
             ws.send(
               JSON.stringify({
                 type: "container-action-result",
@@ -1550,7 +1554,9 @@ wss.on("connection", function connection(ws, req) {
             // Validate container ID before processing
             const validatedContainerId = validateContainerIdInput(containerId);
 
-            const result = await dockerService.restartContainer(validatedContainerId);
+            const result = await dockerService.restartContainer(
+              validatedContainerId
+            );
             ws.send(
               JSON.stringify({
                 type: "container-action-result",
@@ -1624,7 +1630,9 @@ wss.on("connection", function connection(ws, req) {
             // Validate container ID before processing
             const validatedContainerId = validateContainerIdInput(containerId);
 
-            const result = await dockerService.removeContainer(validatedContainerId);
+            const result = await dockerService.removeContainer(
+              validatedContainerId
+            );
             ws.send(
               JSON.stringify({
                 type: "container-action-result",
@@ -2055,9 +2063,13 @@ wss.on("connection", function connection(ws, req) {
             // Validate container ID before processing
             const validatedContainerId = validateContainerIdInput(containerId);
 
-            console.log(`Requesting container details for: ${validatedContainerId}`);
+            console.log(
+              `Requesting container details for: ${validatedContainerId}`
+            );
             const containerDetails =
-              await dockerService.getDockerContainerDetails(validatedContainerId);
+              await dockerService.getDockerContainerDetails(
+                validatedContainerId
+              );
             console.log(
               `Container details retrieved successfully for: ${validatedContainerId}`
             );
