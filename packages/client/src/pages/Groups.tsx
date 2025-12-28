@@ -7,16 +7,23 @@ import {
   type FormEvent,
 } from "react";
 
-import { MdRefresh } from "react-icons/md";
+import {
+  ContainerGrid,
+  CardActionButton,
+  ConfirmationModal,
+} from "../components";
+
 import { useApp } from "../hooks/useApp";
+import { MdRefresh } from "react-icons/md";
+import { MdModeEdit } from "react-icons/md";
 import { useGroups } from "../hooks/useGroups";
+import { IoReloadCircle } from "react-icons/io5";
 import { useTerminal } from "../hooks/useTerminal";
 import SearchInput from "../components/SearchInput";
 import { PageWrapper } from "../components/PageWrapper";
 import { HiChevronDown, HiChevronRight } from "react-icons/hi";
-import { ContainerGrid, ConfirmationModal } from "../components";
+import { FaPlay, FaStop, FaTrash, FaTimes } from "react-icons/fa";
 import type { ContainerGroup, ContainerWithStats } from "../types";
-import { FaPlay, FaStop, FaTrash, FaEdit, FaTimes } from "react-icons/fa";
 
 type GroupActionTarget = {
   group: ContainerGroup;
@@ -29,8 +36,8 @@ const Groups = memo(function Groups() {
     containers,
     requestContainers,
     handleContainerToggle,
-    handleContainerRestart,
     handleContainerRemove,
+    handleContainerRestart,
   } = useApp();
 
   const { openTerminal, openLogs } = useTerminal();
@@ -176,8 +183,14 @@ const Groups = memo(function Groups() {
   }, []);
 
   const handleGroupToggle = useCallback(
-    (groupContainers: ContainerWithStats[]) => {
+    (groupContainers: ContainerWithStats[], stopRunning: boolean) => {
       groupContainers.forEach((container) => {
+        if (stopRunning && container.state !== "running") {
+          return;
+        }
+        if (!stopRunning && container.state === "running") {
+          return;
+        }
         handleContainerToggle(container.id, container.state);
       });
     },
@@ -195,6 +208,10 @@ const Groups = memo(function Groups() {
 
   const confirmGroupDeletion = useCallback((group: ContainerGroup) => {
     setPendingAction({ group, type: "delete-group" });
+  }, []);
+
+  const confirmGroupContainerRemoval = useCallback((group: ContainerGroup) => {
+    setPendingAction({ group, type: "delete-containers" });
   }, []);
 
   const handleConfirmAction = useCallback(async () => {
@@ -264,7 +281,7 @@ const Groups = memo(function Groups() {
     }
 
     return (
-      <div className="space-y-4">
+      <div className="space-y-2">
         {groups.map((group) => {
           const groupContainers = group.containerIds
             .map((id) => containerById.get(id))
@@ -274,11 +291,19 @@ const Groups = memo(function Groups() {
           const missingCount =
             group.containerIds.length - groupContainers.length;
           const isExpanded = expandedGroups.has(group.id);
+          const hasRunning = groupContainers.some(
+            (container) => container.state === "running"
+          );
+          const hasStopped = groupContainers.some(
+            (container) => container.state !== "running"
+          );
+          const showMixedIcons = hasRunning && hasStopped;
+          const toggleLabel = hasRunning ? "Stop" : "Start";
 
           return (
             <div
               key={group.id}
-              className="bg-gray-800 border border-gray-700 rounded-xl p-4"
+              className="bg-gray-800 border border-gray-600 rounded-sm p-2"
             >
               <div className="flex flex-wrap items-center gap-3 justify-between">
                 <button
@@ -299,40 +324,73 @@ const Groups = memo(function Groups() {
                   </div>
                 </button>
 
-                <div className="flex flex-wrap items-center gap-2">
-                  <button
-                    className="px-3 py-1.5 text-xs rounded-md bg-green-700/70 text-green-100 hover:bg-green-700 transition-colors flex items-center gap-1 disabled:opacity-60 disabled:cursor-not-allowed"
-                    onClick={() => handleGroupToggle(groupContainers)}
+                <div className="flex items-center space-x-4">
+                  <CardActionButton
+                    title={
+                      hasRunning
+                        ? "Stop running containers in group"
+                        : "Start containers in group"
+                    }
+                    aria-label={
+                      hasRunning
+                        ? "Stop running containers in group"
+                        : "Start containers in group"
+                    }
+                    onClick={() =>
+                      handleGroupToggle(groupContainers, hasRunning)
+                    }
                     disabled={groupContainers.length === 0}
-                    title="Start/Stop containers in group"
                   >
-                    <FaPlay className="h-3 w-3" />
-                    <FaStop className="h-3 w-3" />
-                    Toggle
-                  </button>
-                  <button
-                    className="px-3 py-1.5 text-xs rounded-md bg-blue-700/70 text-blue-100 hover:bg-blue-700 transition-colors flex items-center gap-1 disabled:opacity-60 disabled:cursor-not-allowed"
+                    {showMixedIcons ? (
+                      <div className="flex items-center gap-1">
+                        <FaPlay className="h-4 w-4" />
+                        <FaStop className="h-4 w-4" />
+                      </div>
+                    ) : hasRunning ? (
+                      <FaStop className="h-5 w-5" />
+                    ) : (
+                      <FaPlay className="h-5 w-5" />
+                    )}
+                    <p className="text-xs text-gray-100 pt-1">{toggleLabel}</p>
+                  </CardActionButton>
+
+                  <CardActionButton
+                    title="Restart containers in group"
+                    aria-label="Restart containers in group"
                     onClick={() => handleGroupRestart(groupContainers)}
                     disabled={groupContainers.length === 0}
-                    title="Restart containers in group"
                   >
-                    <MdRefresh className="h-3 w-3" />
-                    Restart
-                  </button>
-                  <button
-                    className="px-3 py-1.5 text-xs rounded-md bg-gray-700 text-gray-100 hover:bg-gray-600 transition-colors"
-                    onClick={() => handleEditGroup(group)}
+                    <IoReloadCircle className="h-6 w-6" />
+                    <p className="text-xs text-gray-100 pt-1">Restart</p>
+                  </CardActionButton>
+
+                  <CardActionButton
+                    title="Delete containers in group"
+                    aria-label="Delete containers in group"
+                    onClick={() => confirmGroupContainerRemoval(group)}
+                    disabled={groupContainers.length === 0}
+                  >
+                    <FaTrash className="h-5 w-5" />
+                    <p className="text-xs text-gray-100 pt-1">Delete</p>
+                  </CardActionButton>
+
+                  <CardActionButton
                     title="Edit group"
+                    aria-label="Edit group"
+                    onClick={() => handleEditGroup(group)}
                   >
-                    <FaEdit className="h-3 w-3" />
-                  </button>
-                  <button
-                    className="px-3 py-1.5 text-xs rounded-md bg-gray-700 text-gray-100 hover:bg-gray-600 transition-colors"
-                    onClick={() => confirmGroupDeletion(group)}
+                    <MdModeEdit className="h-5 w-5" />
+                    <p className="text-xs text-gray-100 pt-1">Edit</p>
+                  </CardActionButton>
+
+                  <CardActionButton
                     title="Delete group"
+                    aria-label="Delete group"
+                    onClick={() => confirmGroupDeletion(group)}
                   >
-                    <FaTrash className="h-3 w-3" />
-                  </button>
+                    <FaTrash className="h-5 w-5" />
+                    <p className="text-xs text-gray-100 pt-1">Delete</p>
+                  </CardActionButton>
                 </div>
               </div>
 
@@ -374,6 +432,7 @@ const Groups = memo(function Groups() {
     handleOpenTerminal,
     handleOpenLogs,
     confirmGroupDeletion,
+    confirmGroupContainerRemoval,
     handleEditGroup,
   ]);
 
@@ -550,18 +609,18 @@ const Groups = memo(function Groups() {
         title={
           pendingAction?.type === "delete-group"
             ? "Delete group"
-            : "Remove containers"
+            : "Delete containers"
         }
         message={
           pendingAction?.type === "delete-group"
             ? "This will permanently delete the group."
-            : "This will remove all containers in the group."
+            : "This will permanently delete all containers in the group."
         }
         isOpen={Boolean(pendingAction)}
         onClose={() => setPendingAction(null)}
         onConfirm={handleConfirmAction}
         confirmText={
-          pendingAction?.type === "delete-group" ? "Delete group" : "Remove"
+          pendingAction?.type === "delete-group" ? "Delete group" : "Delete"
         }
         type={pendingAction?.type === "delete-group" ? "danger" : "warning"}
       />
