@@ -23,6 +23,7 @@ export { StatusIndicator } from "./StatusIndicator";
 export { ImageEmptyState } from "./ImageEmptyState";
 export { ResourceSummary } from "./ResourceSummary";
 export { ContainerFilters } from "./ContainerFilters";
+export { CardActionButton } from "./CardActionButton";
 export { VolumeEmptyState } from "./VolumeEmptyState";
 export { NetworkEmptyState } from "./NetworkEmptyState";
 export { ConfirmationModal } from "./ConfirmationModal";
