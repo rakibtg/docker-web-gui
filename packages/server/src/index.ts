@@ -6,6 +6,7 @@ import { readFileSync, existsSync } from "fs";
 import { join, extname, resolve, sep } from "path";
 import { initializeDatabase } from "./db/connection";
 import { DockerService, ContainerWithStats } from "./dockerService";
+import { getSystemStats } from "./systemStats";
 
 import {
   AuthSession,
@@ -641,6 +642,33 @@ const server = createServer(async (req, res) => {
               : "Unable to fetch logs at this time",
         })
       );
+    }
+    return;
+  }
+
+  if (pathname === "/api/system-stats" && req.method === "GET") {
+    res.setHeader("Content-Type", "application/json");
+
+    if (isAuthRequired()) {
+      const cookies = parseCookies(req.headers.cookie || "");
+      const sessionToken = getSessionTokenFromCookies(cookies);
+      const session = sessionToken ? validateSession(sessionToken) : null;
+
+      if (!session) {
+        res.writeHead(401);
+        res.end(JSON.stringify({ error: "AUTH_REQUIRED" }));
+        return;
+      }
+    }
+
+    try {
+      const stats = getSystemStats();
+      res.writeHead(200);
+      res.end(JSON.stringify(stats));
+    } catch (error) {
+      console.error("Failed to read system stats:", error);
+      res.writeHead(500);
+      res.end(JSON.stringify({ error: "Failed to read system stats" }));
     }
     return;
   }
