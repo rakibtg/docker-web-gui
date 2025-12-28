@@ -8,7 +8,7 @@ export class NetworkService extends BaseDockerService {
   static async getDockerNetworks(): Promise<DockerNetwork[]> {
     try {
       const { stdout } = await this.execDockerCommand(
-        'docker network ls --format "{{json .}}"'
+        ["network", "ls", "--format", "{{json .}}"]
       );
 
       const networks = stdout
@@ -22,7 +22,7 @@ export class NetworkService extends BaseDockerService {
         networks.map(async (network) => {
           try {
             const { stdout: inspectOutput } = await this.execDockerCommand(
-              `docker network inspect ${network.ID}`
+              ["network", "inspect", network.ID]
             );
             const [inspectData] = JSON.parse(inspectOutput);
 
@@ -80,7 +80,8 @@ export class NetworkService extends BaseDockerService {
    */
   static async removeDockerNetwork(networkId: string): Promise<void> {
     try {
-      await this.execDockerCommand(`docker network rm ${networkId}`);
+      const normalizedId = this.validateName(networkId, "network ID");
+      await this.execDockerCommand(["network", "rm", normalizedId]);
     } catch (error) {
       console.error(`Error removing Docker network ${networkId}:`, error);
       throw error;
@@ -93,7 +94,7 @@ export class NetworkService extends BaseDockerService {
   static async pruneDockerNetworks(): Promise<DockerOperationResult> {
     try {
       const { stdout, stderr } = await this.execDockerCommand(
-        "docker network prune -f"
+        ["network", "prune", "-f"]
       );
 
       if (stderr && !stderr.includes("WARNING")) {
