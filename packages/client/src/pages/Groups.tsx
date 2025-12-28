@@ -276,6 +276,28 @@ const Groups = memo(function Groups() {
     setPendingAction({ group, type: "delete-group" });
   }, []);
 
+  const logGroupAction = useCallback(
+    async (
+      groupId: number,
+      action: "start" | "stop" | "restart",
+      containerIds: string[]
+    ) => {
+      try {
+        await fetch(`/api/groups/${groupId}/actions`, {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ action, containerIds }),
+        });
+      } catch (error) {
+        // best-effort logging
+      }
+    },
+    []
+  );
+
   const handleConfirmAction = useCallback(async () => {
     if (!pendingAction) {
       return;
@@ -413,13 +435,20 @@ const Groups = memo(function Groups() {
                         ? "Stop running containers in group"
                         : "Start containers in group"
                     }
-                    onClick={() =>
-                      handleGroupToggle(groupContainers, hasRunning)
-                    }
+                    onClick={() => {
+                      const action = hasRunning ? "stop" : "start";
+                      void logGroupAction(
+                        group.id,
+                        action,
+                        group.containerIds
+                      );
+                      handleGroupToggle(groupContainers, hasRunning);
+                    }}
                     disabled={groupContainers.length === 0}
                   >
                     {showMixedIcons ? (
                       <div className="flex items-center gap-1">
+                        <FaPlay className="h-4 w-4" />
                         <FaStop className="h-4 w-4" />
                       </div>
                     ) : hasRunning ? (
@@ -435,7 +464,14 @@ const Groups = memo(function Groups() {
                   <CardActionButton
                     title="Restart containers in group"
                     aria-label="Restart containers in group"
-                    onClick={() => handleGroupRestart(groupContainers)}
+                    onClick={() => {
+                      void logGroupAction(
+                        group.id,
+                        "restart",
+                        group.containerIds
+                      );
+                      handleGroupRestart(groupContainers);
+                    }}
                     disabled={groupContainers.length === 0}
                   >
                     <IoReloadCircle className="h-6 w-6" />
@@ -500,6 +536,7 @@ const Groups = memo(function Groups() {
     handleContainerRemove,
     handleOpenTerminal,
     handleOpenLogs,
+    logGroupAction,
     confirmGroupDeletion,
     handleEditGroup,
   ]);
