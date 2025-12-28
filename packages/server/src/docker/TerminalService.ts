@@ -17,21 +17,25 @@ export class TerminalService extends BaseDockerService {
 
       try {
         // Check for available shells in order of preference
+        // These shells are validated against whitelist in BaseDockerService
         const shells = ["/bin/bash", "/bin/sh", "/bin/ash", "/bin/zsh"];
 
         for (const shell of shells) {
           try {
+            // Validate shell path before using it
+            const validatedShell = this.validateShellPath(shell);
+            
             await this.execDockerCommand(
-              ["exec", normalizedId, "test", "-f", shell],
+              ["exec", normalizedId, "test", "-f", validatedShell],
               {
                 logErrors: false, // Shell probing is expected to fail for missing shells
               }
             );
-            availableShell = shell;
-            console.log(`Found shell ${shell} in container ${normalizedId}`);
+            availableShell = validatedShell;
+            console.log(`Found shell ${validatedShell} in container ${normalizedId}`);
             break;
           } catch (error) {
-            // Shell not found, try next one
+            // Shell not found or validation failed, try next one
             continue;
           }
         }
@@ -41,10 +45,14 @@ export class TerminalService extends BaseDockerService {
         );
       }
 
-      // Create terminal with the detected shell
+      // Final validation of shell path before spawning
+      const validatedShell = this.validateShellPath(availableShell);
+      
+      // Create terminal with the validated shell
+      // Using array format prevents shell injection - arguments are passed directly
       const terminal = pty.spawn(
         "docker",
-        ["exec", "-it", normalizedId, availableShell],
+        ["exec", "-it", normalizedId, validatedShell],
         {
           name: "xterm-color",
           cols: 80,
