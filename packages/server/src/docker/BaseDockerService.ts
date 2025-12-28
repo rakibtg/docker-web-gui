@@ -182,7 +182,9 @@ export class BaseDockerService {
     // Must be in whitelist
     if (!this.allowedShells.includes(normalized)) {
       throw new Error(
-        `Shell path not allowed. Allowed shells: ${this.allowedShells.join(", ")}`
+        `Shell path not allowed. Allowed shells: ${this.allowedShells.join(
+          ", "
+        )}`
       );
     }
 
