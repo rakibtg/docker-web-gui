@@ -467,7 +467,10 @@ const server = createServer(async (req, res) => {
         // Check rate limit first
         const rateLimitResult = authRateLimiter.checkLimit(clientIP);
         if (!rateLimitResult.allowed) {
-          res.setHeader("Retry-After", String(rateLimitResult.retryAfter || 900));
+          res.setHeader(
+            "Retry-After",
+            String(rateLimitResult.retryAfter || 900)
+          );
           res.writeHead(429);
           res.end(
             JSON.stringify({
@@ -527,7 +530,10 @@ const server = createServer(async (req, res) => {
             ipAddress: clientIP,
           });
 
-          res.setHeader("X-RateLimit-Remaining", String(rateLimitResult.remaining || 0));
+          res.setHeader(
+            "X-RateLimit-Remaining",
+            String(rateLimitResult.remaining || 0)
+          );
           res.writeHead(200);
           res.end(
             JSON.stringify({
@@ -542,7 +548,10 @@ const server = createServer(async (req, res) => {
             message: "Invalid credentials",
             ipAddress: clientIP,
           });
-          res.setHeader("X-RateLimit-Remaining", String(rateLimitResult.remaining || 0));
+          res.setHeader(
+            "X-RateLimit-Remaining",
+            String(rateLimitResult.remaining || 0)
+          );
           res.writeHead(401);
           res.end(
             JSON.stringify({ success: false, message: "Invalid credentials" })
@@ -724,8 +733,7 @@ const server = createServer(async (req, res) => {
     try {
       const body = await readRequestBody(req);
       const payload = JSON.parse(body);
-      const name =
-        typeof payload?.name === "string" ? payload.name.trim() : "";
+      const name = typeof payload?.name === "string" ? payload.name.trim() : "";
       const containerIds = Array.isArray(payload?.containerIds)
         ? payload.containerIds.filter((id: unknown) => typeof id === "string")
         : [];
@@ -756,8 +764,7 @@ const server = createServer(async (req, res) => {
     } catch (error: any) {
       const message = error?.message || "Failed to create group";
       const isConstraint =
-        typeof message === "string" &&
-        message.toLowerCase().includes("unique");
+        typeof message === "string" && message.toLowerCase().includes("unique");
       const isSyntaxError = error instanceof SyntaxError;
       res.writeHead(isSyntaxError ? 400 : isConstraint ? 409 : 500);
       res.end(
@@ -855,9 +862,7 @@ const server = createServer(async (req, res) => {
       } catch (error: any) {
         const message = error?.message || "Failed to log group action";
         res.writeHead(500);
-        res.end(
-          JSON.stringify({ error: "GROUP_ACTION_LOG_FAILED", message })
-        );
+        res.end(JSON.stringify({ error: "GROUP_ACTION_LOG_FAILED", message }));
       }
       return;
     }
@@ -869,9 +874,7 @@ const server = createServer(async (req, res) => {
         const name =
           typeof payload?.name === "string" ? payload.name.trim() : "";
         const containerIds = Array.isArray(payload?.containerIds)
-          ? payload.containerIds.filter(
-              (id: unknown) => typeof id === "string"
-            )
+          ? payload.containerIds.filter((id: unknown) => typeof id === "string")
           : [];
 
         if (!name) {
