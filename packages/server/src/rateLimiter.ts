@@ -46,10 +46,13 @@ export class RateLimiter {
     // If no entry exists, allow and create new entry
     if (!entry) {
       // Optional: Check if we've hit the max tracked IPs limit
-      if (this.config.maxTrackedIPs && this.attempts.size >= this.config.maxTrackedIPs) {
+      if (
+        this.config.maxTrackedIPs &&
+        this.attempts.size >= this.config.maxTrackedIPs
+      ) {
         // Force cleanup to make room
         this.cleanup();
-        
+
         // If still at limit after cleanup, remove oldest entry
         if (this.attempts.size >= this.config.maxTrackedIPs) {
           const oldestIP = this.findOldestEntry();
@@ -143,7 +146,8 @@ export class RateLimiter {
       // 1. Block has expired and enough time has passed
       // 2. No activity for longer than window + block duration
       const inactiveTime = now - entry.lastAttempt;
-      const maxInactiveTime = this.config.windowMs + this.config.blockDurationMs;
+      const maxInactiveTime =
+        this.config.windowMs + this.config.blockDurationMs;
 
       if (inactiveTime > maxInactiveTime) {
         expiredIdentifiers.push(identifier);
@@ -155,7 +159,9 @@ export class RateLimiter {
     }
 
     if (expiredIdentifiers.length > 0) {
-      console.log(`Rate limiter: Cleaned up ${expiredIdentifiers.length} expired entries`);
+      console.log(
+        `Rate limiter: Cleaned up ${expiredIdentifiers.length} expired entries`
+      );
     }
   }
 
