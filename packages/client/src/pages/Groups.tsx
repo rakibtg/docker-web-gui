@@ -24,6 +24,7 @@ import { PageWrapper } from "../components/PageWrapper";
 import { HiChevronDown, HiChevronRight } from "react-icons/hi";
 import { FaPlay, FaStop, FaTrash, FaTimes } from "react-icons/fa";
 import type { ContainerGroup, ContainerWithStats } from "../types";
+import { getCsrfToken } from "../helpers/csrf";
 
 const BYTES_PER_KIB = 1024;
 const BYTES_PER_MIB = BYTES_PER_KIB * 1024;
@@ -283,11 +284,13 @@ const Groups = memo(function Groups() {
       containerIds: string[]
     ) => {
       try {
+        const csrfToken = await getCsrfToken();
         await fetch(`/api/groups/${groupId}/actions`, {
           method: "POST",
           credentials: "include",
           headers: {
             "Content-Type": "application/json",
+            "X-CSRF-Token": csrfToken,
           },
           body: JSON.stringify({ action, containerIds }),
         });
