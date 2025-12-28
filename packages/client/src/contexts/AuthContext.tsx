@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { createContext, useContext, useState, useEffect } from 'react';
 import type { AuthState, LoginCredentials, AuthResponse } from '../types/auth';
+import { getCsrfToken } from '../helpers/csrf';
 
 interface AuthContextType extends AuthState {
   logout: () => void;
@@ -65,10 +66,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const login = async (credentials: LoginCredentials): Promise<AuthResponse> => {
     try {
+      const csrfToken = await getCsrfToken();
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken,
         },
         credentials: 'include',
         body: JSON.stringify(credentials),
@@ -94,8 +97,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const logout = async () => {
     try {
+      const csrfToken = await getCsrfToken();
       await fetch('/api/auth/logout', {
         method: 'POST',
+        headers: {
+          'X-CSRF-Token': csrfToken,
+        },
         credentials: 'include',
       });
     } catch (error) {
@@ -110,6 +117,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
   };
 
   useEffect(() => {
+    getCsrfToken().catch((error) => {
+      console.warn('Failed to preload CSRF token:', error);
+    });
     checkAuthStatus();
   }, []);
 
