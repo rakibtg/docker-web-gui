@@ -1,22 +1,27 @@
 import { parse } from "url";
+import logger from "./logger";
 import { createServer } from "http";
 import { WebSocketServer } from "ws";
-import { join, extname } from "path";
 import { readFileSync, existsSync } from "fs";
-import { DockerService, ContainerWithStats } from "./dockerService";
+import { join, extname, resolve, sep } from "path";
 import { initializeDatabase } from "./db/connection";
-import logger from "./logger";
+import { DockerService, ContainerWithStats } from "./dockerService";
 
-import { 
+import {
   AuthSession,
-  createSession, 
-  destroySession, 
+  createSession,
+  destroySession,
   isAuthRequired,
-  validateSession, 
-  authenticateUser, 
+  validateSession,
+  authenticateUser,
 } from "./auth";
 
-import { isIPAllowed, extractClientIP } from "./settings";
+import {
+  isIPAllowed,
+  extractClientIP,
+  getSettings,
+  isTrustedProxyRequest,
+} from "./settings";
 
 // Client management for WebSocket connections
 interface ClientConnection {
@@ -25,6 +30,7 @@ interface ClientConnection {
   lastPing: number;
   isActive: boolean;
   session?: AuthSession;
+  sessionToken?: string;
   terminals?: Map<string, any>; // terminalId -> terminal process
 }
 
@@ -114,15 +120,18 @@ function createLogContext(session?: AuthSession | null): LogContext {
   };
 }
 
-async function recordAction(action: string, options: {
-  message?: string;
-  status?: string;
-  metadata?: Record<string, any>;
-  session?: AuthSession | null;
-  ipAddress?: string | null;
-  resourceType?: string | null;
-  resourceId?: string | null;
-} = {}): Promise<void> {
+async function recordAction(
+  action: string,
+  options: {
+    message?: string;
+    status?: string;
+    metadata?: Record<string, any>;
+    session?: AuthSession | null;
+    ipAddress?: string | null;
+    resourceType?: string | null;
+    resourceId?: string | null;
+  } = {}
+): Promise<void> {
   const context = createLogContext(options.session);
   try {
     await logger.logAction({
@@ -173,8 +182,8 @@ setInterval(cleanupInactiveClients, 30000);
 function parseCookies(cookieHeader: string): Record<string, string> {
   const cookies: Record<string, string> = {};
   if (cookieHeader) {
-    cookieHeader.split(';').forEach(cookie => {
-      const [name, value] = cookie.trim().split('=');
+    cookieHeader.split(";").forEach((cookie) => {
+      const [name, value] = cookie.trim().split("=");
       if (name && value) {
         cookies[name] = decodeURIComponent(value);
       }
@@ -183,17 +192,193 @@ function parseCookies(cookieHeader: string): Record<string, string> {
   return cookies;
 }
 
+const SESSION_COOKIE_NAME = "session_token";
+const HOST_SESSION_COOKIE_NAME = "__Host-session_token";
+
+function isTruthyEnv(value: string | undefined): boolean {
+  if (!value) {
+    return false;
+  }
+  return ["1", "true", "yes", "on"].includes(value.trim().toLowerCase());
+}
+
+function getHeaderValue(
+  header: string | string[] | undefined
+): string | undefined {
+  if (!header) {
+    return undefined;
+  }
+  return Array.isArray(header) ? header[0] : header;
+}
+
+function isSecureRequest(req: any): boolean {
+  if (req.socket?.encrypted) {
+    return true;
+  }
+
+  const forwardedProto = getHeaderValue(req.headers["x-forwarded-proto"]);
+  if (!forwardedProto || !isTrustedProxyRequest(req)) {
+    return false;
+  }
+
+  const proto = forwardedProto.split(",")[0]?.trim().toLowerCase();
+  return proto === "https";
+}
+
+function getSessionTokenFromCookies(
+  cookies: Record<string, string>
+): string | undefined {
+  return cookies[HOST_SESSION_COOKIE_NAME] || cookies[SESSION_COOKIE_NAME];
+}
+
+function buildSessionCookie(
+  name: string,
+  token: string,
+  maxAgeSeconds: number,
+  secure: boolean
+): string {
+  let cookie = `${name}=${token}; HttpOnly; Path=/; Max-Age=${maxAgeSeconds}; SameSite=Strict`;
+  if (secure) {
+    cookie += "; Secure";
+  }
+  return cookie;
+}
+
+function clearSessionCookie(name: string, secure: boolean): string {
+  let cookie = `${name}=; HttpOnly; Path=/; Max-Age=0; SameSite=Strict`;
+  if (secure) {
+    cookie += "; Secure";
+  }
+  return cookie;
+}
+
+function normalizeOriginValue(origin: string): string | null {
+  try {
+    return new URL(origin).origin.toLowerCase();
+  } catch (error) {
+    return null;
+  }
+}
+
+function getAllowedList(envName: string): string[] {
+  const rawValue = process.env[envName];
+  if (!rawValue) {
+    return [];
+  }
+  return rawValue
+    .split(",")
+    .map((entry) => entry.trim().toLowerCase())
+    .filter((entry) => entry !== "");
+}
+
+function getAllowedOrigins(): string[] {
+  const rawValue = process.env.ALLOWED_ORIGINS;
+  if (!rawValue) {
+    return [];
+  }
+
+  const entries = rawValue.split(",").map((entry) => entry.trim());
+  const normalizedOrigins: string[] = [];
+
+  for (const entry of entries) {
+    if (!entry) {
+      continue;
+    }
+    const normalized = normalizeOriginValue(entry);
+    if (normalized) {
+      normalizedOrigins.push(normalized);
+    }
+  }
+
+  return normalizedOrigins;
+}
+
+function getAllowedHosts(): string[] {
+  return getAllowedList("ALLOWED_HOSTS");
+}
+
+function getHostnameFromHostHeader(hostHeader: string): string {
+  const trimmed = hostHeader.trim().toLowerCase();
+  if (trimmed.startsWith("[")) {
+    const endIndex = trimmed.indexOf("]");
+    if (endIndex > -1) {
+      return trimmed.slice(1, endIndex);
+    }
+    return trimmed;
+  }
+  const [hostname] = trimmed.split(":");
+  return hostname;
+}
+
+function isLoopbackHost(hostname: string): boolean {
+  return (
+    hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1"
+  );
+}
+
+function isWebSocketOriginAllowed(req: any): boolean {
+  const hostHeader = getHeaderValue(req.headers.host);
+  const originHeader = getHeaderValue(req.headers.origin);
+  const allowedHosts = getAllowedHosts();
+  const allowedOrigins = getAllowedOrigins();
+
+  if (allowedHosts.length > 0) {
+    if (!hostHeader || !allowedHosts.includes(hostHeader.toLowerCase())) {
+      return false;
+    }
+  }
+
+  if (allowedOrigins.length > 0) {
+    if (!originHeader) {
+      return false;
+    }
+    const normalizedOrigin = normalizeOriginValue(originHeader);
+    return (
+      normalizedOrigin !== null && allowedOrigins.includes(normalizedOrigin)
+    );
+  }
+
+  if (!originHeader) {
+    return isTruthyEnv(process.env.ALLOW_NO_ORIGIN);
+  }
+
+  const normalizedOrigin = normalizeOriginValue(originHeader);
+  if (!normalizedOrigin || !hostHeader) {
+    return false;
+  }
+
+  try {
+    const originHost = new URL(normalizedOrigin).host.toLowerCase();
+    const normalizedHostHeader = hostHeader.toLowerCase();
+
+    if (originHost === normalizedHostHeader) {
+      return true;
+    }
+
+    const originHostname = getHostnameFromHostHeader(originHost);
+    const requestHostname = getHostnameFromHostHeader(normalizedHostHeader);
+
+    if (isLoopbackHost(originHostname) && isLoopbackHost(requestHostname)) {
+      return true;
+    }
+
+    return false;
+  } catch (error) {
+    return false;
+  }
+}
+
 // Helper function to read request body
 function readRequestBody(req: any): Promise<string> {
   return new Promise((resolve, reject) => {
-    let body = '';
-    req.on('data', (chunk: any) => {
+    let body = "";
+    req.on("data", (chunk: any) => {
       body += chunk.toString();
     });
-    req.on('end', () => {
+    req.on("end", () => {
       resolve(body);
     });
-    req.on('error', reject);
+    req.on("error", reject);
   });
 }
 
@@ -204,16 +389,18 @@ const server = createServer(async (req, res) => {
 
   // Extract client IP for all requests
   const clientIP = extractClientIP(req);
-  
+
   // Check IP access for all API routes
   if (pathname.startsWith("/api/")) {
     if (!isIPAllowed(clientIP)) {
       res.setHeader("Content-Type", "application/json");
       res.writeHead(403);
-      res.end(JSON.stringify({
-        error: "IP_NOT_ALLOWED",
-        message: "Access denied from your IP address"
-      }));
+      res.end(
+        JSON.stringify({
+          error: "IP_NOT_ALLOWED",
+          message: "Access denied from your IP address",
+        })
+      );
       return;
     }
   }
@@ -223,25 +410,27 @@ const server = createServer(async (req, res) => {
     res.setHeader("Content-Type", "application/json");
     const allowed = isIPAllowed(clientIP);
     res.writeHead(200);
-    res.end(JSON.stringify({
-      allowed,
-      ip: clientIP
-    }));
+    res.end(
+      JSON.stringify({
+        allowed,
+        ip: clientIP,
+      })
+    );
     return;
   }
 
   // Handle authentication API routes
   if (pathname.startsWith("/api/auth/")) {
     res.setHeader("Content-Type", "application/json");
-    
+
     if (pathname === "/api/auth/status" && req.method === "GET") {
       const cookies = parseCookies(req.headers.cookie || "");
-      const sessionToken = cookies.session_token;
-      
+      const sessionToken = getSessionTokenFromCookies(cookies);
+
       const authRequired = isAuthRequired();
       let isAuthenticated = false;
       let user = null;
-      
+
       if (authRequired && sessionToken) {
         const session = validateSession(sessionToken);
         if (session) {
@@ -251,35 +440,53 @@ const server = createServer(async (req, res) => {
       } else if (!authRequired) {
         isAuthenticated = true;
       }
-      
+
       res.writeHead(200);
-      res.end(JSON.stringify({
-        isAuthRequired: authRequired,
-        isAuthenticated,
-        user
-      }));
+      res.end(
+        JSON.stringify({
+          isAuthRequired: authRequired,
+          isAuthenticated,
+          user,
+        })
+      );
       return;
     }
-    
+
     if (pathname === "/api/auth/login" && req.method === "POST") {
       try {
         const body = await readRequestBody(req);
         const { username, password } = JSON.parse(body);
-        
+
         if (!isAuthRequired()) {
           res.writeHead(400);
-          res.end(JSON.stringify({ success: false, message: "Authentication not required" }));
+          res.end(
+            JSON.stringify({
+              success: false,
+              message: "Authentication not required",
+            })
+          );
           return;
         }
-        
+
         if (authenticateUser(username, password)) {
           const session = createSession(username);
-          
+          const secureCookie = isSecureRequest(req);
+          const useHostCookie =
+            secureCookie && isTruthyEnv(process.env.USE_HOST_COOKIE_PREFIX);
+          const cookieName = useHostCookie
+            ? HOST_SESSION_COOKIE_NAME
+            : SESSION_COOKIE_NAME;
+
           // Set secure HTTP-only cookie
           res.setHeader("Set-Cookie", [
-            `session_token=${session.token}; HttpOnly; Path=/; Max-Age=${24 * 60 * 60}; SameSite=Strict`
+            buildSessionCookie(
+              cookieName,
+              session.token,
+              24 * 60 * 60,
+              secureCookie
+            ),
           ]);
-          
+
           await recordAction("auth_login", {
             session,
             status: "success",
@@ -288,10 +495,12 @@ const server = createServer(async (req, res) => {
           });
 
           res.writeHead(200);
-          res.end(JSON.stringify({
-            success: true,
-            user: { username: session.username }
-          }));
+          res.end(
+            JSON.stringify({
+              success: true,
+              user: { username: session.username },
+            })
+          );
         } else {
           await recordAction("auth_login", {
             status: "failed",
@@ -299,7 +508,9 @@ const server = createServer(async (req, res) => {
             ipAddress: clientIP,
           });
           res.writeHead(401);
-          res.end(JSON.stringify({ success: false, message: "Invalid credentials" }));
+          res.end(
+            JSON.stringify({ success: false, message: "Invalid credentials" })
+          );
         }
       } catch (error) {
         await recordAction("auth_login", {
@@ -312,20 +523,21 @@ const server = createServer(async (req, res) => {
       }
       return;
     }
-    
+
     if (pathname === "/api/auth/logout" && req.method === "POST") {
       const cookies = parseCookies(req.headers.cookie || "");
-      const sessionToken = cookies.session_token;
+      const sessionToken = getSessionTokenFromCookies(cookies);
       const session = sessionToken ? validateSession(sessionToken) : null;
-      
+
       if (sessionToken) {
         destroySession(sessionToken);
       }
-      
+      const secureCookie = isSecureRequest(req);
       res.setHeader("Set-Cookie", [
-        "session_token=; HttpOnly; Path=/; Max-Age=0; SameSite=Strict"
+        clearSessionCookie(SESSION_COOKIE_NAME, secureCookie),
+        clearSessionCookie(HOST_SESSION_COOKIE_NAME, secureCookie),
       ]);
-      
+
       await recordAction("auth_logout", {
         session,
         status: "success",
@@ -337,7 +549,7 @@ const server = createServer(async (req, res) => {
       res.end(JSON.stringify({ success: true }));
       return;
     }
-    
+
     res.writeHead(404);
     res.end(JSON.stringify({ error: "Not found" }));
     return;
@@ -348,7 +560,7 @@ const server = createServer(async (req, res) => {
 
     if (isAuthRequired()) {
       const cookies = parseCookies(req.headers.cookie || "");
-      const sessionToken = cookies.session_token;
+      const sessionToken = getSessionTokenFromCookies(cookies);
       const session = sessionToken ? validateSession(sessionToken) : null;
 
       if (!session) {
@@ -358,15 +570,32 @@ const server = createServer(async (req, res) => {
       }
     }
 
-    const { limit, offset, action, status, userId, username, ip, anonymous, page } = parsedUrl.query;
+    const {
+      limit,
+      offset,
+      action,
+      status,
+      userId,
+      username,
+      ip,
+      anonymous,
+      page,
+    } = parsedUrl.query;
     const parsedLimit = typeof limit === "string" ? Number(limit) : undefined;
-    const parsedOffset = typeof offset === "string" ? Number(offset) : undefined;
+    const parsedOffset =
+      typeof offset === "string" ? Number(offset) : undefined;
     const parsedPage = typeof page === "string" ? Number(page) : undefined;
-    const effectiveLimit: number = Number.isFinite(parsedLimit) ? Number(parsedLimit) : 20;
+    const effectiveLimit: number = Number.isFinite(parsedLimit)
+      ? Number(parsedLimit)
+      : 20;
     const effectiveOffset: number =
       Number.isFinite(parsedOffset) && parsedOffset !== undefined
         ? Number(parsedOffset)
-        : Math.max((Number.isFinite(parsedPage) ? (parsedPage as number) - 1 : 0) * effectiveLimit, 0);
+        : Math.max(
+            (Number.isFinite(parsedPage) ? (parsedPage as number) - 1 : 0) *
+              effectiveLimit,
+            0
+          );
 
     try {
       const { logs, total } = await logger.getLogs({
@@ -393,7 +622,10 @@ const server = createServer(async (req, res) => {
           data: logs,
           meta: {
             total,
-            page: parsedPage && parsedPage > 0 ? parsedPage : Math.floor(effectiveOffset / effectiveLimit) + 1,
+            page:
+              parsedPage && parsedPage > 0
+                ? parsedPage
+                : Math.floor(effectiveOffset / effectiveLimit) + 1,
             pageSize: effectiveLimit,
           },
         })
@@ -418,8 +650,32 @@ const server = createServer(async (req, res) => {
     pathname = "/index.html";
   }
 
-  // Construct file path
-  const filePath = join(__dirname, "../public", pathname);
+  let decodedPathname = "";
+  try {
+    decodedPathname = decodeURIComponent(pathname);
+  } catch (error) {
+    res.writeHead(400);
+    res.end("Bad Request");
+    return;
+  }
+
+  // Construct file path safely under public directory
+  const publicDir = resolve(__dirname, "../public");
+  const normalizedPath = decodedPathname.replace(/\\/g, "/");
+  const safePath = normalizedPath.replace(/^\/+/, "");
+
+  if (safePath.split("/").includes("..")) {
+    res.writeHead(403);
+    res.end("Forbidden");
+    return;
+  }
+  const filePath = resolve(publicDir, safePath);
+
+  if (!filePath.startsWith(publicDir + sep)) {
+    res.writeHead(403);
+    res.end("Forbidden");
+    return;
+  }
 
   // Check if file exists
   if (existsSync(filePath)) {
@@ -450,7 +706,7 @@ const server = createServer(async (req, res) => {
   } else {
     // For SPA routing, serve index.html for non-API routes
     if (!pathname.startsWith("/api") && !pathname.startsWith("/ws")) {
-      const indexPath = join(__dirname, "../public/index.html");
+      const indexPath = join(publicDir, "index.html");
       if (existsSync(indexPath)) {
         try {
           const data = readFileSync(indexPath);
@@ -475,12 +731,20 @@ const server = createServer(async (req, res) => {
 async function startServer() {
   try {
     await initializeDatabase();
-    server.listen(8080, () => {
-      console.log("HTTP server running on port 8080");
-      console.log("WebSocket server running on port 8080");
+    const users = getSettings("users");
+    if (isAuthRequired() && (!users || users.length === 0)) {
+      throw new Error(
+        "Authentication is enabled but no users are configured. Please set users in .settings.json."
+      );
+    }
+
+    const bindHost = process.env.BIND_HOST || "127.0.0.1";
+    server.listen(8080, bindHost, () => {
+      console.log(`HTTP server running on ${bindHost}:8080`);
+      console.log(`WebSocket server running on ${bindHost}:8080`);
     });
   } catch (error) {
-    console.error("Failed to initialize database:", error);
+    console.error("Failed to start server:", error);
     process.exit(1);
   }
 }
@@ -493,8 +757,14 @@ const wss = new WebSocketServer({ server });
 wss.on("connection", function connection(ws, req) {
   const clientId = generateClientId();
   const clientIP = extractClientIP(req);
-  
+
   console.log(`New client connected: ${clientId} from IP: ${clientIP}`);
+
+  if (!isWebSocketOriginAllowed(req)) {
+    console.log(`WebSocket origin denied for client: ${clientId}`);
+    ws.close(1008, "Origin not allowed");
+    return;
+  }
 
   // Check IP access first
   if (!isIPAllowed(clientIP)) {
@@ -504,33 +774,35 @@ wss.on("connection", function connection(ws, req) {
   }
 
   // Check authentication if required
+  const cookies = parseCookies(req.headers.cookie || "");
+  const sessionToken = getSessionTokenFromCookies(cookies);
   let session: AuthSession | undefined = undefined;
   if (isAuthRequired()) {
-    const cookies = parseCookies(req.headers.cookie || "");
-    const sessionToken = cookies.session_token;
-    
     if (!sessionToken) {
       console.log(`Unauthenticated connection attempt: ${clientId}`);
       ws.close(1008, "Authentication required");
       return;
     }
-    
+
     const validatedSession = validateSession(sessionToken);
     if (!validatedSession) {
       console.log(`Invalid session for client: ${clientId}`);
       ws.close(1008, "Invalid session");
       return;
     }
-    
+
     session = validatedSession;
-    
-    console.log(`Authenticated client connected: ${clientId} (user: ${session.username})`);
+
+    console.log(
+      `Authenticated client connected: ${clientId} (user: ${session.username})`
+    );
   }
 
   // Register client
   const client: ClientConnection = {
     ws,
     session,
+    sessionToken,
     id: clientId,
     isActive: true,
     lastPing: Date.now(),
@@ -552,12 +824,25 @@ wss.on("connection", function connection(ws, req) {
     }
   });
 
-  // Helper function to check if client is authenticated for Docker operations
-  function isClientAuthenticated(): boolean {
-    if (!isAuthRequired()) {
-      return true; // No auth required
+  const unauthenticatedMessageTypes = new Set(["ping"]);
+
+  function getValidatedSession(authRequired: boolean): AuthSession | null {
+    if (!authRequired) {
+      return client.session ?? null;
     }
-    return client.session !== undefined;
+    if (!client.sessionToken) {
+      client.session = undefined;
+      return null;
+    }
+
+    const validatedSession = validateSession(client.sessionToken);
+    if (!validatedSession) {
+      client.session = undefined;
+      return null;
+    }
+
+    client.session = validatedSession;
+    return validatedSession;
   }
 
   ws.on("message", async function message(data) {
@@ -568,36 +853,31 @@ wss.on("connection", function connection(ws, req) {
     try {
       const parsedMessage = JSON.parse(data.toString());
 
-      // Check authentication for Docker-related operations
-      const dockerOperations = [
-        "get-images",
-        "get-volumes",
-        "remove-image",
-        "get-networks",
-        "stop-container",
-        "terminal-input",
-        "get-containers", 
-        "terminal-resize",
-        "start-container",
-        "terminal-create",
-        "remove-container",
-        "restart-container",
-        "prune-containers",
-        "prune-images",
-        "prune-networks",
-        "prune-volumes",
-        "system-prune",
-        "stop-stats-streaming",
-        "get-dashboard-summary",
-        "start-stats-streaming",
-      ];
+      const authRequired = isAuthRequired();
+      const currentSession = getValidatedSession(authRequired);
+      const isAllowedWithoutAuth = unauthenticatedMessageTypes.has(
+        parsedMessage.type
+      );
 
-      if (dockerOperations.includes(parsedMessage.type) && !isClientAuthenticated()) {
-        ws.send(JSON.stringify({
-          type: "error",
-          code: "AUTH_REQUIRED",
-          message: "Authentication required for this operation",
-        }));
+      if (authRequired && !currentSession) {
+        if (isAllowedWithoutAuth && parsedMessage.type === "ping") {
+          ws.send(
+            JSON.stringify({
+              type: "pong",
+              timestamp: new Date().toISOString(),
+              clientId: clientId,
+            })
+          );
+        } else {
+          ws.send(
+            JSON.stringify({
+              type: "error",
+              code: "AUTH_REQUIRED",
+              message: "Authentication required for this operation",
+            })
+          );
+        }
+        ws.close(1008, "Authentication required");
         return;
       }
 
@@ -772,7 +1052,9 @@ wss.on("connection", function connection(ws, req) {
               resourceId: parsedMessage?.containerId,
               status: "error",
               message:
-                error instanceof Error ? error.message : "Failed to start container",
+                error instanceof Error
+                  ? error.message
+                  : "Failed to start container",
             });
             ws.send(
               JSON.stringify({
@@ -841,7 +1123,9 @@ wss.on("connection", function connection(ws, req) {
               resourceId: parsedMessage?.containerId,
               status: "error",
               message:
-                error instanceof Error ? error.message : "Failed to stop container",
+                error instanceof Error
+                  ? error.message
+                  : "Failed to stop container",
             });
             ws.send(
               JSON.stringify({
@@ -920,7 +1204,7 @@ wss.on("connection", function connection(ws, req) {
                 message:
                   error instanceof Error
                     ? error.message
-                : "Failed to restart container",
+                    : "Failed to restart container",
               })
             );
           }
@@ -989,7 +1273,7 @@ wss.on("connection", function connection(ws, req) {
                 message:
                   error instanceof Error
                     ? error.message
-                : "Failed to remove container",
+                    : "Failed to remove container",
               })
             );
           }
@@ -1099,11 +1383,11 @@ wss.on("connection", function connection(ws, req) {
                     timestamp: new Date().toISOString(),
                   });
                 } catch (error) {
-                console.error("Error refreshing images after prune:", error);
-              }
-            }, 500);
-          }
-        } catch (error) {
+                  console.error("Error refreshing images after prune:", error);
+                }
+              }, 500);
+            }
+          } catch (error) {
             await recordAction("images_prune", {
               session,
               ipAddress: clientIP,
@@ -1163,7 +1447,10 @@ wss.on("connection", function connection(ws, req) {
                     timestamp: new Date().toISOString(),
                   });
                 } catch (error) {
-                  console.error("Error refreshing networks after prune:", error);
+                  console.error(
+                    "Error refreshing networks after prune:",
+                    error
+                  );
                 }
               }, 500);
             }
