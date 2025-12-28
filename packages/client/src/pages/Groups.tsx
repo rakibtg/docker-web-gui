@@ -424,7 +424,6 @@ const Groups = memo(function Groups() {
                   >
                     {showMixedIcons ? (
                       <div className="flex items-center gap-1">
-                        <FaPlay className="h-4 w-4" />
                         <FaStop className="h-4 w-4" />
                       </div>
                     ) : hasRunning ? (
@@ -432,7 +431,9 @@ const Groups = memo(function Groups() {
                     ) : (
                       <FaPlay className="h-5 w-5" />
                     )}
-                    <p className="text-xs text-gray-100 pt-1">{toggleLabel}</p>
+                    <p className="text-xs text-gray-100 pt-1">
+                      {toggleLabel} All
+                    </p>
                   </CardActionButton>
 
                   <CardActionButton
@@ -442,17 +443,7 @@ const Groups = memo(function Groups() {
                     disabled={groupContainers.length === 0}
                   >
                     <IoReloadCircle className="h-6 w-6" />
-                    <p className="text-xs text-gray-100 pt-1">Restart</p>
-                  </CardActionButton>
-
-                  <CardActionButton
-                    title="Delete containers in group"
-                    aria-label="Delete containers in group"
-                    onClick={() => confirmGroupContainerRemoval(group)}
-                    disabled={groupContainers.length === 0}
-                  >
-                    <FaTrash className="h-5 w-5" />
-                    <p className="text-xs text-gray-100 pt-1">Delete</p>
+                    <p className="text-xs text-gray-100 pt-1">Restart All</p>
                   </CardActionButton>
 
                   <CardActionButton
@@ -461,16 +452,17 @@ const Groups = memo(function Groups() {
                     onClick={() => handleEditGroup(group)}
                   >
                     <MdModeEdit className="h-5 w-5" />
-                    <p className="text-xs text-gray-100 pt-1">Edit</p>
+                    <p className="text-xs text-gray-100 pt-1">Edit Group</p>
                   </CardActionButton>
 
                   <CardActionButton
                     title="Delete group"
                     aria-label="Delete group"
                     onClick={() => confirmGroupDeletion(group)}
+                    className="w-24"
                   >
                     <FaTrash className="h-5 w-5" />
-                    <p className="text-xs text-gray-100 pt-1">Delete</p>
+                    <p className="text-xs text-gray-100 pt-1">Delete Group</p>
                   </CardActionButton>
                 </div>
               </div>
