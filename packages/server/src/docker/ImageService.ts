@@ -13,27 +13,28 @@ export class ImageService extends BaseDockerService {
     imageId: string
   ): Promise<DockerImageDetails> {
     try {
+      const normalizedId = this.validateImageId(imageId);
       // Get detailed image inspection directly - this is more reliable
       const { stdout: inspectOutput } = await this.execDockerCommand(
-        `docker inspect ${imageId}`
+        ["inspect", normalizedId]
       );
 
       const inspectData = JSON.parse(inspectOutput)[0];
 
       if (!inspectData) {
-        throw new Error(`Image with ID ${imageId} not found`);
+        throw new Error(`Image with ID ${normalizedId} not found`);
       }
 
       // Build the detailed image object from inspect data
       const imageDetails: DockerImageDetails = {
-        id: inspectData.RepoTags?.[0] || `${imageId}:latest`,
+        id: inspectData.RepoTags?.[0] || `${normalizedId}:latest`,
         repository: inspectData.RepoTags?.[0]?.split(":")[0] || "unknown",
         tag: inspectData.RepoTags?.[0]?.split(":")[1] || "latest",
         size: inspectData.Size
           ? (inspectData.Size / (1024 * 1024)).toFixed(1) + " MB"
           : "Unknown",
         created: inspectData.Created || "",
-        imageId: inspectData.Id || imageId,
+        imageId: inspectData.Id || normalizedId,
         architecture: inspectData.Architecture,
         os: inspectData.Os,
         parent: inspectData.Parent,
@@ -78,7 +79,11 @@ export class ImageService extends BaseDockerService {
   static async getDockerImages(): Promise<DockerImage[]> {
     try {
       const { stdout } = await this.execDockerCommand(
-        'docker images --format "{{.ID}}|{{.Repository}}|{{.Tag}}|{{.Size}}|{{.CreatedAt}}"'
+        [
+          "images",
+          "--format",
+          "{{.ID}}|{{.Repository}}|{{.Tag}}|{{.Size}}|{{.CreatedAt}}",
+        ]
       );
 
       const images: DockerImage[] = stdout
@@ -112,15 +117,14 @@ export class ImageService extends BaseDockerService {
     force: boolean = false
   ): Promise<DockerOperationResult> {
     try {
-      const command = force
-        ? `docker rmi -f ${imageId}`
-        : `docker rmi ${imageId}`;
-      const { stdout } = await this.execDockerCommand(command);
-      console.log(`Image ${imageId} removed:`, stdout);
+      const normalizedId = this.validateImageId(imageId);
+      const args = force ? ["rmi", "-f", normalizedId] : ["rmi", normalizedId];
+      const { stdout } = await this.execDockerCommand(args);
+      console.log(`Image ${normalizedId} removed:`, stdout);
 
       return {
         success: true,
-        message: `Image ${imageId} removed successfully`,
+        message: `Image ${normalizedId} removed successfully`,
       };
     } catch (error) {
       console.error(`Error removing image ${imageId}:`, error);
@@ -137,10 +141,10 @@ export class ImageService extends BaseDockerService {
    */
   static async pruneImages(all: boolean = false): Promise<DockerOperationResult> {
     try {
-      const command = all
-        ? "docker image prune -a -f"
-        : "docker image prune -f";
-      const { stdout, stderr } = await this.execDockerCommand(command);
+      const args = all
+        ? ["image", "prune", "-a", "-f"]
+        : ["image", "prune", "-f"];
+      const { stdout, stderr } = await this.execDockerCommand(args);
 
       if (stderr && !stderr.includes("WARNING")) {
         console.error("Docker image prune stderr:", stderr);
@@ -188,8 +192,15 @@ export class ImageService extends BaseDockerService {
     imageId: string
   ): Promise<DockerOperationResult> {
     try {
+      const normalizedId = this.validateImageId(imageId);
       const { stdout } = await this.execDockerCommand(
-        `docker history ${imageId} --format "table {{.ID}}\\t{{.CreatedBy}}\\t{{.Size}}\\t{{.CreatedSince}}" --no-trunc`
+        [
+          "history",
+          normalizedId,
+          "--format",
+          "table {{.ID}}\t{{.CreatedBy}}\t{{.Size}}\t{{.CreatedSince}}",
+          "--no-trunc",
+        ]
       );
 
       const lines = stdout.trim().split("\n");
@@ -201,7 +212,7 @@ export class ImageService extends BaseDockerService {
       return {
         success: true,
         data,
-        message: `Image history for ${imageId} retrieved successfully`,
+        message: `Image history for ${normalizedId} retrieved successfully`,
       };
     } catch (error) {
       console.error(`Error getting image history for ${imageId}:`, error);
