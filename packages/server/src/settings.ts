@@ -1,4 +1,4 @@
-import { join } from "path";
+import { join, resolve, isAbsolute } from "path";
 import { readFileSync, existsSync } from "fs";
 
 interface User {
@@ -20,32 +20,59 @@ const defaultSettings: SettingsInterface = {
 
 let settings: SettingsInterface;
 
+function resolveSettingsPath(): string {
+  const envPath = process.env.SETTINGS_PATH?.trim();
+  if (envPath) {
+    return isAbsolute(envPath) ? envPath : resolve(process.cwd(), envPath);
+  }
+  return join(__dirname, "../.settings.json");
+}
+
+function parseSettingsFile(settingsPath: string): SettingsInterface | null {
+  if (!existsSync(settingsPath)) {
+    return null;
+  }
+
+  try {
+    const settingsFile = readFileSync(settingsPath, "utf8");
+    const parsedSettings = JSON.parse(settingsFile);
+
+    // Validate the structure and provide defaults
+    return {
+      auth_protected: parsedSettings.auth_protected || false,
+      users: Array.isArray(parsedSettings.users) ? parsedSettings.users : null,
+      allowed_ip_list: Array.isArray(parsedSettings.allowed_ip_list)
+        ? parsedSettings.allowed_ip_list
+        : null,
+    };
+  } catch (error) {
+    console.warn(
+      "Failed to parse settings file, using default configuration:",
+      error
+    );
+    return defaultSettings;
+  }
+}
+
 function loadSettings(): SettingsInterface {
-  const settingsPath = join(__dirname, "../.settings.json");
+  const settingsPath = resolveSettingsPath();
+  const defaultSettingsPath = join(__dirname, "../.settings.json");
 
   console.log("Loading settings from:", settingsPath);
 
-  if (existsSync(settingsPath)) {
-    try {
-      const settingsFile = readFileSync(settingsPath, "utf8");
-      const parsedSettings = JSON.parse(settingsFile);
+  const parsedSettings = parseSettingsFile(settingsPath);
+  if (parsedSettings) {
+    return parsedSettings;
+  }
 
-      // Validate the structure and provide defaults
-      return {
-        auth_protected: parsedSettings.auth_protected || false,
-        users: Array.isArray(parsedSettings.users)
-          ? parsedSettings.users
-          : null,
-        allowed_ip_list: Array.isArray(parsedSettings.allowed_ip_list)
-          ? parsedSettings.allowed_ip_list
-          : null,
-      };
-    } catch (error) {
-      console.warn(
-        "Failed to parse env.json, using default settingsuration:",
-        error
-      );
-      return defaultSettings;
+  if (settingsPath !== defaultSettingsPath) {
+    console.warn(
+      "Settings file not found at SETTINGS_PATH, falling back to default:",
+      defaultSettingsPath
+    );
+    const fallbackSettings = parseSettingsFile(defaultSettingsPath);
+    if (fallbackSettings) {
+      return fallbackSettings;
     }
   }
 
