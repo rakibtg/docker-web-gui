@@ -12,6 +12,7 @@ import {
   createGroup,
   updateGroup,
   deleteGroup,
+  getGroupById,
 } from "./groups";
 
 import {
@@ -682,16 +683,14 @@ const server = createServer(async (req, res) => {
   if (pathname === "/api/groups" && req.method === "POST") {
     res.setHeader("Content-Type", "application/json");
 
-    if (isAuthRequired()) {
-      const cookies = parseCookies(req.headers.cookie || "");
-      const sessionToken = getSessionTokenFromCookies(cookies);
-      const session = sessionToken ? validateSession(sessionToken) : null;
+    const cookies = parseCookies(req.headers.cookie || "");
+    const sessionToken = getSessionTokenFromCookies(cookies);
+    const session = sessionToken ? validateSession(sessionToken) : null;
 
-      if (!session) {
-        res.writeHead(401);
-        res.end(JSON.stringify({ error: "AUTH_REQUIRED" }));
-        return;
-      }
+    if (isAuthRequired() && !session) {
+      res.writeHead(401);
+      res.end(JSON.stringify({ error: "AUTH_REQUIRED" }));
+      return;
     }
 
     try {
@@ -714,6 +713,18 @@ const server = createServer(async (req, res) => {
       const group = await createGroup(name, containerIds);
       res.writeHead(201);
       res.end(JSON.stringify({ data: group }));
+
+      await recordAction("group_create", {
+        session,
+        ipAddress: clientIP,
+        resourceType: "group",
+        resourceId: String(group.id),
+        status: "success",
+        message: `Group "${group.name}" created`,
+        metadata: {
+          containerCount: group.containerIds.length,
+        },
+      });
     } catch (error: any) {
       const message = error?.message || "Failed to create group";
       const isConstraint =
@@ -731,6 +742,14 @@ const server = createServer(async (req, res) => {
           message,
         })
       );
+
+      await recordAction("group_create", {
+        session,
+        ipAddress: clientIP,
+        resourceType: "group",
+        status: "error",
+        message,
+      });
     }
     return;
   }
@@ -738,25 +757,80 @@ const server = createServer(async (req, res) => {
   if (pathname.startsWith("/api/groups/")) {
     res.setHeader("Content-Type", "application/json");
 
-    if (isAuthRequired()) {
-      const cookies = parseCookies(req.headers.cookie || "");
-      const sessionToken = getSessionTokenFromCookies(cookies);
-      const session = sessionToken ? validateSession(sessionToken) : null;
+    const cookies = parseCookies(req.headers.cookie || "");
+    const sessionToken = getSessionTokenFromCookies(cookies);
+    const session = sessionToken ? validateSession(sessionToken) : null;
 
-      if (!session) {
-        res.writeHead(401);
-        res.end(JSON.stringify({ error: "AUTH_REQUIRED" }));
-        return;
-      }
+    if (isAuthRequired() && !session) {
+      res.writeHead(401);
+      res.end(JSON.stringify({ error: "AUTH_REQUIRED" }));
+      return;
     }
 
-    const idSegment = pathname.split("/")[3];
+    const pathSegments = pathname.split("/").filter(Boolean);
+    const idSegment = pathSegments[2];
     const groupId = Number(idSegment);
     if (!idSegment || !Number.isFinite(groupId) || groupId <= 0) {
       res.writeHead(400);
       res.end(
         JSON.stringify({ error: "INVALID_REQUEST", message: "Invalid group" })
       );
+      return;
+    }
+
+    if (pathSegments[3] === "actions" && req.method === "POST") {
+      try {
+        const body = await readRequestBody(req);
+        const payload = JSON.parse(body);
+        const action =
+          typeof payload?.action === "string"
+            ? payload.action.trim().toLowerCase()
+            : "";
+        const containerIds = Array.isArray(payload?.containerIds)
+          ? payload.containerIds.filter((id: unknown) => typeof id === "string")
+          : [];
+
+        if (!["start", "stop", "restart"].includes(action)) {
+          res.writeHead(400);
+          res.end(
+            JSON.stringify({
+              error: "INVALID_REQUEST",
+              message: "Invalid group action",
+            })
+          );
+          return;
+        }
+
+        const group = await getGroupById(groupId);
+        if (!group) {
+          res.writeHead(404);
+          res.end(JSON.stringify({ error: "GROUP_NOT_FOUND" }));
+          return;
+        }
+
+        await recordAction(`group_${action}`, {
+          session,
+          ipAddress: clientIP,
+          resourceType: "group",
+          resourceId: String(groupId),
+          status: "requested",
+          message: `Group "${group.name}" ${action} requested`,
+          metadata: {
+            containerCount: containerIds.length || group.containerIds.length,
+            containerIds:
+              containerIds.length > 0 ? containerIds : group.containerIds,
+          },
+        });
+
+        res.writeHead(200);
+        res.end(JSON.stringify({ success: true }));
+      } catch (error: any) {
+        const message = error?.message || "Failed to log group action";
+        res.writeHead(500);
+        res.end(
+          JSON.stringify({ error: "GROUP_ACTION_LOG_FAILED", message })
+        );
+      }
       return;
     }
 
@@ -792,6 +866,18 @@ const server = createServer(async (req, res) => {
 
         res.writeHead(200);
         res.end(JSON.stringify({ data: group }));
+
+        await recordAction("group_update", {
+          session,
+          ipAddress: clientIP,
+          resourceType: "group",
+          resourceId: String(group.id),
+          status: "success",
+          message: `Group "${group.name}" updated`,
+          metadata: {
+            containerCount: group.containerIds.length,
+          },
+        });
       } catch (error: any) {
         const message = error?.message || "Failed to update group";
         const isConstraint =
@@ -809,6 +895,15 @@ const server = createServer(async (req, res) => {
             message,
           })
         );
+
+        await recordAction("group_update", {
+          session,
+          ipAddress: clientIP,
+          resourceType: "group",
+          resourceId: String(groupId),
+          status: "error",
+          message,
+        });
       }
       return;
     }
@@ -823,9 +918,28 @@ const server = createServer(async (req, res) => {
         }
         res.writeHead(200);
         res.end(JSON.stringify({ success: true }));
+
+        await recordAction("group_delete", {
+          session,
+          ipAddress: clientIP,
+          resourceType: "group",
+          resourceId: String(groupId),
+          status: "success",
+          message: "Group deleted",
+        });
       } catch (error) {
         res.writeHead(500);
         res.end(JSON.stringify({ error: "GROUP_DELETE_FAILED" }));
+
+        await recordAction("group_delete", {
+          session,
+          ipAddress: clientIP,
+          resourceType: "group",
+          resourceId: String(groupId),
+          status: "error",
+          message:
+            error instanceof Error ? error.message : "Failed to delete group",
+        });
       }
       return;
     }
