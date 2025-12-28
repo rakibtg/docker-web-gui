@@ -1,5 +1,8 @@
+export { Logs } from "./Logs";
 export { About } from "./About";
 export { Images } from "./Images";
+export { Groups } from "./Groups";
+export { Cleanup } from "./Cleanup";
 export { Volumes } from "./Volumes";
 export { Networks } from "./Networks";
 export { Dashboard } from "./Dashboard";
@@ -7,5 +10,3 @@ export { ImageDetails } from "./ImageDetails";
 export { VolumeDetails } from "./VolumeDetails";
 export { ContainersPage } from "./ContainersPage";
 export { ContainerDetails } from "./ContainerDetails";
-export { Cleanup } from "./Cleanup";
-export { Logs } from "./Logs";
