@@ -8,10 +8,11 @@ import {
   HiGlobeAlt,
   HiDatabase,
   HiChartPie,
+  HiCollection,
   HiChevronLeft,
   HiChevronRight,
-  HiInformationCircle,
   HiClipboardList,
+  HiInformationCircle,
 } from "react-icons/hi";
 
 import { Tooltip } from "react-tooltip";
@@ -37,6 +38,11 @@ const sidebarItems: SidebarItem[] = [
     id: "containers",
     label: "Containers",
     icon: FiBox,
+  },
+  {
+    id: "groups",
+    label: "Groups",
+    icon: HiCollection,
   },
   {
     id: "images",
