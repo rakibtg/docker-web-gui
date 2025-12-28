@@ -1,20 +1,25 @@
-import { exec } from "child_process";
+import { execFile } from "child_process";
 import { promisify } from "util";
 import { DockerAvailabilityResult } from "./types";
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 export class BaseDockerService {
+  private static readonly containerIdPattern = /^[a-f0-9]{12,64}$/i;
+  private static readonly imageIdPattern = /^(sha256:)?[a-f0-9]{12,64}$/i;
+  private static readonly namePattern = /^[A-Za-z0-9_.-]+$/;
+  private static readonly defaultMaxBuffer = 10 * 1024 * 1024;
+
   /**
    * Check if Docker is available and accessible
    */
   static async checkDockerAvailability(): Promise<DockerAvailabilityResult> {
     try {
-      await execAsync("docker --version");
+      await this.execDockerCommand(["--version"]);
 
       // Test if we can actually run docker commands
       try {
-        await execAsync("docker info");
+        await this.execDockerCommand(["info"]);
         return { available: true };
       } catch (infoError) {
         if (
@@ -53,33 +58,58 @@ export class BaseDockerService {
   /**
    * Execute Docker command with proper error handling
    */
-  static async execDockerCommand(
+  protected static async execCommand(
     command: string,
-    options?: { logErrors?: boolean }
+    args: string[],
+    options?: { logErrors?: boolean; maxBuffer?: number }
   ): Promise<{ stdout: string; stderr: string }> {
-    const { logErrors = true } = options || {};
+    const { logErrors = true, maxBuffer = BaseDockerService.defaultMaxBuffer } =
+      options || {};
 
     try {
-      return await execAsync(command);
+      return await execFileAsync(command, args, { maxBuffer });
     } catch (error) {
       if (logErrors) {
-        console.error(`Error executing Docker command: ${command}`, error);
+        console.error(
+          `Error executing command: ${command} ${args.join(" ")}`,
+          error
+        );
       }
+      throw error;
+    }
+  }
 
-      // Check for common Docker errors
-      if (
-        error instanceof Error &&
-        error.message.includes("permission denied")
-      ) {
+  static async execDockerCommand(
+    args: string[],
+    options?: { logErrors?: boolean; maxBuffer?: number }
+  ): Promise<{ stdout: string; stderr: string }> {
+    try {
+      return await this.execCommand("docker", args, options);
+    } catch (error) {
+      const stderr =
+        typeof (error as any)?.stderr === "string"
+          ? (error as any).stderr
+          : (error as any)?.stderr?.toString?.() || "";
+      const stdout =
+        typeof (error as any)?.stdout === "string"
+          ? (error as any).stdout
+          : (error as any)?.stdout?.toString?.() || "";
+      const message =
+        typeof (error as any)?.message === "string"
+          ? (error as any).message
+          : "";
+      const combinedMessage = [stderr, stdout, message]
+        .filter(Boolean)
+        .join(" ")
+        .trim();
+
+      if (combinedMessage.includes("permission denied")) {
         throw new Error(
           "Docker permission denied. Please ensure the current user is in the docker group. Run: sudo usermod -aG docker $USER && newgrp docker"
         );
       }
 
-      if (
-        error instanceof Error &&
-        error.message.includes("Cannot connect to the Docker daemon")
-      ) {
+      if (combinedMessage.includes("Cannot connect to the Docker daemon")) {
         throw new Error(
           "Docker daemon is not running. Please start Docker service."
         );
@@ -87,9 +117,33 @@ export class BaseDockerService {
 
       throw new Error(
         `Failed to execute Docker command: ${
-          error instanceof Error ? error.message : "Unknown error"
+          combinedMessage || "Unknown error"
         }`
       );
     }
+  }
+
+  protected static validateContainerId(containerId: string): string {
+    const normalized = containerId.trim();
+    if (!this.containerIdPattern.test(normalized)) {
+      throw new Error("Invalid container ID");
+    }
+    return normalized;
+  }
+
+  protected static validateImageId(imageId: string): string {
+    const normalized = imageId.trim();
+    if (!this.imageIdPattern.test(normalized)) {
+      throw new Error("Invalid image ID");
+    }
+    return normalized;
+  }
+
+  protected static validateName(name: string, label: string): string {
+    const normalized = name.trim();
+    if (!this.namePattern.test(normalized)) {
+      throw new Error(`Invalid ${label}`);
+    }
+    return normalized;
   }
 }
