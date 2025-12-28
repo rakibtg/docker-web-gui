@@ -6,16 +6,30 @@ interface User {
   password: string;
 }
 
+interface RateLimitConfig {
+  window_minutes?: number;
+  max_attempts?: number;
+  block_minutes?: number;
+  max_tracked_ips?: number;
+}
+
 interface SettingsInterface {
   users: User[] | null;
   auth_protected: boolean;
   allowed_ip_list: string[] | null;
+  rate_limit?: RateLimitConfig;
 }
 
 const defaultSettings: SettingsInterface = {
   users: null,
   auth_protected: true,
   allowed_ip_list: null,
+  rate_limit: {
+    window_minutes: 15,
+    max_attempts: 5,
+    block_minutes: 15,
+    max_tracked_ips: 10000,
+  },
 };
 
 let settings: SettingsInterface;
@@ -44,6 +58,14 @@ function parseSettingsFile(settingsPath: string): SettingsInterface | null {
       allowed_ip_list: Array.isArray(parsedSettings.allowed_ip_list)
         ? parsedSettings.allowed_ip_list
         : null,
+      rate_limit: parsedSettings.rate_limit
+        ? {
+            window_minutes: parsedSettings.rate_limit.window_minutes ?? 15,
+            max_attempts: parsedSettings.rate_limit.max_attempts ?? 5,
+            block_minutes: parsedSettings.rate_limit.block_minutes ?? 15,
+            max_tracked_ips: parsedSettings.rate_limit.max_tracked_ips ?? 10000,
+          }
+        : defaultSettings.rate_limit,
     };
   } catch (error) {
     console.warn(
@@ -222,4 +244,4 @@ export function isTrustedProxyRequest(req: any): boolean {
   return trustedProxies.includes(normalizedRemote);
 }
 
-export { SettingsInterface, User };
+export { SettingsInterface, User, RateLimitConfig };
