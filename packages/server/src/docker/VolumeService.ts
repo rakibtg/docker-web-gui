@@ -9,7 +9,7 @@ export class VolumeService extends BaseDockerService {
     try {
       // Get volume list with basic info
       const { stdout: volumeList } = await this.execDockerCommand(
-        'docker volume ls --format "{{.Name}}|{{.Driver}}|{{.Scope}}"'
+        ["volume", "ls", "--format", "{{.Name}}|{{.Driver}}|{{.Scope}}"]
       );
 
       if (!volumeList.trim()) {
@@ -25,14 +25,14 @@ export class VolumeService extends BaseDockerService {
         try {
           // Get detailed volume info
           const { stdout: volumeInfo } = await this.execDockerCommand(
-            `docker volume inspect ${name}`
+            ["volume", "inspect", name]
           );
 
           const volumeDetails = JSON.parse(volumeInfo)[0];
 
           // Get containers using this volume
           const { stdout: containerList } = await this.execDockerCommand(
-            `docker ps -a --format "{{.ID}}|{{.Names}}" --filter volume=${name}`
+            ["ps", "-a", "--format", "{{.ID}}|{{.Names}}", "--filter", `volume=${name}`]
           );
 
           const usedBy = [];
@@ -44,7 +44,7 @@ export class VolumeService extends BaseDockerService {
               // Get mount information for this container
               try {
                 const { stdout: mountInfo } = await this.execDockerCommand(
-                  `docker inspect ${containerId} --format "{{json .Mounts}}"`
+                  ["inspect", containerId, "--format", "{{json .Mounts}}"]
                 );
 
                 const mounts = JSON.parse(mountInfo);
@@ -71,8 +71,10 @@ export class VolumeService extends BaseDockerService {
           // Get volume size (approximate)
           let size = "Unknown";
           try {
-            const { stdout: sizeInfo } = await this.execDockerCommand(
-              `du -sh "${volumeDetails.Mountpoint}" 2>/dev/null || echo "Unknown"`
+            const { stdout: sizeInfo } = await this.execCommand(
+              "du",
+              ["-sh", volumeDetails.Mountpoint],
+              { logErrors: false }
             );
             size = sizeInfo.trim().split("\t")[0] || "Unknown";
           } catch (err) {
@@ -119,8 +121,9 @@ export class VolumeService extends BaseDockerService {
    */
   static async removeDockerVolume(volumeName: string): Promise<void> {
     try {
+      const normalizedName = this.validateName(volumeName, "volume name");
       const { stderr } = await this.execDockerCommand(
-        `docker volume rm ${volumeName}`
+        ["volume", "rm", normalizedName]
       );
 
       if (stderr) {
@@ -128,7 +131,7 @@ export class VolumeService extends BaseDockerService {
         throw new Error(stderr);
       }
 
-      console.log(`Volume ${volumeName} removed successfully`);
+      console.log(`Volume ${normalizedName} removed successfully`);
     } catch (error: any) {
       console.error("Error removing Docker volume:", error);
       throw new Error(`Failed to remove volume: ${error.message}`);
@@ -141,7 +144,7 @@ export class VolumeService extends BaseDockerService {
   static async pruneDockerVolumes(): Promise<VolumesPruneResult> {
     try {
       const { stdout, stderr } = await this.execDockerCommand(
-        `docker volume prune -f`
+        ["volume", "prune", "-f"]
       );
 
       if (stderr && !stderr.includes("WARNING")) {
@@ -184,25 +187,26 @@ export class VolumeService extends BaseDockerService {
     volumeName: string
   ): Promise<DockerVolume> {
     try {
+      const normalizedName = this.validateName(volumeName, "volume name");
       // First check if volume exists
       const { stdout: volumeExists } = await this.execDockerCommand(
-        `docker volume ls --format "{{.Name}}" --filter name=${volumeName}`
+        ["volume", "ls", "--format", "{{.Name}}", "--filter", `name=${normalizedName}`]
       );
 
       if (!volumeExists.trim()) {
-        throw new Error(`Volume "${volumeName}" not found`);
+        throw new Error(`Volume "${normalizedName}" not found`);
       }
 
       // Get detailed volume info
       const { stdout: volumeInfo } = await this.execDockerCommand(
-        `docker volume inspect ${volumeName}`
+        ["volume", "inspect", normalizedName]
       );
 
       const volumeDetails = JSON.parse(volumeInfo)[0];
 
       // Get containers using this volume
       const { stdout: containerList } = await this.execDockerCommand(
-        `docker ps -a --format "{{.ID}}|{{.Names}}" --filter volume=${volumeName}`
+        ["ps", "-a", "--format", "{{.ID}}|{{.Names}}", "--filter", `volume=${normalizedName}`]
       );
 
       const usedBy = [];
@@ -214,12 +218,12 @@ export class VolumeService extends BaseDockerService {
           // Get mount information for this container
           try {
             const { stdout: mountInfo } = await this.execDockerCommand(
-              `docker inspect ${containerId} --format "{{json .Mounts}}"`
+              ["inspect", containerId, "--format", "{{json .Mounts}}"]
             );
 
             const mounts = JSON.parse(mountInfo);
             const volumeMounts = mounts.filter(
-              (mount: any) => mount.Name === volumeName
+              (mount: any) => mount.Name === normalizedName
             );
 
             for (const mount of volumeMounts) {
@@ -241,8 +245,10 @@ export class VolumeService extends BaseDockerService {
       // Get volume size (approximate)
       let size = "Unknown";
       try {
-        const { stdout: sizeInfo } = await this.execDockerCommand(
-          `du -sh "${volumeDetails.Mountpoint}" 2>/dev/null || echo "Unknown"`
+        const { stdout: sizeInfo } = await this.execCommand(
+          "du",
+          ["-sh", volumeDetails.Mountpoint],
+          { logErrors: false }
         );
         size = sizeInfo.trim().split("\t")[0] || "Unknown";
       } catch (err) {
