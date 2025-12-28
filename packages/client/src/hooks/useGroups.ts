@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import type { ContainerGroup } from "../types";
+import { getCsrfToken } from "../helpers/csrf";
 
 interface GroupInput {
   name: string;
@@ -56,11 +57,13 @@ export function useGroups() {
 
   const createGroup = useCallback(async (input: GroupInput) => {
     setError("");
+    const csrfToken = await getCsrfToken();
     const response = await fetch("/api/groups", {
       method: "POST",
       credentials: "include",
       headers: {
         "Content-Type": "application/json",
+        "X-CSRF-Token": csrfToken,
       },
       body: JSON.stringify(input),
     });
@@ -76,11 +79,13 @@ export function useGroups() {
 
   const updateGroup = useCallback(async (groupId: number, input: GroupInput) => {
     setError("");
+    const csrfToken = await getCsrfToken();
     const response = await fetch(`/api/groups/${groupId}`, {
       method: "PUT",
       credentials: "include",
       headers: {
         "Content-Type": "application/json",
+        "X-CSRF-Token": csrfToken,
       },
       body: JSON.stringify(input),
     });
@@ -98,9 +103,13 @@ export function useGroups() {
 
   const deleteGroup = useCallback(async (groupId: number) => {
     setError("");
+    const csrfToken = await getCsrfToken();
     const response = await fetch(`/api/groups/${groupId}`, {
       method: "DELETE",
       credentials: "include",
+      headers: {
+        "X-CSRF-Token": csrfToken,
+      },
     });
 
     if (!response.ok) {
