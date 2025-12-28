@@ -464,7 +464,7 @@ const Groups = memo(function Groups() {
               </div>
 
               {isExpanded && (
-                <div className="mt-4 pl-5 border-l border-gray-700">
+                <div className="mt-4 pl-6">
                   {groupContainers.length > 0 ? (
                     <ContainerGrid
                       containers={groupContainers}
