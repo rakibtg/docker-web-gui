@@ -24,7 +24,7 @@ export class TerminalService extends BaseDockerService {
           try {
             // Validate shell path before using it
             const validatedShell = this.validateShellPath(shell);
-            
+
             await this.execDockerCommand(
               ["exec", normalizedId, "test", "-f", validatedShell],
               {
@@ -32,7 +32,9 @@ export class TerminalService extends BaseDockerService {
               }
             );
             availableShell = validatedShell;
-            console.log(`Found shell ${validatedShell} in container ${normalizedId}`);
+            console.log(
+              `Found shell ${validatedShell} in container ${normalizedId}`
+            );
             break;
           } catch (error) {
             // Shell not found or validation failed, try next one
@@ -47,7 +49,7 @@ export class TerminalService extends BaseDockerService {
 
       // Final validation of shell path before spawning
       const validatedShell = this.validateShellPath(availableShell);
-      
+
       // Create terminal with the validated shell
       // Using array format prevents shell injection - arguments are passed directly
       const terminal = pty.spawn(
