@@ -1,7 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const { safeTerminal } = require("./backend/utilities/terminal");
-const port = 3230;
+const port = 8080;
 
 async function app() {
   console.clear();

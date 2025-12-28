@@ -42,12 +42,12 @@ Before you follow below steps to start the app, make sure you have `node` and `n
   ```
   node app.js
   ```
-- Now visit http://localhost:3230/
+- Now visit http://localhost:8080/
 
 ## Using Docker
 
 You can run this application through a docker container, but it only works in **MacOS**. You can use that with/without [**`docker compose`**](https://docs.docker.com/compose/).
-Also, the application will be exposed at port http://localhost:3230.
+Also, the application will be exposed at port http://localhost:8080.
 
 ### Without Docker Compose
 
@@ -59,7 +59,7 @@ If you don't have a docker compose, then you can use the following commands:
   ```
 - To run the image:
   ```
-  docker run -p 3230:3230 -v /usr/local/bin/docker:/usr/local/bin/docker -v /var/run/docker.sock:/var/run/docker.sock docker-web-gui
+  docker run -p 8080:8080 -v /usr/local/bin/docker:/usr/local/bin/docker -v /var/run/docker.sock:/var/run/docker.sock docker-web-gui
   ```
 
 ### With Docker Compose
