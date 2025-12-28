@@ -5,9 +5,18 @@ import { DockerAvailabilityResult } from "./types";
 const execFileAsync = promisify(execFile);
 
 export class BaseDockerService {
+  // Strict patterns to prevent injection attacks
   private static readonly containerIdPattern = /^[a-f0-9]{12,64}$/i;
   private static readonly imageIdPattern = /^(sha256:)?[a-f0-9]{12,64}$/i;
   private static readonly namePattern = /^[A-Za-z0-9_.-]+$/;
+  // Whitelist of allowed shell paths to prevent command injection
+  private static readonly allowedShells = [
+    "/bin/sh",
+    "/bin/bash",
+    "/bin/ash",
+    "/bin/zsh",
+    "/bin/dash",
+  ];
   private static readonly defaultMaxBuffer = 10 * 1024 * 1024;
 
   /**
@@ -124,10 +133,79 @@ export class BaseDockerService {
   }
 
   protected static validateContainerId(containerId: string): string {
-    const normalized = containerId.trim();
-    if (!this.containerIdPattern.test(normalized)) {
-      throw new Error("Invalid container ID");
+    if (!containerId || typeof containerId !== "string") {
+      throw new Error("Container ID must be a non-empty string");
     }
+
+    const normalized = containerId.trim();
+
+    // Check for reasonable length (container names and IDs are typically 1-64 chars)
+    if (normalized.length < 1 || normalized.length > 64) {
+      throw new Error("Invalid container ID length");
+    }
+
+    // Check for null bytes or control characters (prevents injection)
+    if (/[\x00-\x1F\x7F]/.test(normalized)) {
+      throw new Error("Container ID contains invalid control characters");
+    }
+
+    // Check for shell metacharacters and dangerous patterns (prevents command injection)
+    // Allow: letters, numbers, underscores, hyphens, dots (valid for container names and IDs)
+    // Block: semicolons, pipes, ampersands, dollar signs, backticks, etc.
+    if (/[;&|$`\\(){}<>\s"']/.test(normalized)) {
+      throw new Error("Container ID contains invalid characters");
+    }
+
+    // Must match either:
+    // 1. Container ID pattern (hex, 12-64 chars) OR
+    // 2. Container name pattern (alphanumeric + _.- chars)
+    const isValidId = this.containerIdPattern.test(normalized);
+    const isValidName = this.namePattern.test(normalized);
+
+    if (!isValidId && !isValidName) {
+      throw new Error("Invalid container ID or name format");
+    }
+
+    return normalized;
+  }
+
+  /**
+   * Validate shell path against whitelist to prevent command injection
+   */
+  protected static validateShellPath(shellPath: string): string {
+    if (!shellPath || typeof shellPath !== "string") {
+      throw new Error("Shell path must be a non-empty string");
+    }
+
+    const normalized = shellPath.trim();
+
+    // Must be in whitelist
+    if (!this.allowedShells.includes(normalized)) {
+      throw new Error(
+        `Shell path not allowed. Allowed shells: ${this.allowedShells.join(", ")}`
+      );
+    }
+
+    // Additional check: must start with /bin/
+    if (!normalized.startsWith("/bin/")) {
+      throw new Error("Shell path must be in /bin/ directory");
+    }
+
+    // Check for path traversal attempts
+    if (normalized.includes("..") || normalized.includes("//")) {
+      throw new Error("Shell path contains invalid sequences");
+    }
+
+    // Check for null bytes or control characters
+    if (/[\x00-\x1F\x7F]/.test(normalized)) {
+      throw new Error("Shell path contains invalid control characters");
+    }
+
+    // Ensure no spaces or special shell characters
+    if (/[\s;|&$`\\()<>]/.test(normalized)) {
+      throw new Error("Shell path contains invalid characters");
+    }
+
     return normalized;
   }
 
