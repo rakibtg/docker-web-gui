@@ -8,6 +8,7 @@ export class TerminalService extends BaseDockerService {
    */
   static async createTerminalSession(containerId: string): Promise<any> {
     try {
+      const normalizedId = this.validateContainerId(containerId);
       // Import node-pty
       const pty = require("node-pty");
 
@@ -21,13 +22,13 @@ export class TerminalService extends BaseDockerService {
         for (const shell of shells) {
           try {
             await this.execDockerCommand(
-              `docker exec ${containerId} test -f ${shell}`,
+              ["exec", normalizedId, "test", "-f", shell],
               {
                 logErrors: false, // Shell probing is expected to fail for missing shells
               }
             );
             availableShell = shell;
-            console.log(`Found shell ${shell} in container ${containerId}`);
+            console.log(`Found shell ${shell} in container ${normalizedId}`);
             break;
           } catch (error) {
             // Shell not found, try next one
@@ -43,7 +44,7 @@ export class TerminalService extends BaseDockerService {
       // Create terminal with the detected shell
       const terminal = pty.spawn(
         "docker",
-        ["exec", "-it", containerId, availableShell],
+        ["exec", "-it", normalizedId, availableShell],
         {
           name: "xterm-color",
           cols: 80,
@@ -76,11 +77,12 @@ export class TerminalService extends BaseDockerService {
    */
   static async createLogsSession(containerId: string): Promise<any> {
     try {
+      const normalizedId = this.validateContainerId(containerId);
       // Create a logs process using docker logs with follow flag
       // Added --timestamps for better readability and limited tail to recent logs
       const logsProcess = spawn(
         "docker",
-        ["logs", "-f", "--tail", "50", "--timestamps", containerId],
+        ["logs", "-f", "--tail", "50", "--timestamps", normalizedId],
         {
           stdio: ["pipe", "pipe", "pipe"],
           env: {
