@@ -49,6 +49,20 @@ Before you follow below steps to start the app, make sure you have `node` and `n
 You can run this application through a docker container, but it only works in **MacOS**. You can use that with/without [**`docker compose`**](https://docs.docker.com/compose/).
 Also, the application will be exposed at port http://localhost:8080.
 
+### Configuration (.settings.json)
+
+You can provide a custom settings file by mounting it into the container and setting `SETTINGS_PATH`.
+
+Example:
+```
+docker run -p 8080:8080 \
+  -v $(pwd)/.settings.json:/config/settings.json \
+  -e SETTINGS_PATH=/config/settings.json \
+  -v /usr/local/bin/docker:/usr/local/bin/docker \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  docker-web-gui
+```
+
 ### Without Docker Compose
 
 If you don't have a docker compose, then you can use the following commands:
