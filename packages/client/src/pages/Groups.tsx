@@ -25,6 +25,72 @@ import { HiChevronDown, HiChevronRight } from "react-icons/hi";
 import { FaPlay, FaStop, FaTrash, FaTimes } from "react-icons/fa";
 import type { ContainerGroup, ContainerWithStats } from "../types";
 
+const BYTES_PER_KIB = 1024;
+const BYTES_PER_MIB = BYTES_PER_KIB * 1024;
+const BYTES_PER_GIB = BYTES_PER_MIB * 1024;
+const BYTES_PER_TIB = BYTES_PER_GIB * 1024;
+
+const MEMORY_UNITS: Record<string, number> = {
+  B: 1,
+  kB: 1000,
+  KB: 1000,
+  MB: 1000 ** 2,
+  GB: 1000 ** 3,
+  TB: 1000 ** 4,
+  KiB: BYTES_PER_KIB,
+  MiB: BYTES_PER_MIB,
+  GiB: BYTES_PER_GIB,
+  TiB: BYTES_PER_TIB,
+};
+
+function parseCpuPercent(value?: string): number {
+  if (!value) {
+    return 0;
+  }
+  const match = value.match(/[\d.]+/);
+  if (!match) {
+    return 0;
+  }
+  const parsed = Number(match[0]);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function parseMemoryBytes(value?: string): number {
+  if (!value) {
+    return 0;
+  }
+  const usedPart = value.split("/")[0]?.trim();
+  if (!usedPart) {
+    return 0;
+  }
+  const match = usedPart.match(/^([\d.]+)\s*([a-zA-Z]+)$/);
+  if (!match) {
+    return 0;
+  }
+  const amount = Number(match[1]);
+  const unit = match[2];
+  const multiplier = MEMORY_UNITS[unit] ?? 1;
+  if (!Number.isFinite(amount)) {
+    return 0;
+  }
+  return amount * multiplier;
+}
+
+function formatBytes(value: number): string {
+  if (!Number.isFinite(value) || value <= 0) {
+    return "0 B";
+  }
+  const units = ["B", "KiB", "MiB", "GiB", "TiB"];
+  let adjusted = value;
+  let unitIndex = 0;
+  while (adjusted >= BYTES_PER_KIB && unitIndex < units.length - 1) {
+    adjusted /= BYTES_PER_KIB;
+    unitIndex += 1;
+  }
+  const precision = adjusted >= 10 || unitIndex === 0 ? 0 : 1;
+  return `${adjusted.toFixed(precision)} ${units[unitIndex]}`;
+}
+
 type GroupActionTarget = {
   group: ContainerGroup;
   type: "delete-group" | "delete-containers";
@@ -299,13 +365,22 @@ const Groups = memo(function Groups() {
           );
           const showMixedIcons = hasRunning && hasStopped;
           const toggleLabel = hasRunning ? "Stop" : "Start";
+          const totalCpu = groupContainers.reduce((total, container) => {
+            return total + parseCpuPercent(container.stats?.cpuPerc);
+          }, 0);
+          const totalMemoryBytes = groupContainers.reduce(
+            (total, container) => {
+              return total + parseMemoryBytes(container.stats?.memUsage);
+            },
+            0
+          );
 
           return (
             <div
               key={group.id}
               className="bg-gray-800 border border-gray-600 rounded-sm p-2"
             >
-              <div className="flex flex-wrap items-center gap-3 justify-between">
+              <div className="flex flex-wrap items-center gap-3">
                 <button
                   onClick={() => toggleExpanded(group.id)}
                   className="flex items-center gap-2 text-gray-100 hover:text-white transition-colors"
@@ -324,7 +399,13 @@ const Groups = memo(function Groups() {
                   </div>
                 </button>
 
-                <div className="flex items-center space-x-4">
+                <div className="text-xs text-gray-400 flex items-center gap-2 pl-2">
+                  <span>CPU {totalCpu.toFixed(1)}%</span>
+                  <span className="text-gray-600">•</span>
+                  <span>Memory {formatBytes(totalMemoryBytes)}</span>
+                </div>
+
+                <div className="flex items-center space-x-4 ml-auto">
                   <CardActionButton
                     title={
                       hasRunning
