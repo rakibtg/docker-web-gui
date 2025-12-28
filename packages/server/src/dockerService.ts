@@ -181,9 +181,10 @@ export class DockerService extends EventEmitter {
   // === System Cleanup ===
   async systemPrune(includeVolumes: boolean = false): Promise<DockerOperationResult> {
     try {
-      const { stdout, stderr } = await BaseDockerService.execDockerCommand(
-        `docker system prune -f${includeVolumes ? " --volumes" : ""}`
-      );
+      const args = includeVolumes
+        ? ["system", "prune", "-f", "--volumes"]
+        : ["system", "prune", "-f"];
+      const { stdout, stderr } = await BaseDockerService.execDockerCommand(args);
 
       if (stderr && !stderr.includes("WARNING")) {
         console.error("Docker system prune stderr:", stderr);
