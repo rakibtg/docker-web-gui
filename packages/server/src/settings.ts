@@ -14,7 +14,7 @@ interface SettingsInterface {
 
 const defaultSettings: SettingsInterface = {
   users: null,
-  auth_protected: false,
+  auth_protected: true,
   allowed_ip_list: null,
 };
 
@@ -22,6 +22,8 @@ let settings: SettingsInterface;
 
 function loadSettings(): SettingsInterface {
   const settingsPath = join(__dirname, "../.settings.json");
+
+  console.log("Loading settings from:", settingsPath);
 
   if (existsSync(settingsPath)) {
     try {
@@ -74,29 +76,78 @@ export function reloadSettings(): SettingsInterface {
 // IP validation utilities
 function isValidIP(ip: string): boolean {
   // IPv4 validation
-  const ipv4Regex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+  const ipv4Regex =
+    /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
   // IPv6 validation (basic)
   const ipv6Regex = /^(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$|^::1$|^::$/;
-  
+
   return ipv4Regex.test(ip) || ipv6Regex.test(ip);
 }
 
+function normalizeIP(ip: string): string {
+  return ip.replace(/^::ffff:/, "");
+}
+
+function isTruthyEnv(value: string | undefined): boolean {
+  if (!value) {
+    return false;
+  }
+  return ["1", "true", "yes", "on"].includes(value.trim().toLowerCase());
+}
+
+function getTrustedProxyIPs(): string[] {
+  if (!isTruthyEnv(process.env.TRUST_PROXY)) {
+    return [];
+  }
+
+  const rawList = process.env.TRUST_PROXY_LIST || process.env.TRUST_PROXY_IPS;
+  if (!rawList) {
+    return [];
+  }
+
+  return rawList
+    .split(",")
+    .map((ip) => normalizeIP(ip.trim()))
+    .filter((ip) => ip !== "" && isValidIP(ip));
+}
+
+function getForwardedClientIP(headerValue: string | undefined): string | null {
+  if (!headerValue) {
+    return null;
+  }
+
+  const candidates = headerValue
+    .split(",")
+    .map((entry) => normalizeIP(entry.trim()))
+    .filter((entry) => entry !== "");
+
+  for (const candidate of candidates) {
+    if (isValidIP(candidate)) {
+      return candidate;
+    }
+  }
+
+  return null;
+}
+
 export function isIPAllowed(clientIP: string): boolean {
-  const allowedIPs = getSettings('allowed_ip_list');
-  
+  const allowedIPs = getSettings("allowed_ip_list");
+
   // If allowed_ip_list is null, empty, or contains only empty strings, allow all IPs
   if (!allowedIPs || allowedIPs.length === 0) {
     return true;
   }
-  
+
   // Filter out empty strings and validate IPs
-  const validAllowedIPs = allowedIPs.filter(ip => ip.trim() !== '' && isValidIP(ip.trim()));
-  
+  const validAllowedIPs = allowedIPs.filter(
+    (ip) => ip.trim() !== "" && isValidIP(ip.trim())
+  );
+
   // If no valid IPs in the list, allow all
   if (validAllowedIPs.length === 0) {
     return true;
   }
-  
+
   // Check if client IP is in the allowed list
   const normalizedClientIP = clientIP.trim();
   return validAllowedIPs.includes(normalizedClientIP);
@@ -104,27 +155,44 @@ export function isIPAllowed(clientIP: string): boolean {
 
 // Helper function to extract real IP from request
 export function extractClientIP(req: any): string {
-  // Check for forwarded headers (proxy/load balancer)
-  const forwarded = req.headers['x-forwarded-for'];
-  if (forwarded) {
-    // x-forwarded-for can contain multiple IPs, take the first one
-    return forwarded.split(',')[0].trim();
-  }
-  
-  // Check for real IP header
-  const realIP = req.headers['x-real-ip'];
-  if (realIP) {
-    return realIP.trim();
-  }
-  
   // Fall back to connection remote address
-  const remoteAddress = req.connection?.remoteAddress || req.socket?.remoteAddress;
+  const remoteAddress =
+    req.connection?.remoteAddress || req.socket?.remoteAddress;
   if (remoteAddress) {
-    // Remove IPv6 prefix if present (::ffff:192.168.1.1 -> 192.168.1.1)
-    return remoteAddress.replace(/^::ffff:/, '');
+    const normalizedRemote = normalizeIP(remoteAddress);
+    const trustedProxies = getTrustedProxyIPs();
+    const isTrustedProxy = trustedProxies.includes(normalizedRemote);
+
+    if (isTrustedProxy) {
+      const forwardedClient = getForwardedClientIP(
+        req.headers["x-forwarded-for"]
+      );
+      if (forwardedClient) {
+        return forwardedClient;
+      }
+
+      const realIP = getForwardedClientIP(req.headers["x-real-ip"]);
+      if (realIP) {
+        return realIP;
+      }
+    }
+
+    return normalizedRemote;
   }
-  
-  return 'unknown';
+
+  return "unknown";
+}
+
+export function isTrustedProxyRequest(req: any): boolean {
+  const remoteAddress =
+    req.connection?.remoteAddress || req.socket?.remoteAddress;
+  if (!remoteAddress) {
+    return false;
+  }
+
+  const normalizedRemote = normalizeIP(remoteAddress);
+  const trustedProxies = getTrustedProxyIPs();
+  return trustedProxies.includes(normalizedRemote);
 }
 
 export { SettingsInterface, User };
