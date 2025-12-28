@@ -31,6 +31,8 @@ import {
   isTrustedProxyRequest,
 } from "./settings";
 
+import { authRateLimiter } from "./rateLimiter";
+
 // Client management for WebSocket connections
 interface ClientConnection {
   ws: any;
@@ -462,6 +464,27 @@ const server = createServer(async (req, res) => {
 
     if (pathname === "/api/auth/login" && req.method === "POST") {
       try {
+        // Check rate limit first
+        const rateLimitResult = authRateLimiter.checkLimit(clientIP);
+        if (!rateLimitResult.allowed) {
+          res.setHeader("Retry-After", String(rateLimitResult.retryAfter || 900));
+          res.writeHead(429);
+          res.end(
+            JSON.stringify({
+              success: false,
+              error: "RATE_LIMIT_EXCEEDED",
+              message: `Too many login attempts. Please try again in ${rateLimitResult.retryAfter} seconds.`,
+              retryAfter: rateLimitResult.retryAfter,
+            })
+          );
+          await recordAction("auth_login", {
+            status: "rate_limited",
+            message: "Login attempt blocked by rate limiter",
+            ipAddress: clientIP,
+          });
+          return;
+        }
+
         const body = await readRequestBody(req);
         const { username, password } = JSON.parse(body);
 
@@ -477,6 +500,8 @@ const server = createServer(async (req, res) => {
         }
 
         if (authenticateUser(username, password)) {
+          // Reset rate limit on successful login
+          authRateLimiter.recordSuccess(clientIP);
           const session = createSession(username);
           const secureCookie = isSecureRequest(req);
           const useHostCookie =
@@ -502,6 +527,7 @@ const server = createServer(async (req, res) => {
             ipAddress: clientIP,
           });
 
+          res.setHeader("X-RateLimit-Remaining", String(rateLimitResult.remaining || 0));
           res.writeHead(200);
           res.end(
             JSON.stringify({
@@ -510,11 +536,13 @@ const server = createServer(async (req, res) => {
             })
           );
         } else {
+          // Failed login - rate limit still applies
           await recordAction("auth_login", {
             status: "failed",
             message: "Invalid credentials",
             ipAddress: clientIP,
           });
+          res.setHeader("X-RateLimit-Remaining", String(rateLimitResult.remaining || 0));
           res.writeHead(401);
           res.end(
             JSON.stringify({ success: false, message: "Invalid credentials" })
