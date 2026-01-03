@@ -20,9 +20,9 @@ const ContainersPage = memo(function ContainersPage() {
     isConnected,
     dockerAvailable,
     requestContainers,
+    handleContainerRemove,
     handleContainerToggle,
     handleContainerRestart,
-    handleContainerRemove,
   } = useApp();
 
   const { openTerminal, openLogs } = useTerminal();
