@@ -1,7 +1,7 @@
 export { Logs } from "./Logs";
-export { About } from "./About";
 export { Images } from "./Images";
 export { Groups } from "./Groups";
+export { Support } from "./Support";
 export { Cleanup } from "./Cleanup";
 export { Volumes } from "./Volumes";
 export { Networks } from "./Networks";

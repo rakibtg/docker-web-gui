@@ -28,25 +28,29 @@ function SupportCard({
   accentClassName,
 }: SupportCardProps) {
   return (
-    <div className="bg-gray-800 rounded shadow-md border border-gray-600 p-5 hover:shadow-lg transition-all duration-200">
-      <div className="flex items-start gap-4">
+    <div className="bg-gray-800 rounded shadow-md border border-gray-600 p-4 sm:p-5 hover:shadow-lg transition-all duration-200">
+      <div className="flex items-start gap-3 sm:gap-4">
         <div
-          className={`mt-0.5 rounded-md p-2 border border-gray-700 ${accentClassName}`}
+          className={`mt-0.5 rounded-md p-1.5 sm:p-2 border border-gray-700 ${accentClassName}`}
         >
-          <Icon className="w-6 h-6" />
+          <Icon className="w-5 h-5 sm:w-6 sm:h-6" />
         </div>
 
         <div className="min-w-0 flex-1">
-          <h3 className="text-lg font-semibold text-gray-100">{title}</h3>
-          <p className="mt-2 text-gray-300 leading-relaxed">{description}</p>
+          <h3 className="text-base sm:text-lg font-semibold text-gray-100">
+            {title}
+          </h3>
+          <p className="mt-1.5 sm:mt-2 text-sm sm:text-base text-gray-300 leading-relaxed">
+            {description}
+          </p>
 
           {href && linkLabel ? (
-            <div className="mt-4">
+            <div className="mt-3 sm:mt-4">
               <a
                 href={href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center rounded-md border border-gray-600 bg-gray-700 px-3 py-1.5 text-sm font-medium text-gray-100 hover:bg-gray-600 hover:border-gray-500 transition-colors"
+                className="inline-flex items-center rounded-md border border-gray-600 bg-gray-700 px-2.5 sm:px-3 py-1.5 text-xs sm:text-sm font-medium text-gray-100 hover:bg-gray-600 hover:border-gray-500 transition-colors break-all"
               >
                 {linkLabel}
               </a>
@@ -61,13 +65,13 @@ function SupportCard({
 const Support = memo(function Support() {
   return (
     <PageWrapper>
-      <div className="border-b border-gray-700 pb-4 mb-4">
+      <div className="border-b border-gray-700 pb-4 sm:pb-5 mb-6 sm:mb-8">
         <div className="flex items-end justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-100">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-100">
               Support Docker Web GUI
             </h1>
-            <p className="mt-2 text-gray-400 leading-relaxed">
+            <p className="mt-2 text-sm sm:text-base text-gray-400 leading-relaxed">
               A few small actions go a long way.
             </p>
           </div>
@@ -75,13 +79,13 @@ const Support = memo(function Support() {
       </div>
 
       {/* About Section - Full Width */}
-      <section className="mb-8">
+      <section className="mb-6 sm:mb-8">
         <div>
-          <h2 className="text-xl font-semibold text-gray-100">
+          <h2 className="text-lg sm:text-xl font-semibold text-gray-100">
             About Docker Web GUI
           </h2>
 
-          <div className="mt-4 text-gray-300 leading-relaxed">
+          <div className="mt-3 sm:mt-4 text-sm sm:text-base text-gray-300 leading-relaxed space-y-3">
             <p>
               Docker Web GUI is a modern web interface for managing Docker
               containers, images, networks, and volumes.
@@ -101,11 +105,11 @@ const Support = memo(function Support() {
             </p>
           </div>
 
-          <div className="pt-3">
-            <h3 className="text-lg font-semibold text-gray-200 tracking-wide">
+          <div className="pt-4 sm:pt-5">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-200 tracking-wide">
               Key Features
             </h3>
-            <ul className="mt-3 list-disc list-inside space-y-1 text-gray-300">
+            <ul className="mt-3 list-disc list-inside space-y-1 sm:space-y-1.5 text-sm sm:text-base text-gray-300">
               <li>Container lifecycle management</li>
               <li>Real-time container monitoring and stats</li>
               <li>Interactive terminal access</li>
@@ -117,16 +121,16 @@ const Support = memo(function Support() {
         </div>
       </section>
 
-      <section className="mb-8">
+      <section className="mb-6 sm:mb-8">
         <div className="flex items-center justify-between gap-4 mb-4">
-          <h2 className="text-xl font-semibold text-gray-100">
+          <h2 className="text-lg sm:text-xl font-semibold text-gray-100">
             How You Can Help
           </h2>
         </div>
 
         <div className="space-y-4">
           {/* First Row - 2 Cards in a single row */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
             <SupportCard
               title="Support Financially"
               description="Support ongoing maintenance via GitHub Sponsors."
@@ -147,7 +151,7 @@ const Support = memo(function Support() {
           </div>
 
           {/* Second Row - 3 Cards in three columns */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:col-span-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             <SupportCard
               title="Report Issues"
               description="Bugs, regressions, or requests — open an issue with details."
@@ -176,9 +180,11 @@ const Support = memo(function Support() {
 
       {/* Thank You Section - Full Width */}
       <section>
-        <div className="bg-gray-800 rounded shadow-md border border-gray-600 p-6">
-          <h3 className="text-lg font-semibold text-gray-100">Thank you</h3>
-          <p className="mt-2 text-gray-300 leading-relaxed">
+        <div className="bg-gray-800 rounded shadow-md border border-gray-600 p-4 sm:p-6">
+          <h3 className="text-base sm:text-lg font-semibold text-gray-100">
+            Thank you
+          </h3>
+          <p className="mt-2 text-sm sm:text-base text-gray-300 leading-relaxed">
             Thanks for supporting Docker Web GUI — whether it’s time, code,
             feedback, sponsorship, or simply sharing the project.
           </p>

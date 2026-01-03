@@ -1,6 +1,6 @@
 import {
   Logs,
-  About,
+  Support,
   Images,
   Groups,
   Volumes,
@@ -57,7 +57,7 @@ function AppContent() {
                 <Route path="/volumes/:volumeId" element={<VolumeDetails />} />
                 <Route path="/cleanup" element={<Cleanup />} />
                 <Route path="/logs" element={<Logs />} />
-                <Route path="/about" element={<About />} />
+                <Route path="/support" element={<Support />} />
                 <Route
                   path="*"
                   element={<Navigate to="/containers" replace />}
