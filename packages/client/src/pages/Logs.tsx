@@ -1,30 +1,30 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { HiSearch, HiX } from "react-icons/hi";
 import { PageWrapper } from "../components/PageWrapper";
-import { HiSearch } from "react-icons/hi";
-import { MdRefresh } from "react-icons/md";
+import { MdRefresh, MdFilterList } from "react-icons/md";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 type AnonymousFilter = "all" | "true" | "false";
 
 type LogEntry = {
   id: number;
   action: string;
-  message?: string | null;
+  createdAt: string;
+  isAnonymous: boolean;
+  status?: string | null;
   userId?: string | null;
+  message?: string | null;
   username?: string | null;
   ipAddress?: string | null;
-  resourceType?: string | null;
   resourceId?: string | null;
-  status?: string | null;
-  metadata?: Record<string, any> | null;
-  isAnonymous: boolean;
-  createdAt: string;
+  resourceType?: string | null;
+  metadata?: Record<string, unknown> | null;
 };
 
 type LogsResponse = {
   data: LogEntry[];
   meta?: {
-    total?: number;
     page?: number;
+    total?: number;
     pageSize?: number;
   };
 };
@@ -32,11 +32,13 @@ type LogsResponse = {
 const PAGE_SIZE = 20;
 
 export function Logs() {
-  const [logs, setLogs] = useState<LogEntry[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string>("");
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string>("");
+  const [logs, setLogs] = useState<LogEntry[]>([]);
+  const [showFilters, setShowFilters] = useState(true);
+
   const [filters, setFilters] = useState<{
     action: string;
     status: string;
@@ -76,8 +78,10 @@ export function Logs() {
       const json: LogsResponse = await response.json();
       setLogs(json.data || []);
       setTotal(json.meta?.total ?? json.data?.length ?? 0);
-    } catch (err: any) {
-      setError(err?.message || "Unable to load logs right now.");
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Unable to load logs right now."
+      );
     } finally {
       setLoading(false);
     }
@@ -113,6 +117,16 @@ export function Logs() {
     setPage(1);
   };
 
+  const hasActiveFilters = useMemo(
+    () =>
+      filters.action.trim() !== "" ||
+      filters.status !== "" ||
+      filters.username.trim() !== "" ||
+      filters.ip.trim() !== "" ||
+      filters.anonymous !== "all",
+    [filters]
+  );
+
   const renderStatusBadge = (status?: string | null) => {
     if (!status) return <span className="text-gray-400">—</span>;
     const normalized = status.toLowerCase();
@@ -134,113 +148,195 @@ export function Logs() {
 
   return (
     <PageWrapper>
-      <div className="flex items-center gap-3 mb-6">
-        <div className="flex items-center gap-2.5">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
+        <div className="flex items-center gap-3">
           <h2 className="text-lg font-bold text-gray-900 dark:text-gray-300">
             Logs
           </h2>
           <button
             title="Refresh logs"
             onClick={() => fetchLogs()}
-            className="h-7 w-7 bg-blue-600 text-white rounded-full hover:bg-blue-700 hover:cursor-pointer transition-colors flex justify-center items-center"
+            disabled={loading}
+            className="h-7 w-7 bg-blue-600 text-white rounded-full hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex justify-center items-center"
           >
-            <MdRefresh className="h-4 w-4" />
+            <MdRefresh className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
           </button>
+          {hasActiveFilters && (
+            <span className="px-2 py-1 text-xs font-medium bg-blue-900/40 text-blue-300 border border-blue-600/50 rounded-sm">
+              Filtered
+            </span>
+          )}
         </div>
-      </div>
 
-      <div className="bg-gray-800 border border-gray-700 rounded-xl p-4 shadow-lg shadow-black/20 mb-6">
-        <div className="flex items-center gap-3 mb-4">
-          <HiSearch className="w-5 h-5 text-gray-400" />
-          <h2 className="text-lg font-semibold text-gray-100">Filters</h2>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          <div className="space-y-2">
-            <label className="text-xs uppercase tracking-wide text-gray-400">
-              Action
-            </label>
-            <input
-              value={filters.action}
-              onChange={(e) => handleFilterChange("action", e.target.value)}
-              placeholder="e.g. container_start"
-              className="w-full rounded-lg bg-gray-900 border border-gray-700 px-3 py-2 text-sm text-gray-100 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-xs uppercase tracking-wide text-gray-400">
-              Status
-            </label>
-            <select
-              value={filters.status}
-              onChange={(e) => handleFilterChange("status", e.target.value)}
-              className="w-full rounded-lg bg-gray-900 border border-gray-700 px-3 py-2 text-sm text-gray-100 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-            >
-              <option value="">All</option>
-              <option value="success">Success</option>
-              <option value="failed">Failed</option>
-              <option value="error">Error</option>
-            </select>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-xs uppercase tracking-wide text-gray-400">
-              Username
-            </label>
-            <input
-              value={filters.username}
-              onChange={(e) => handleFilterChange("username", e.target.value)}
-              placeholder="User or ID"
-              className="w-full rounded-lg bg-gray-900 border border-gray-700 px-3 py-2 text-sm text-gray-100 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-xs uppercase tracking-wide text-gray-400">
-              IP Address
-            </label>
-            <input
-              value={filters.ip}
-              onChange={(e) => handleFilterChange("ip", e.target.value)}
-              placeholder="e.g. 192.168.1.10"
-              className="w-full rounded-lg bg-gray-900 border border-gray-700 px-3 py-2 text-sm text-gray-100 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-xs uppercase tracking-wide text-gray-400">
-              Anonymous
-            </label>
-            <select
-              value={filters.anonymous}
-              onChange={(e) =>
-                handleFilterChange(
-                  "anonymous",
-                  e.target.value as AnonymousFilter
-                )
-              }
-              className="w-full rounded-lg bg-gray-900 border border-gray-700 px-3 py-2 text-sm text-gray-100 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-            >
-              <option value="all">All</option>
-              <option value="false">Authenticated only</option>
-              <option value="true">Anonymous only</option>
-            </select>
-          </div>
-        </div>
-        <div className="flex flex-wrap items-center gap-3 mt-4">
+        <div className="flex items-center gap-2">
           <button
-            onClick={resetFilters}
-            className="px-3 py-2 text-sm rounded-lg bg-gray-700 text-gray-100 hover:bg-gray-600 transition-colors"
+            title={showFilters ? "Hide filters" : "Show filters"}
+            onClick={() => setShowFilters(!showFilters)}
+            className={`px-3 py-2 text-sm rounded-sm border transition-colors flex items-center gap-2 ${
+              showFilters
+                ? "bg-blue-900/30 border-blue-600/50 text-blue-200"
+                : "bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700"
+            }`}
           >
-            Reset filters
+            <MdFilterList className="w-4 h-4" />
+            {showFilters ? "Hide Filters" : "Show Filters"}
           </button>
-          <span className="text-xs text-gray-500">
-            Showing {PAGE_SIZE} per page · Page {page} of {totalPages || 1}
-          </span>
         </div>
       </div>
 
-      <div className="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden shadow-lg shadow-black/20">
+      {/* Filters Panel */}
+      {showFilters && (
+        <div className="bg-gray-800 border border-gray-700 rounded-sm p-5 shadow-lg shadow-black/20 mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <HiSearch className="w-5 h-5 text-gray-400" />
+              <h3 className="text-sm font-semibold text-gray-300 uppercase tracking-wide">
+                Filter Logs
+              </h3>
+            </div>
+            {hasActiveFilters && (
+              <button
+                onClick={resetFilters}
+                className="text-xs text-gray-400 hover:text-gray-200 flex items-center gap-1 transition-colors"
+              >
+                <HiX className="w-3.5 h-3.5" />
+                Clear all
+              </button>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+            {/* Action Filter */}
+            <div className="relative">
+              <label className="block text-xs font-medium text-gray-400 mb-1.5">
+                Action
+              </label>
+              <input
+                type="text"
+                value={filters.action}
+                onChange={(e) => handleFilterChange("action", e.target.value)}
+                placeholder="e.g. container_start"
+                className="w-full rounded-sm bg-gray-900 border border-gray-700 px-3 py-2 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all"
+              />
+              {filters.action && (
+                <button
+                  onClick={() => handleFilterChange("action", "")}
+                  className="absolute right-2 top-8 text-gray-500 hover:text-gray-300"
+                  aria-label="Clear action filter"
+                >
+                  <HiX className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+
+            {/* Status Filter */}
+            <div>
+              <label className="block text-xs font-medium text-gray-400 mb-1.5">
+                Status
+              </label>
+              <select
+                value={filters.status}
+                onChange={(e) => handleFilterChange("status", e.target.value)}
+                className="w-full rounded-sm bg-gray-900 border border-gray-700 px-3 py-2 text-sm text-gray-100 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all cursor-pointer"
+                aria-label="Filter by status"
+              >
+                <option value="">All Statuses</option>
+                <option value="success">Success</option>
+                <option value="failed">Failed</option>
+                <option value="error">Error</option>
+              </select>
+            </div>
+
+            {/* Username Filter */}
+            <div className="relative">
+              <label className="block text-xs font-medium text-gray-400 mb-1.5">
+                Username
+              </label>
+              <input
+                type="text"
+                value={filters.username}
+                onChange={(e) => handleFilterChange("username", e.target.value)}
+                placeholder="Filter by user"
+                className="w-full rounded-sm bg-gray-900 border border-gray-700 px-3 py-2 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all"
+              />
+              {filters.username && (
+                <button
+                  onClick={() => handleFilterChange("username", "")}
+                  className="absolute right-2 top-8 text-gray-500 hover:text-gray-300"
+                  aria-label="Clear username filter"
+                >
+                  <HiX className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+
+            {/* IP Address Filter */}
+            <div className="relative">
+              <label className="block text-xs font-medium text-gray-400 mb-1.5">
+                IP Address
+              </label>
+              <input
+                type="text"
+                value={filters.ip}
+                onChange={(e) => handleFilterChange("ip", e.target.value)}
+                placeholder="e.g. 192.168.1.10"
+                className="w-full rounded-sm bg-gray-900 border border-gray-700 px-3 py-2 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all"
+              />
+              {filters.ip && (
+                <button
+                  onClick={() => handleFilterChange("ip", "")}
+                  className="absolute right-2 top-8 text-gray-500 hover:text-gray-300"
+                  aria-label="Clear IP address filter"
+                >
+                  <HiX className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+
+            {/* Anonymous Filter */}
+            <div>
+              <label className="block text-xs font-medium text-gray-400 mb-1.5">
+                User Type
+              </label>
+              <select
+                value={filters.anonymous}
+                onChange={(e) =>
+                  handleFilterChange(
+                    "anonymous",
+                    e.target.value as AnonymousFilter
+                  )
+                }
+                className="w-full rounded-sm bg-gray-900 border border-gray-700 px-3 py-2 text-sm text-gray-100 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition-all cursor-pointer"
+                aria-label="Filter by user type"
+              >
+                <option value="all">All Users</option>
+                <option value="false">Authenticated</option>
+                <option value="true">Anonymous</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Results Summary */}
+          <div className="mt-4 pt-4 border-t border-gray-700">
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-gray-400">
+                {total > 0
+                  ? `Found ${total} log${
+                      total !== 1 ? "s" : ""
+                    } · Showing ${PAGE_SIZE} per page`
+                  : "No logs match the current filters"}
+              </span>
+              <span className="text-gray-500">
+                Page {page} of {totalPages || 1}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Logs Table */}
+      <div className="bg-gray-800 border border-gray-700 rounded-sm overflow-hidden shadow-lg shadow-black/20">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-700">
             <thead className="bg-gray-900/60">
@@ -362,7 +458,7 @@ export function Logs() {
           <button
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page <= 1 || loading}
-            className={`px-3 py-2 rounded-lg text-sm border border-gray-700 ${
+            className={`px-3 py-2 rounded-sm text-sm border border-gray-700 ${
               page <= 1 || loading
                 ? "text-gray-500 cursor-not-allowed bg-gray-800"
                 : "text-gray-100 bg-gray-800 hover:bg-gray-700"
@@ -386,7 +482,7 @@ export function Logs() {
                     )}
                     <button
                       onClick={() => setPage(p)}
-                      className={`px-3 py-2 rounded-lg text-sm border ${
+                      className={`px-3 py-2 rounded-sm text-sm border ${
                         p === page
                           ? "bg-blue-900/50 border-blue-600 text-blue-200"
                           : "bg-gray-800 border-gray-700 text-gray-100 hover:bg-gray-700"
@@ -402,7 +498,7 @@ export function Logs() {
           <button
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={page >= totalPages || loading}
-            className={`px-3 py-2 rounded-lg text-sm border border-gray-700 ${
+            className={`px-3 py-2 rounded-sm text-sm border border-gray-700 ${
               page >= totalPages || loading
                 ? "text-gray-500 cursor-not-allowed bg-gray-800"
                 : "text-gray-100 bg-gray-800 hover:bg-gray-700"
