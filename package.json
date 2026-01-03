@@ -11,6 +11,7 @@
     "prestart": "npm run build --workspace=server",
     "start": "npm run start --workspace=server & wait-on tcp:8080 && npm run dev --workspace=client",
     "dev": "concurrently --names \"SERVER,CLIENT\" --prefix-colors \"blue,green\" \"npm run dev --workspace=server\" \"wait-on tcp:8080 && npm run dev --workspace=client\"",
+    "stop-dev": "pkill -f 'node.*docker-web-gui' || true",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
