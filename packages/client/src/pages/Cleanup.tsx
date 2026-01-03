@@ -269,7 +269,7 @@ const Cleanup = memo(function Cleanup() {
             return (
               <div
                 key={action.id}
-                className={`border rounded-lg bg-gray-800/60 hover:bg-gray-800/80 transition-colors ${
+                className={`border rounded-sm bg-gray-800/60 hover:bg-gray-800/80 transition-colors ${
                   action.isDangerous
                     ? "border-red-800/40"
                     : "border-gray-700/50"
@@ -320,12 +320,12 @@ const Cleanup = memo(function Cleanup() {
                     <button
                       onClick={() => setActiveActionId(action.id)}
                       disabled={state.loading}
-                      className={`px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 transition-all min-w-56 justify-center ${
+                      className={`px-4 py-2 rounded-sm text-sm font-medium flex items-center gap-2 transition-all min-w-56 cursor-pointer justify-center ${
                         state.loading
                           ? "bg-gray-700 text-gray-400 cursor-not-allowed"
                           : action.isDangerous
-                          ? "bg-red-800 text-white hover:bg-red-700"
-                          : "bg-blue-800 text-white hover:bg-blue-700"
+                          ? "bg-red-900 text-white hover:bg-red-700"
+                          : "bg-blue-900 text-white hover:bg-blue-700"
                       }`}
                     >
                       {state.loading && (
