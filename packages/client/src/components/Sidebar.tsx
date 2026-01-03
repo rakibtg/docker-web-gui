@@ -73,8 +73,8 @@ const sidebarItems: SidebarItem[] = [
 
 const bottomItems: SidebarItem[] = [
   {
-    id: "about",
-    label: "About",
+    id: "support",
+    label: "Support",
     icon: HiInformationCircle,
   },
 ];
