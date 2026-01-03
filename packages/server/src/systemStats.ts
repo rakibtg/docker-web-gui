@@ -1,6 +1,6 @@
 import * as os from "os";
-import { readFileSync, existsSync, statfsSync } from "fs";
 import { join, resolve, isAbsolute } from "path";
+import { readFileSync, existsSync, statfsSync } from "fs";
 
 interface CpuSample {
   idle: number;
@@ -9,8 +9,8 @@ interface CpuSample {
 
 interface SystemStats {
   cpu: number;
-  memory: number;
   disk: number;
+  memory: number;
 }
 
 let lastCpuSample: CpuSample | null = null;
