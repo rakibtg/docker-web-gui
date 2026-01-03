@@ -7,17 +7,25 @@ interface User {
 }
 
 interface RateLimitConfig {
-  window_minutes?: number;
   max_attempts?: number;
   block_minutes?: number;
+  window_minutes?: number;
   max_tracked_ips?: number;
 }
 
+interface CsrfConfig {
+  token_bytes?: number;
+  cookie_name?: string;
+  host_cookie_name?: string;
+  token_ttl_seconds?: number;
+}
+
 interface SettingsInterface {
+  csrf?: CsrfConfig;
   users: User[] | null;
   auth_protected: boolean;
-  allowed_ip_list: string[] | null;
   rate_limit?: RateLimitConfig;
+  allowed_ip_list: string[] | null;
 }
 
 const defaultSettings: SettingsInterface = {
@@ -25,10 +33,16 @@ const defaultSettings: SettingsInterface = {
   auth_protected: true,
   allowed_ip_list: null,
   rate_limit: {
-    window_minutes: 15,
     max_attempts: 5,
     block_minutes: 15,
+    window_minutes: 15,
     max_tracked_ips: 10000,
+  },
+  csrf: {
+    token_bytes: 32,
+    cookie_name: "csrf_token",
+    token_ttl_seconds: 24 * 60 * 60,
+    host_cookie_name: "__Host-csrf_token",
   },
 };
 
@@ -66,6 +80,16 @@ function parseSettingsFile(settingsPath: string): SettingsInterface | null {
             max_tracked_ips: parsedSettings.rate_limit.max_tracked_ips ?? 10000,
           }
         : defaultSettings.rate_limit,
+      csrf: parsedSettings.csrf
+        ? {
+            token_bytes: parsedSettings.csrf.token_bytes ?? 32,
+            token_ttl_seconds:
+              parsedSettings.csrf.token_ttl_seconds ?? 24 * 60 * 60,
+            cookie_name: parsedSettings.csrf.cookie_name ?? "csrf_token",
+            host_cookie_name:
+              parsedSettings.csrf.host_cookie_name ?? "__Host-csrf_token",
+          }
+        : defaultSettings.csrf,
     };
   } catch (error) {
     console.warn(
