@@ -5,22 +5,21 @@ import {
   HiX,
   HiMenu,
   HiLogout,
-  HiGlobeAlt,
-  HiDatabase,
-  HiChartPie,
-  HiCollection,
   HiChevronLeft,
   HiChevronRight,
-  HiClipboardList,
-  HiInformationCircle,
 } from "react-icons/hi";
 
 import { Tooltip } from "react-tooltip";
-import { LuLayers3 } from "react-icons/lu";
-import { FiBox, FiUser } from "react-icons/fi";
+import { FiUser } from "react-icons/fi";
+import { VscGlobe } from "react-icons/vsc";
+import { GoDatabase } from "react-icons/go";
+import { TiHeartOutline } from "react-icons/ti";
+import { LuClipboardList } from "react-icons/lu";
 import { useAuth } from "../contexts/AuthContext";
-import { IoTrashBinOutline } from "react-icons/io5";
+import { AiOutlinePieChart } from "react-icons/ai";
 import logo from "../assets/docker-web-gui-logo.png";
+import { BsBox, BsCollection } from "react-icons/bs";
+import { IoLayersOutline, IoTrashBinOutline } from "react-icons/io5";
 
 interface SidebarItem {
   id: string;
@@ -32,32 +31,32 @@ const sidebarItems: SidebarItem[] = [
   {
     id: "dashboard",
     label: "Dashboard",
-    icon: HiChartPie,
+    icon: AiOutlinePieChart,
   },
   {
     id: "containers",
     label: "Containers",
-    icon: FiBox,
+    icon: BsBox,
   },
   {
     id: "groups",
     label: "Groups",
-    icon: HiCollection,
+    icon: BsCollection,
   },
   {
     id: "images",
     label: "Images",
-    icon: LuLayers3,
+    icon: IoLayersOutline,
   },
   {
     id: "networks",
     label: "Networks",
-    icon: HiGlobeAlt,
+    icon: VscGlobe,
   },
   {
     id: "volumes",
     label: "Volumes",
-    icon: HiDatabase,
+    icon: GoDatabase,
   },
   {
     id: "cleanup",
@@ -67,7 +66,7 @@ const sidebarItems: SidebarItem[] = [
   {
     id: "logs",
     label: "Logs",
-    icon: HiClipboardList,
+    icon: LuClipboardList,
   },
 ];
 
@@ -75,7 +74,7 @@ const bottomItems: SidebarItem[] = [
   {
     id: "support",
     label: "Support",
-    icon: HiInformationCircle,
+    icon: TiHeartOutline,
   },
 ];
 
