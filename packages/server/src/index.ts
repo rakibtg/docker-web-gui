@@ -3,10 +3,12 @@ import logger from "./logger";
 import { createServer } from "http";
 import { WebSocketServer } from "ws";
 import { readFileSync, existsSync } from "fs";
+import { getSystemStats } from "./systemStats";
+import { authRateLimiter } from "./rateLimiter";
 import { join, extname, resolve, sep } from "path";
 import { initializeDatabase } from "./db/connection";
 import { DockerService, ContainerWithStats } from "./dockerService";
-import { getSystemStats } from "./systemStats";
+
 import {
   listGroups,
   createGroup,
@@ -14,16 +16,16 @@ import {
   deleteGroup,
   getGroupById,
 } from "./groups";
+
 import {
   buildCsrfCookie,
+  isValidCsrfToken,
   generateCsrfToken,
+  getCsrfCookieName,
+  getHostCsrfCookieName,
   getCsrfTokenFromCookies,
   getCsrfTokenFromHeaders,
-  isValidCsrfToken,
-  CSRF_COOKIE_NAME,
-  HOST_CSRF_COOKIE_NAME,
 } from "./csrf";
-import { authRateLimiter } from "./rateLimiter";
 
 import {
   AuthSession,
@@ -35,13 +37,12 @@ import {
 } from "./auth";
 
 import {
+  getSettings,
   isIPAllowed,
   extractClientIP,
-  getSettings,
   isTrustedProxyRequest,
 } from "./settings";
 
-// Client management for WebSocket connections
 interface ClientConnection {
   ws: any;
   id: string;
@@ -310,7 +311,7 @@ function clearSessionCookie(name: string, secure: boolean): string {
 function getCsrfTokenCookieName(secure: boolean): string {
   const useHostCookie =
     secure && isTruthyEnv(process.env.USE_HOST_COOKIE_PREFIX);
-  return useHostCookie ? HOST_CSRF_COOKIE_NAME : CSRF_COOKIE_NAME;
+  return useHostCookie ? getHostCsrfCookieName() : getCsrfCookieName();
 }
 
 function isCsrfProtectedMethod(method?: string): boolean {
