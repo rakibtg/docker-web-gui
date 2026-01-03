@@ -4,7 +4,7 @@ import { MdRefresh } from "react-icons/md";
 import { useImages } from "../hooks/useImages";
 import SearchInput from "../components/SearchInput";
 import { PageWrapper } from "../components/PageWrapper";
-import { ImageGrid, ImageEmptyState } from "../components";
+import { ImageGrid, EntityEmptyState } from "../components";
 
 const Images = memo(function Images() {
   const { dockerAvailable, isConnected } = useApp();
@@ -55,11 +55,12 @@ const Images = memo(function Images() {
           <ImageGrid images={images} onImageRemove={handleRemoveImage} />
         </div>
       ) : (
-        <ImageEmptyState
-          dockerAvailable={dockerAvailable}
-          isConnected={isConnected}
+        <EntityEmptyState
+          entityName="Images"
           loading={imagesLoading}
-          onLoadImages={requestImages}
+          isConnected={isConnected}
+          entityReload={requestImages}
+          dockerAvailable={dockerAvailable}
         />
       )}
     </PageWrapper>

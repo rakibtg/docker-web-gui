@@ -6,7 +6,12 @@ import SearchInput from "../components/SearchInput";
 import { PageWrapper } from "../components/PageWrapper";
 import { filterContainers } from "../helpers/filterContainers";
 import { useContainerFilterStatus } from "../hooks/useContainerFilters";
-import { ContainerFilters, ContainerGrid, EmptyState } from "../components";
+
+import {
+  ContainerGrid,
+  ContainerFilters,
+  EntityEmptyState,
+} from "../components";
 
 const ContainersPage = memo(function ContainersPage() {
   const {
@@ -87,11 +92,12 @@ const ContainersPage = memo(function ContainersPage() {
             onContainerRemove={handleContainerRemove}
           />
         ) : (
-          <EmptyState
-            dockerAvailable={dockerAvailable}
-            isConnected={isConnected}
+          <EntityEmptyState
             loading={loading}
-            onLoadContainers={requestContainers}
+            entityName="Containers"
+            isConnected={isConnected}
+            entityReload={requestContainers}
+            dockerAvailable={dockerAvailable}
           />
         )}
       </div>

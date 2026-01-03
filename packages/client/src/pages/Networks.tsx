@@ -3,7 +3,7 @@ import { useApp } from "../hooks/useApp";
 import { MdRefresh } from "react-icons/md";
 import { useNetworks } from "../hooks/useNetworks";
 import { PageWrapper } from "../components/PageWrapper";
-import { NetworkGrid, NetworkFilters, NetworkEmptyState } from "../components";
+import { NetworkGrid, NetworkFilters, EntityEmptyState } from "../components";
 
 const Networks = memo(function Networks() {
   const { dockerAvailable, isConnected } = useApp();
@@ -54,11 +54,12 @@ const Networks = memo(function Networks() {
           <NetworkGrid networks={networks} />
         </div>
       ) : (
-        <NetworkEmptyState
-          dockerAvailable={dockerAvailable}
-          isConnected={isConnected}
+        <EntityEmptyState
+          entityName="Networks"
           loading={networksLoading}
-          onLoadNetworks={requestNetworks}
+          isConnected={isConnected}
+          entityReload={requestNetworks}
+          dockerAvailable={dockerAvailable}
         />
       )}
     </PageWrapper>

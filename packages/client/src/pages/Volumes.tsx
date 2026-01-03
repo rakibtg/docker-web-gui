@@ -3,7 +3,7 @@ import { useApp } from "../hooks/useApp";
 import { MdRefresh } from "react-icons/md";
 import { useVolumes } from "../hooks/useVolumes";
 import { PageWrapper } from "../components/PageWrapper";
-import { VolumeGrid, VolumeFilters, VolumeEmptyState } from "../components";
+import { VolumeGrid, VolumeFilters, EntityEmptyState } from "../components";
 
 const Volumes = memo(function Volumes() {
   const {
@@ -55,10 +55,11 @@ const Volumes = memo(function Volumes() {
           <VolumeGrid volumes={volumes} />
         </div>
       ) : (
-        <VolumeEmptyState
+        <EntityEmptyState
+          entityName="Volumes"
           loading={volumesLoading}
           isConnected={isConnected}
-          onLoadVolumes={requestVolumes}
+          entityReload={requestVolumes}
           dockerAvailable={dockerAvailable}
         />
       )}
