@@ -12,5 +12,11 @@
     "max_attempts": 5,
     "block_minutes": 15,
     "max_tracked_ips": 10000
+  },
+  "csrf": {
+    "token_bytes": 32,
+    "token_ttl_seconds": 86400,
+    "cookie_name": "csrf_token",
+    "host_cookie_name": "__Host-csrf_token"
   }
 }
