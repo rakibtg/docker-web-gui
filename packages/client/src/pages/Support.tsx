@@ -65,13 +65,13 @@ function SupportCard({
 const Support = memo(function Support() {
   return (
     <PageWrapper>
-      <div className="border-b border-gray-700 pb-4 sm:pb-5 mb-6 sm:mb-8">
-        <div className="flex items-end justify-between gap-4">
+      <div className="border-b border-gray-700 pb-4 mb-4">
+        <div className="flex items-end justify-between gap-2">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-100">
               Support Docker Web GUI
             </h1>
-            <p className="mt-2 text-sm sm:text-base text-gray-400 leading-relaxed">
+            <p className="text-sm sm:text-base text-gray-400 leading-relaxed">
               A few small actions go a long way.
             </p>
           </div>
@@ -85,7 +85,7 @@ const Support = memo(function Support() {
             About Docker Web GUI
           </h2>
 
-          <div className="mt-3 sm:mt-4 text-sm sm:text-base text-gray-300 leading-relaxed space-y-3">
+          <div className="mt-1 text-sm sm:text-base text-gray-300 leading-relaxed">
             <p>
               Docker Web GUI is a modern web interface for managing Docker
               containers, images, networks, and volumes.
