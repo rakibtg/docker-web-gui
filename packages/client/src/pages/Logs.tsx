@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { PageWrapper } from "../components/PageWrapper";
-import { HiClipboardList, HiSearch } from "react-icons/hi";
+import { HiSearch } from "react-icons/hi";
+import { MdRefresh } from "react-icons/md";
 
 type AnonymousFilter = "all" | "true" | "false";
 
@@ -50,44 +51,43 @@ export function Logs() {
     anonymous: "all",
   });
 
+  const fetchLogs = useCallback(async () => {
+    setLoading(true);
+    setError("");
+
+    try {
+      const params = new URLSearchParams();
+      params.set("limit", PAGE_SIZE.toString());
+      params.set("page", page.toString());
+      if (filters.action.trim()) params.set("action", filters.action.trim());
+      if (filters.status) params.set("status", filters.status);
+      if (filters.username.trim())
+        params.set("username", filters.username.trim());
+      if (filters.ip.trim()) params.set("ip", filters.ip.trim());
+      if (filters.anonymous !== "all")
+        params.set("anonymous", filters.anonymous);
+
+      const response = await fetch(`/api/logs?${params.toString()}`);
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch logs (${response.status})`);
+      }
+
+      const json: LogsResponse = await response.json();
+      setLogs(json.data || []);
+      setTotal(json.meta?.total ?? json.data?.length ?? 0);
+    } catch (err: any) {
+      setError(err?.message || "Unable to load logs right now.");
+    } finally {
+      setLoading(false);
+    }
+  }, [page, filters]);
+
   useEffect(() => {
     const controller = new AbortController();
-    const fetchLogs = async () => {
-      setLoading(true);
-      setError("");
-
-      try {
-        const params = new URLSearchParams();
-        params.set("limit", PAGE_SIZE.toString());
-        params.set("page", page.toString());
-        if (filters.action.trim()) params.set("action", filters.action.trim());
-        if (filters.status) params.set("status", filters.status);
-        if (filters.username.trim()) params.set("username", filters.username.trim());
-        if (filters.ip.trim()) params.set("ip", filters.ip.trim());
-        if (filters.anonymous !== "all") params.set("anonymous", filters.anonymous);
-
-        const response = await fetch(`/api/logs?${params.toString()}`, {
-          signal: controller.signal,
-        });
-
-        if (!response.ok) {
-          throw new Error(`Failed to fetch logs (${response.status})`);
-        }
-
-        const json: LogsResponse = await response.json();
-        setLogs(json.data || []);
-        setTotal(json.meta?.total ?? json.data?.length ?? 0);
-      } catch (err: any) {
-        if (err.name === "AbortError") return;
-        setError(err?.message || "Unable to load logs right now.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchLogs();
     return () => controller.abort();
-  }, [page, filters]);
+  }, [fetchLogs]);
 
   const totalPages = useMemo(
     () => Math.max(1, Math.ceil(total / PAGE_SIZE)),
@@ -124,7 +124,9 @@ export function Logs() {
     const className =
       colors[normalized] || "bg-gray-800 text-gray-200 border border-gray-700";
     return (
-      <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${className}`}>
+      <span
+        className={`px-2 py-0.5 rounded-full text-xs font-semibold ${className}`}
+      >
         {status}
       </span>
     );
@@ -133,14 +135,17 @@ export function Logs() {
   return (
     <PageWrapper>
       <div className="flex items-center gap-3 mb-6">
-        <div className="p-3 rounded-xl bg-blue-900/40 border border-blue-700/40 text-blue-200">
-          <HiClipboardList className="w-6 h-6" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-bold text-gray-50">Logs</h1>
-          <p className="text-sm text-gray-400">
-            Track recent actions, audit activity, and filter by user or origin.
-          </p>
+        <div className="flex items-center gap-2.5">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-gray-300">
+            Logs
+          </h2>
+          <button
+            title="Refresh logs"
+            onClick={() => fetchLogs()}
+            className="h-7 w-7 bg-blue-600 text-white rounded-full hover:bg-blue-700 hover:cursor-pointer transition-colors flex justify-center items-center"
+          >
+            <MdRefresh className="h-4 w-4" />
+          </button>
         </div>
       </div>
 
@@ -209,7 +214,10 @@ export function Logs() {
             <select
               value={filters.anonymous}
               onChange={(e) =>
-                handleFilterChange("anonymous", e.target.value as AnonymousFilter)
+                handleFilterChange(
+                  "anonymous",
+                  e.target.value as AnonymousFilter
+                )
               }
               className="w-full rounded-lg bg-gray-900 border border-gray-700 px-3 py-2 text-sm text-gray-100 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
             >
@@ -260,27 +268,41 @@ export function Logs() {
             <tbody className="divide-y divide-gray-800">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-6 text-center text-gray-400">
+                  <td
+                    colSpan={6}
+                    className="px-4 py-6 text-center text-gray-400"
+                  >
                     Loading logs...
                   </td>
                 </tr>
               ) : error ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-6 text-center text-red-300">
+                  <td
+                    colSpan={6}
+                    className="px-4 py-6 text-center text-red-300"
+                  >
                     {error}
                   </td>
                 </tr>
               ) : logs.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-6 text-center text-gray-400">
+                  <td
+                    colSpan={6}
+                    className="px-4 py-6 text-center text-gray-400"
+                  >
                     No logs found for this view.
                   </td>
                 </tr>
               ) : (
                 logs.map((log) => (
-                  <tr key={log.id} className="hover:bg-gray-900/60 transition-colors">
+                  <tr
+                    key={log.id}
+                    className="hover:bg-gray-900/60 transition-colors"
+                  >
                     <td className="px-4 py-3 align-top">
-                      <div className="text-sm font-semibold text-gray-100">{log.action}</div>
+                      <div className="text-sm font-semibold text-gray-100">
+                        {log.action}
+                      </div>
                       {log.resourceType && (
                         <div className="text-xs text-gray-400">
                           {log.resourceType}
@@ -288,13 +310,19 @@ export function Logs() {
                         </div>
                       )}
                     </td>
-                    <td className="px-4 py-3 align-top">{renderStatusBadge(log.status)}</td>
+                    <td className="px-4 py-3 align-top">
+                      {renderStatusBadge(log.status)}
+                    </td>
                     <td className="px-4 py-3 align-top">
                       <div className="text-sm text-gray-100">
-                        {log.isAnonymous ? "Anonymous" : log.username || log.userId || "User"}
+                        {log.isAnonymous
+                          ? "Anonymous"
+                          : log.username || log.userId || "User"}
                       </div>
                       {!log.isAnonymous && log.userId && (
-                        <div className="text-xs text-gray-400">{log.userId}</div>
+                        <div className="text-xs text-gray-400">
+                          {log.userId}
+                        </div>
                       )}
                     </td>
                     <td className="px-4 py-3 align-top text-sm text-gray-100">
@@ -345,13 +373,17 @@ export function Logs() {
 
           <div className="flex items-center gap-1">
             {Array.from({ length: totalPages }, (_, idx) => idx + 1)
-              .filter((p) => p === 1 || p === totalPages || Math.abs(p - page) <= 2)
+              .filter(
+                (p) => p === 1 || p === totalPages || Math.abs(p - page) <= 2
+              )
               .map((p, idx, arr) => {
                 const prev = arr[idx - 1];
                 const showEllipsis = prev && p - prev > 1;
                 return (
                   <div key={p} className="flex items-center">
-                    {showEllipsis && <span className="px-1 text-gray-500">…</span>}
+                    {showEllipsis && (
+                      <span className="px-1 text-gray-500">…</span>
+                    )}
                     <button
                       onClick={() => setPage(p)}
                       className={`px-3 py-2 rounded-lg text-sm border ${
