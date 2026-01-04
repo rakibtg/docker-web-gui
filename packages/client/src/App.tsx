@@ -35,7 +35,7 @@ function AppContent() {
     <AuthGuard>
       <div className="min-h-screen bg-gray-900 text-gray-100 transition-colors flex">
         <Sidebar />
-        <div className="flex-grow shrink-0 overflow-hidden">
+        <div className="grow shrink-0 overflow-hidden">
           <Layout>
             <main className="h-full">
               <Routes>
