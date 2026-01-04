@@ -185,11 +185,8 @@ const Support = memo(function Support() {
             Thank you
           </h3>
           <p className="mt-2 text-sm sm:text-base text-gray-300 leading-relaxed">
-            Thanks for supporting Docker Web GUI — whether it’s time, code,
-            feedback, sponsorship, or simply sharing the project.
-          </p>
-          <p className="mt-3 text-sm text-gray-500">
-            Every contribution helps keep it moving.
+            Thanks for supporting Docker Web GUI; whether it's time, code,
+            feedback, sponsorship, or simply sharing the project!
           </p>
         </div>
       </section>
