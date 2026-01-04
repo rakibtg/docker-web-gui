@@ -130,7 +130,7 @@ function Sidebar() {
         {!isCollapsed && (
           <button
             onClick={toggleCollapse}
-            className="hidden lg:flex p-2 rounded-lg transition-colors duration-200 text-gray-300 hover:text-gray-100 hover:bg-gray-700 ml-2 flex-shrink-0"
+            className="hidden lg:flex p-2 rounded-lg transition-colors duration-200 text-gray-300 hover:text-gray-100 hover:bg-gray-700 ml-2 shrink-0"
             aria-label="Collapse sidebar"
           >
             <HiChevronLeft className="w-4 h-4" />
@@ -180,7 +180,7 @@ function Sidebar() {
                 {...tooltipProps}
               >
                 <Icon
-                  className={`w-5 h-5 flex-shrink-0 transition-colors duration-200 ${
+                  className={`w-5 h-5 shrink-0 transition-colors duration-200 ${
                     isActive ? "text-blue-400" : ""
                   }`}
                 />
@@ -204,7 +204,7 @@ function Sidebar() {
         {isAuthRequired && isAuthenticated && user && (
           <div className={`mb-4 ${isCollapsed ? "px-0" : "px-3"}`}>
             <div
-              className={`bg-gray-700/50 rounded-lg p-3 ${
+              className={`bg-gray-700/50 rounded-sm px-3 py-2 ${
                 isCollapsed ? "text-center" : ""
               }`}
             >
@@ -218,7 +218,7 @@ function Sidebar() {
                 </div>
               ) : (
                 <div className="flex items-center">
-                  <FiUser className="w-4 h-4 text-blue-400 flex-shrink-0" />
+                  <FiUser className="w-4 h-4 text-blue-400 shrink-0" />
                   <div className="ml-2 flex-1 min-w-0">
                     <p className="text-xs text-gray-400">Logged in as:</p>
                     <p className="text-sm font-medium text-gray-200 truncate">
@@ -256,7 +256,7 @@ function Sidebar() {
                 {...tooltipProps}
               >
                 <Icon
-                  className={`w-5 h-5 flex-shrink-0 transition-colors duration-200 ${
+                  className={`w-5 h-5 shrink-0 transition-colors duration-200 ${
                     isActive ? "text-blue-400" : ""
                   }`}
                 />
@@ -281,7 +281,7 @@ function Sidebar() {
               data-tooltip-content={isCollapsed ? "Logout" : undefined}
               data-tooltip-place={isCollapsed ? "right" : undefined}
             >
-              <HiLogout className="w-5 h-5 flex-shrink-0" />
+              <HiLogout className="w-5 h-5 shrink-0" />
               {!isCollapsed && <span className="ml-3 text-left">Logout</span>}
             </button>
           )}
