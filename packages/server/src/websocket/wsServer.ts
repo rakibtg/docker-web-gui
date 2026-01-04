@@ -1,29 +1,35 @@
-import { Server } from "http";
-import { WebSocketServer } from "ws";
-import { DockerService, ContainerWithStats } from "../dockerService";
-import { isAuthRequired, validateSession } from "../auth";
-import type { AuthSession } from "../auth";
-import { extractClientIP, isIPAllowed } from "../settings";
+import type {
+  WebSocketContext,
+  ClientConnection,
+  MessageHandlerMap,
+} from "./types";
+
 import {
   parseCookies,
-  getSessionTokenFromCookies,
   isWebSocketOriginAllowed,
+  getSessionTokenFromCookies,
 } from "../utils/requestUtils";
-import type { ClientConnection, MessageHandlerMap, WebSocketContext } from "./types";
+
+import { Server } from "http";
+import { WebSocketServer } from "ws";
+import type { AuthSession } from "../auth";
+import { createPingHandlers } from "./handlers/ping";
+import { createLogsHandlers } from "./handlers/logs";
+import { createStatsHandlers } from "./handlers/stats";
 import { validateContainerIdInput } from "./validation";
+import { createImageHandlers } from "./handlers/images";
+import { createSystemHandlers } from "./handlers/system";
+import { isAuthRequired, validateSession } from "../auth";
+import { createVolumeHandlers } from "./handlers/volumes";
+import { extractClientIP, isIPAllowed } from "../settings";
+import { createNetworkHandlers } from "./handlers/networks";
+import { createTerminalHandlers } from "./handlers/terminals";
 import { createDashboardHandlers } from "./handlers/dashboard";
 import { createContainerHandlers } from "./handlers/containers";
-import { createStatsHandlers } from "./handlers/stats";
-import { createPingHandlers } from "./handlers/ping";
-import { createTerminalHandlers } from "./handlers/terminals";
-import { createLogsHandlers } from "./handlers/logs";
-import { createImageHandlers } from "./handlers/images";
-import { createNetworkHandlers } from "./handlers/networks";
-import { createVolumeHandlers } from "./handlers/volumes";
-import { createSystemHandlers } from "./handlers/system";
+import { DockerService, ContainerWithStats } from "../dockerService";
 
-const clients = new Map<string, ClientConnection>();
 const dockerService = new DockerService();
+const clients = new Map<string, ClientConnection>();
 
 // Generate unique client ID
 function generateClientId(): string {
