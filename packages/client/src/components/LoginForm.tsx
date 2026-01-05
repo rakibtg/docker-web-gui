@@ -1,33 +1,34 @@
-import React, { useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import logo from '../assets/docker-web-gui-logo.png';
-import { FaEye, FaEyeSlash, FaUser, FaLock } from 'react-icons/fa';
+import { Button } from "./Button";
+import React, { useState } from "react";
+import { useAuth } from "../contexts/AuthContext";
+import logo from "../assets/docker-web-gui-logo.png";
+import { FaEye, FaEyeSlash, FaUser, FaLock } from "react-icons/fa";
 
 export function LoginForm() {
   const { login } = useAuth();
 
   const [credentials, setCredentials] = useState({
-    username: '',
-    password: '',
+    username: "",
+    password: "",
   });
 
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    setError('');
+    setError("");
     setIsLoading(true);
 
     try {
       const result = await login(credentials);
       if (!result.success) {
-        setError(result.message || 'Login failed');
+        setError(result.message || "Login failed");
       }
     } catch (error) {
-      setError('An unexpected error occurred');
+      setError("An unexpected error occurred");
     } finally {
       setIsLoading(false);
     }
@@ -35,12 +36,12 @@ export function LoginForm() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setCredentials(prev => ({
+    setCredentials((prev) => ({
       ...prev,
       [name]: value,
     }));
     // Clear error when user starts typing
-    if (error) setError('');
+    if (error) setError("");
   };
 
   return (
@@ -93,7 +94,7 @@ export function LoginForm() {
                 <input
                   id="password"
                   name="password"
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? "text" : "password"}
                   required
                   value={credentials.password}
                   onChange={handleInputChange}
@@ -124,10 +125,14 @@ export function LoginForm() {
           )}
 
           <div>
-            <button
+            <Button
               type="submit"
-              disabled={isLoading || !credentials.username || !credentials.password}
-              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+              disabled={
+                isLoading || !credentials.username || !credentials.password
+              }
+              variant="primary"
+              size="xl"
+              className="group relative w-full rounded-lg border-transparent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
             >
               {isLoading ? (
                 <div className="flex items-center">
@@ -135,9 +140,9 @@ export function LoginForm() {
                   Signing in...
                 </div>
               ) : (
-                'Sign in'
+                "Sign in"
               )}
-            </button>
+            </Button>
           </div>
         </form>
       </div>

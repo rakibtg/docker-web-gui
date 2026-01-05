@@ -6,38 +6,41 @@ import {
   useState,
   type ComponentType,
 } from "react";
-import { PageWrapper } from "../components/PageWrapper";
-import { ConfirmationModal } from "../components/ConfirmationModal";
-import { useApp } from "../hooks/useApp";
+
 import {
-  FaRecycle,
-  FaBroom,
-  FaNetworkWired,
   FaHdd,
+  FaBroom,
+  FaRecycle,
   FaShieldAlt,
+  FaNetworkWired,
   FaExclamationTriangle,
 } from "react-icons/fa";
+
+import { Button } from "../components";
+import { useApp } from "../hooks/useApp";
 import { HiSparkles } from "react-icons/hi";
+import { PageWrapper } from "../components/PageWrapper";
+import { ConfirmationModal } from "../components/ConfirmationModal";
 
 type CleanupActionKey =
-  | "prune-containers"
-  | "prune-images"
-  | "prune-images-all"
-  | "prune-networks"
-  | "prune-volumes"
   | "system-prune"
+  | "prune-images"
+  | "prune-volumes"
+  | "prune-networks"
+  | "prune-images-all"
+  | "prune-containers"
   | "system-prune-volumes";
 
 type CleanupAction = {
-  id: CleanupActionKey;
-  title: string;
-  description: string;
-  detail: string;
   cta: string;
-  icon: ComponentType<{ className?: string }>;
-  isDangerous?: boolean;
+  title: string;
+  detail: string;
   confirm: string;
+  description: string;
+  id: CleanupActionKey;
+  isDangerous?: boolean;
   handler: () => boolean | void;
+  icon: ComponentType<{ className?: string }>;
 };
 
 type ActionState = {
@@ -51,10 +54,10 @@ const Cleanup = memo(function Cleanup() {
     setError,
     websocket,
     pruneImages,
+    systemPrune,
     pruneVolumes,
     pruneNetworks,
     pruneContainers,
-    systemPrune,
   } = useApp();
 
   const actions: CleanupAction[] = useMemo(
@@ -317,22 +320,22 @@ const Cleanup = memo(function Cleanup() {
                       </div>
                     )}
 
-                    <button
+                    <Button
                       onClick={() => setActiveActionId(action.id)}
                       disabled={state.loading}
-                      className={`px-4 py-2 rounded-sm text-sm font-medium flex items-center gap-2 transition-all min-w-56 cursor-pointer justify-center ${
+                      size="lg"
+                      variant={action.isDangerous ? "danger" : "primary"}
+                      className={`min-w-56 justify-center font-medium transition-all ${
                         state.loading
-                          ? "bg-gray-700 text-gray-400 cursor-not-allowed"
-                          : action.isDangerous
-                          ? "bg-red-900 text-white hover:bg-red-700"
-                          : "bg-blue-900 text-white hover:bg-blue-700"
+                          ? "bg-gray-700 border-gray-600 text-gray-400"
+                          : ""
                       }`}
                     >
                       {state.loading && (
                         <span className="w-4 h-4 border-2 border-white/60 border-t-transparent rounded-full animate-spin"></span>
                       )}
                       {action.cta}
-                    </button>
+                    </Button>
                   </div>
                 </div>
               </div>

@@ -1,4 +1,5 @@
 export { Layout } from "./Layout";
+export { Button } from "./Button";
 export { Terminal } from "./Terminal";
 export { ImageCard } from "./ImageCard";
 export { ImageGrid } from "./ImageGrid";

@@ -1,4 +1,5 @@
 import { memo } from "react";
+import { Button } from "./Button";
 import { FaExclamationTriangle, FaNetworkWired, FaPlug } from "react-icons/fa";
 
 interface EntityEmptyStateProps {
@@ -40,12 +41,13 @@ const EntityEmptyState = memo(function EntityEmptyState({
         <p className="text-gray-400 mb-4">
           Unable to connect to the Docker Web GUI server
         </p>
-        <button
+        <Button
           onClick={() => window.location.reload()}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition-colors"
+          variant="primary"
+          size="lg"
         >
           Try Again
-        </button>
+        </Button>
       </div>
     );
   }
@@ -61,12 +63,13 @@ const EntityEmptyState = memo(function EntityEmptyState({
           Docker daemon is not running or not accessible! Make sure Docker is
           installed and running on your system.
         </p>
-        <button
+        <Button
           onClick={() => window.location.reload()}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition-colors"
+          variant="primary"
+          size="lg"
         >
           Retry
-        </button>
+        </Button>
       </div>
     );
   }
@@ -81,12 +84,9 @@ const EntityEmptyState = memo(function EntityEmptyState({
         No Docker {entityName.toLowerCase()} are available or they haven't been
         loaded yet
       </p>
-      <button
-        onClick={entityReload}
-        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition-colors"
-      >
+      <Button onClick={entityReload} variant="primary" size="lg">
         Load {entityName}
-      </button>
+      </Button>
     </div>
   );
 });

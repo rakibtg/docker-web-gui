@@ -1,4 +1,6 @@
 import { memo } from "react";
+import { Button } from "./Button";
+
 import {
   FaPlay,
   FaStop,
@@ -47,31 +49,27 @@ export const QuickActions = memo(function QuickActions({
     variant?: "normal" | "danger";
     color?: "blue" | "green" | "red" | "yellow" | "orange";
   }) => {
-    const colorClasses = {
-      red: "bg-red-600 hover:bg-red-700 text-white",
-      blue: "bg-blue-600 hover:bg-blue-700 text-white",
-      green: "bg-green-600 hover:bg-green-700 text-white",
-      yellow: "bg-yellow-600 hover:bg-yellow-700 text-white",
-      orange: "bg-orange-600 hover:bg-orange-700 text-white",
-    };
-
-    const dangerClasses =
-      "bg-red-600/20 border border-red-600/30 text-red-400 hover:bg-red-600/30";
+    const colorVariants = {
+      red: "danger",
+      blue: "primary",
+      green: "success",
+      yellow: "warning",
+      orange: "warning",
+    } as const;
+    const resolvedVariant =
+      variant === "danger" ? "danger" : colorVariants[color];
 
     return (
-      <button
+      <Button
         onClick={onClick}
         disabled={disabled}
-        className={`
-          px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200
-          flex items-center space-x-2 min-w-0 flex-1
-          disabled:opacity-50 disabled:cursor-not-allowed
-          ${variant === "danger" ? dangerClasses : colorClasses[color]}
-        `}
+        variant={resolvedVariant}
+        size="xl"
+        className="min-w-0 flex-1 font-medium transition-all duration-200 justify-start"
       >
         {icon}
         <span className="truncate">{label}</span>
-      </button>
+      </Button>
     );
   };
 

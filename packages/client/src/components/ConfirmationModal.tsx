@@ -1,4 +1,5 @@
 import { memo } from "react";
+import { Button } from "./Button";
 import { FaExclamationTriangle, FaTimes } from "react-icons/fa";
 
 interface ConfirmationModalProps {
@@ -41,16 +42,8 @@ const ConfirmationModal = memo(function ConfirmationModal({
     }
   };
 
-  const getConfirmButtonColor = () => {
-    switch (type) {
-      case "danger":
-        return "bg-red-600 hover:bg-red-700";
-      case "info":
-        return "bg-blue-600 hover:bg-blue-700";
-      default:
-        return "bg-yellow-600 hover:bg-yellow-700";
-    }
-  };
+  const confirmVariant =
+    type === "danger" ? "danger" : type === "info" ? "primary" : "warning";
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -59,9 +52,7 @@ const ConfirmationModal = memo(function ConfirmationModal({
         <div className="flex items-center justify-between p-6 border-b border-gray-700">
           <div className="flex items-center gap-3">
             <FaExclamationTriangle className={`h-6 w-6 ${getIconColor()}`} />
-            <h3 className="text-lg font-semibold text-gray-100">
-              {title}
-            </h3>
+            <h3 className="text-lg font-semibold text-gray-100">{title}</h3>
           </div>
           <button
             onClick={onClose}
@@ -79,28 +70,19 @@ const ConfirmationModal = memo(function ConfirmationModal({
 
         {/* Footer */}
         <div className="flex justify-end gap-3 p-6 border-t border-gray-700">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-gray-300 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-md transition-colors"
-          >
+          <Button onClick={onClose} variant="secondary" size="lg">
             {cancelText}
-          </button>
+          </Button>
 
           {showForceOption && onConfirmWithForce && (
-            <button
-              onClick={onConfirmWithForce}
-              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md transition-colors"
-            >
+            <Button onClick={onConfirmWithForce} variant="danger" size="lg">
               {confirmWithForceText}
-            </button>
+            </Button>
           )}
 
-          <button
-            onClick={onConfirm}
-            className={`px-4 py-2 text-white rounded-md transition-colors ${getConfirmButtonColor()}`}
-          >
+          <Button onClick={onConfirm} variant={confirmVariant} size="lg">
             {confirmText}
-          </button>
+          </Button>
         </div>
       </div>
     </div>
