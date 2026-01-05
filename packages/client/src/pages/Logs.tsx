@@ -1,3 +1,4 @@
+import { Button } from "../components";
 import { HiSearch, HiX } from "react-icons/hi";
 import { PageWrapper } from "../components/PageWrapper";
 import { MdRefresh, MdFilterList } from "react-icons/md";
@@ -40,16 +41,16 @@ export function Logs() {
   const [showFilters, setShowFilters] = useState(true);
 
   const [filters, setFilters] = useState<{
+    ip: string;
     action: string;
     status: string;
     username: string;
-    ip: string;
     anonymous: AnonymousFilter;
   }>({
+    ip: "",
     action: "",
     status: "",
     username: "",
-    ip: "",
     anonymous: "all",
   });
 
@@ -170,18 +171,15 @@ export function Logs() {
         </div>
 
         <div className="flex items-center gap-2">
-          <button
+          <Button
             title={showFilters ? "Hide filters" : "Show filters"}
             onClick={() => setShowFilters(!showFilters)}
-            className={`px-3 py-2 text-sm rounded-sm border transition-colors flex items-center gap-2 ${
-              showFilters
-                ? "bg-blue-900/30 border-blue-600/50 text-blue-200"
-                : "bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700"
-            }`}
+            size="md"
+            variant={showFilters ? "primary" : "default"}
           >
             <MdFilterList className="w-4 h-4" />
             {showFilters ? "Hide Filters" : "Show Filters"}
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -455,17 +453,14 @@ export function Logs() {
             : "No logs to display"}
         </div>
         <div className="flex items-center gap-2">
-          <button
+          <Button
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page <= 1 || loading}
-            className={`px-3 py-2 rounded-sm text-sm border border-gray-700 ${
-              page <= 1 || loading
-                ? "text-gray-500 cursor-not-allowed bg-gray-800"
-                : "text-gray-100 bg-gray-800 hover:bg-gray-700"
-            }`}
+            size="md"
+            className={page <= 1 || loading ? "text-gray-500" : ""}
           >
             Previous
-          </button>
+          </Button>
 
           <div className="flex items-center gap-1">
             {Array.from({ length: totalPages }, (_, idx) => idx + 1)
@@ -480,32 +475,26 @@ export function Logs() {
                     {showEllipsis && (
                       <span className="px-1 text-gray-500">…</span>
                     )}
-                    <button
+                    <Button
                       onClick={() => setPage(p)}
-                      className={`px-3 py-2 rounded-sm text-sm border ${
-                        p === page
-                          ? "bg-blue-900/50 border-blue-600 text-blue-200"
-                          : "bg-gray-800 border-gray-700 text-gray-100 hover:bg-gray-700"
-                      }`}
+                      size="md"
+                      variant={p === page ? "primary" : "default"}
                     >
                       {p}
-                    </button>
+                    </Button>
                   </div>
                 );
               })}
           </div>
 
-          <button
+          <Button
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={page >= totalPages || loading}
-            className={`px-3 py-2 rounded-sm text-sm border border-gray-700 ${
-              page >= totalPages || loading
-                ? "text-gray-500 cursor-not-allowed bg-gray-800"
-                : "text-gray-100 bg-gray-800 hover:bg-gray-700"
-            }`}
+            size="md"
+            className={page >= totalPages || loading ? "text-gray-500" : ""}
           >
             Next
-          </button>
+          </Button>
         </div>
       </div>
     </PageWrapper>

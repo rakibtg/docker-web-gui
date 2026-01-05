@@ -8,6 +8,7 @@ import {
 } from "react";
 
 import {
+  Button,
   ContainerGrid,
   CardActionButton,
   ConfirmationModal,
@@ -440,11 +441,7 @@ const Groups = memo(function Groups() {
                     }
                     onClick={() => {
                       const action = hasRunning ? "stop" : "start";
-                      void logGroupAction(
-                        group.id,
-                        action,
-                        group.containerIds
-                      );
+                      void logGroupAction(group.id, action, group.containerIds);
                       handleGroupToggle(groupContainers, hasRunning);
                     }}
                     disabled={groupContainers.length === 0}
@@ -561,12 +558,9 @@ const Groups = memo(function Groups() {
             </button>
           </div>
           <div className="flex items-center gap-2">
-            <button
-              onClick={openCreateForm}
-              className="px-4 py-2 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors"
-            >
+            <Button onClick={openCreateForm} variant="primary" size="lg">
               Create new group
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -662,15 +656,16 @@ const Groups = memo(function Groups() {
                     <div>Missing containers:</div>
                     <div className="flex flex-wrap gap-2">
                       {missingSelections.map((id) => (
-                        <button
+                        <Button
                           key={id}
                           type="button"
                           onClick={() => toggleContainerSelection(id)}
-                          className="px-2 py-1 rounded bg-yellow-900/40 border border-yellow-700/60 text-yellow-200 hover:bg-yellow-900/60"
+                          variant="warning"
+                          size="xs"
                           title="Remove missing container from group"
                         >
                           {id.slice(0, 12)}
-                        </button>
+                        </Button>
                       ))}
                     </div>
                   </div>
@@ -685,28 +680,31 @@ const Groups = memo(function Groups() {
               )}
 
               <div className="flex flex-wrap items-center gap-2 justify-end">
-                <button
+                <Button
                   type="button"
                   onClick={() => requestContainers()}
-                  className="px-4 py-2 text-sm rounded-lg bg-gray-700 text-gray-100 hover:bg-gray-600 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                  variant="secondary"
+                  size="lg"
                   disabled={loading}
                 >
                   Refresh containers
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
                   onClick={closeForm}
-                  className="px-4 py-2 text-sm rounded-lg bg-gray-700 text-gray-100 hover:bg-gray-600 transition-colors"
+                  variant="secondary"
+                  size="lg"
                 >
                   Cancel
-                </button>
-                <button
+                </Button>
+                <Button
                   type="submit"
-                  className="px-4 py-2 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                  variant="primary"
+                  size="lg"
                   disabled={groupsLoading}
                 >
                   {editingGroupId ? "Save group" : "Create group"}
-                </button>
+                </Button>
               </div>
             </form>
           </div>

@@ -1,6 +1,3 @@
-import { memo, useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-
 import {
   FaTag,
   FaHdd,
@@ -18,8 +15,10 @@ import { formatDate } from "../helpers";
 import { useApp } from "../hooks/useApp";
 import type { DockerVolume } from "../types";
 import { BsCircleFill } from "react-icons/bs";
+import { memo, useEffect, useState } from "react";
 import { PageWrapper } from "../components/PageWrapper";
-import { ConfirmationModal } from "../components/ConfirmationModal";
+import { useParams, useNavigate } from "react-router-dom";
+import { Button, ConfirmationModal } from "../components";
 
 const VolumeDetails = memo(function VolumeDetails() {
   const navigate = useNavigate();
@@ -154,12 +153,14 @@ const VolumeDetails = memo(function VolumeDetails() {
           </p>
         </div>
         <div className="text-center py-8 lg:py-16">
-          <button
+          <Button
             onClick={handleBackClick}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm lg:text-base"
+            variant="primary"
+            size="lg"
+            className="lg:text-base"
           >
             Back to Volumes
-          </button>
+          </Button>
         </div>
       </div>
     );
@@ -209,12 +210,14 @@ const VolumeDetails = memo(function VolumeDetails() {
           <p className="text-gray-400 text-sm lg:text-base">
             The requested volume "{volumeId}" could not be found.
           </p>
-          <button
+          <Button
             onClick={handleBackClick}
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+            variant="primary"
+            size="lg"
+            className="mt-4"
           >
             Back to Volumes
-          </button>
+          </Button>
         </div>
       </div>
     );
@@ -259,16 +262,18 @@ const VolumeDetails = memo(function VolumeDetails() {
                   {isInUse ? "In Use" : "Unused"}
                 </span>
                 {!isInUse && (
-                  <button
+                  <Button
                     onClick={handleRemoveClick}
                     disabled={isRemoving}
-                    className="ml-auto px-2 py-1 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white rounded text-xs transition-colors flex items-center gap-1"
+                    variant="danger"
+                    size="xs"
+                    className="ml-auto gap-1"
                   >
                     <FaTrash className="w-3 h-3" />
                     <span className="hidden sm:inline">
                       {isRemoving ? "Removing..." : "Remove"}
                     </span>
-                  </button>
+                  </Button>
                 )}
               </div>
             </div>

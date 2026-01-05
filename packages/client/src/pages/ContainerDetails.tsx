@@ -22,6 +22,7 @@ import {
   FaNetworkWired,
 } from "react-icons/fa";
 
+import { Button } from "../components";
 import { useApp } from "../hooks/useApp";
 import { BsCircleFill } from "react-icons/bs";
 import type { DockerContainerDetails } from "../types";
@@ -205,12 +206,14 @@ const ContainerDetails = memo(function ContainerDetails() {
           </p>
         </div>
         <div className="text-center py-8 lg:py-16">
-          <button
+          <Button
             onClick={handleBackClick}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm lg:text-base"
+            variant="primary"
+            size="lg"
+            className="lg:text-base"
           >
             Back to Containers
-          </button>
+          </Button>
         </div>
       </div>
     );
@@ -260,12 +263,14 @@ const ContainerDetails = memo(function ContainerDetails() {
           <p className="text-gray-400 text-sm lg:text-base">
             The requested container "{containerId}" could not be found.
           </p>
-          <button
+          <Button
             onClick={handleBackClick}
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+            variant="primary"
+            size="lg"
+            className="mt-4"
           >
             Back to Containers
-          </button>
+          </Button>
         </div>
       </div>
     );
@@ -318,14 +323,11 @@ const ContainerDetails = memo(function ContainerDetails() {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <button
+            <Button
               onClick={handleToggle}
               disabled={isToggling}
-              className={`px-3 py-1.5 rounded text-sm transition-colors flex items-center gap-1 ${
-                isRunning
-                  ? "bg-red-600 hover:bg-red-700 text-white"
-                  : "bg-green-600 hover:bg-green-700 text-white"
-              } disabled:opacity-50`}
+              variant={isRunning ? "danger" : "success"}
+              className="gap-1"
             >
               {isRunning ? (
                 <FaStop className="w-3 h-3" />
@@ -335,12 +337,13 @@ const ContainerDetails = memo(function ContainerDetails() {
               <span className="hidden sm:inline">
                 {isToggling ? "..." : isRunning ? "Stop" : "Start"}
               </span>
-            </button>
+            </Button>
             {isRunning && (
-              <button
+              <Button
                 onClick={handleRestart}
                 disabled={isRestarting}
-                className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded text-sm transition-colors flex items-center gap-1"
+                variant="primary"
+                className="gap-1"
               >
                 <FaRedo
                   className={`w-3 h-3 ${isRestarting ? "animate-spin" : ""}`}
@@ -348,7 +351,7 @@ const ContainerDetails = memo(function ContainerDetails() {
                 <span className="hidden sm:inline">
                   {isRestarting ? "Restarting..." : "Restart"}
                 </span>
-              </button>
+              </Button>
             )}
           </div>
         </div>

@@ -1,31 +1,33 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useParams } from "react-router-dom";
-import { useApp } from "../hooks/useApp";
-import type { DockerImageDetails } from "../types";
-import { PageWrapper } from "../components/PageWrapper";
-import { formatDate } from "../helpers";
 import {
-  FaArrowLeft,
   FaBox,
-  FaCode,
   FaHdd,
+  FaCode,
+  FaArrowLeft,
   FaLayerGroup,
 } from "react-icons/fa";
-import { Link } from "react-router-dom";
 
+import { Button } from "../components";
+import { Link } from "react-router-dom";
+import { formatDate } from "../helpers";
+import { useApp } from "../hooks/useApp";
+import { useParams } from "react-router-dom";
+import type { DockerImageDetails } from "../types";
+import { PageWrapper } from "../components/PageWrapper";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
+const RETRY_DELAY_MS = 500;
 const MAX_REQUEST_ATTEMPTS = 3;
 const RESPONSE_TIMEOUT_MS = 5000;
-const RETRY_DELAY_MS = 500;
 
 export function ImageDetails() {
+  const requestAttemptsRef = useRef(0);
+  const [isLoading, setIsLoading] = useState(false);
   const { imageId } = useParams<{ imageId: string }>();
+  const [error, setError] = useState<string | null>(null);
+  const latestDataRef = useRef<DockerImageDetails | null>(null);
   const { requestImageDetails, websocket, isConnected } = useApp();
   const [data, setData] = useState<DockerImageDetails | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const requestAttemptsRef = useRef(0);
   const requestTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const latestDataRef = useRef<DockerImageDetails | null>(null);
 
   const clearRequestTimeout = useCallback(() => {
     if (requestTimeoutRef.current) {
@@ -198,12 +200,14 @@ export function ImageDetails() {
           <div className="bg-red-900/40 border border-red-700 text-red-200 rounded-md p-4">
             {error}
           </div>
-          <button
+          <Button
             onClick={sendImageDetailsRequest}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors w-fit"
+            variant="primary"
+            size="lg"
+            className="w-fit"
           >
             Retry
-          </button>
+          </Button>
         </div>
       </PageWrapper>
     );

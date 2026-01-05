@@ -1,30 +1,28 @@
-import { memo, useEffect, useMemo, useState } from "react";
 import { useApp } from "../hooks/useApp";
-import { useDashboardSummary } from "../hooks/useDashboardSummary";
 import { useNavigate } from "react-router-dom";
-
-import { SystemOverview, ResourceSummary } from "../components";
-
 import { PageWrapper } from "../components/PageWrapper";
+import { memo, useEffect, useMemo, useState } from "react";
+import { useDashboardSummary } from "../hooks/useDashboardSummary";
+import { Button, SystemOverview, ResourceSummary } from "../components";
 
 type RecentLog = {
   id: number;
   action: string;
+  createdAt: string;
+  isAnonymous: boolean;
+  userId?: string | null;
   status?: string | null;
   message?: string | null;
   username?: string | null;
-  userId?: string | null;
-  isAnonymous: boolean;
-  createdAt: string;
 };
 
 const Dashboard = memo(function Dashboard() {
-  const { isConnected, dockerMessage, dockerAvailable } = useApp();
   const navigate = useNavigate();
   const { summary } = useDashboardSummary();
-  const [recentLogs, setRecentLogs] = useState<RecentLog[]>([]);
   const [logsLoading, setLogsLoading] = useState(false);
   const [logsError, setLogsError] = useState<string>("");
+  const [recentLogs, setRecentLogs] = useState<RecentLog[]>([]);
+  const { isConnected, dockerMessage, dockerAvailable } = useApp();
 
   useEffect(() => {
     const controller = new AbortController();
@@ -163,12 +161,7 @@ const Dashboard = memo(function Dashboard() {
             <h3 className="font-semibold text-gray-100 flex items-center space-x-2">
               <span>Recent Activity</span>
             </h3>
-            <button
-              onClick={() => navigate("/logs")}
-              className="px-3 py-1.5 text-sm rounded-sm bg-gray-800 border border-gray-700 text-gray-100 hover:bg-gray-700 transition-colors"
-            >
-              See all logs
-            </button>
+            <Button onClick={() => navigate("/logs")}>See all logs</Button>
           </div>
           <div className="bg-gray-800 border border-gray-700 rounded-sm p-4 shadow-lg shadow-black/20">
             {recentLogsList}

@@ -1,30 +1,30 @@
 import { memo } from "react";
 import type { ComponentType } from "react";
-
 import { PageWrapper } from "../components/PageWrapper";
+
 import {
-  HiHeart,
   HiStar,
-  HiExclamationCircle,
   HiCode,
+  HiHeart,
   HiShare,
+  HiExclamationCircle,
 } from "react-icons/hi";
 
 type SupportCardProps = {
   title: string;
-  description: string;
   href?: string;
   linkLabel?: string;
-  icon: ComponentType<{ className?: string }>;
+  description: string;
   accentClassName: string;
+  icon: ComponentType<{ className?: string }>;
 };
 
 function SupportCard({
-  title,
-  description,
   href,
+  title,
   linkLabel,
   icon: Icon,
+  description,
   accentClassName,
 }: SupportCardProps) {
   return (
@@ -68,8 +68,8 @@ const Support = memo(function Support() {
       <div className="border-b border-gray-700 pb-4 mb-4">
         <div className="flex items-end justify-between gap-2">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-100">
-              Support Docker Web GUI
+            <h1 className="text-xl font-bold text-gray-100">
+              Support Docker Web GUI Project
             </h1>
             <p className="text-sm sm:text-base text-gray-400 leading-relaxed">
               A few small actions go a long way.
@@ -87,8 +87,9 @@ const Support = memo(function Support() {
 
           <div className="mt-1 text-sm sm:text-base text-gray-300 leading-relaxed">
             <p>
-              Docker Web GUI is a modern web interface for managing Docker
-              containers, images, networks, and volumes.
+              Docker Web GUI is open source software providing a modern web
+              interface for managing Docker containers, images, networks, and
+              volumes.
             </p>
             <p>
               This project was created by{" "}
